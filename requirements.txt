@@ -1,0 +1,7 @@
+google-generativeai
+tavily-python
+yfinance
+python-dotenv
+fastapi
+uvicorn
+requests

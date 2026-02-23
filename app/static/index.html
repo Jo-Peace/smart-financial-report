@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 個股研究員 — 智能深度分析</title>
+    <meta name="description" content="輸入股票代號，AI 幫你生成分析師等級的深度研究報告">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <span class="logo-icon">🔬</span>
+                <span class="logo-text">AI 個股研究員</span>
+            </div>
+            <span class="badge">MVP Beta</span>
+        </div>
+        <div class="header-right">
+            <div class="quota-display" id="quotaDisplay">
+                <span class="quota-label">今日額度</span>
+                <span class="quota-value" id="quotaValue">—/3</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Hero Section -->
+        <section class="hero" id="heroSection">
+            <h1 class="hero-title">
+                <span class="gradient-text">AI 深度研究</span>
+                <br>一鍵生成分析師報告
+            </h1>
+            <p class="hero-subtitle">
+                輸入股票代號，5 分鐘內獲得完整的深度研究報告<br>
+                涵蓋技術面、籌碼面、營收分析、成長引擎與風險評估
+            </p>
+
+            <!-- Search Box -->
+            <div class="search-container">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input
+                        type="text"
+                        id="tickerInput"
+                        class="search-input"
+                        placeholder="輸入股票代號，例如：2330"
+                        maxlength="10"
+                        autocomplete="off"
+                    >
+                    <button class="search-btn" id="searchBtn" onclick="handleSearch()">
+                        <span class="btn-text">分析</span>
+                        <span class="btn-loading" style="display:none">
+                            <span class="spinner"></span>
+                        </span>
+                    </button>
+                </div>
+                <div class="search-hints">
+                    <span class="hint-label">熱門：</span>
+                    <button class="hint-chip" onclick="quickSearch('2330')">台積電</button>
+                    <button class="hint-chip" onclick="quickSearch('2317')">鴻海</button>
+                    <button class="hint-chip" onclick="quickSearch('2454')">聯發科</button>
+                    <button class="hint-chip" onclick="quickSearch('2382')">廣達</button>
+                    <button class="hint-chip" onclick="quickSearch('3037')">欣興</button>
+                    <button class="hint-chip" onclick="quickSearch('3260')">威剛</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <section class="loading-section" id="loadingSection" style="display:none">
+            <div class="loading-card">
+                <div class="loading-animation">
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring delay-1"></div>
+                    <div class="pulse-ring delay-2"></div>
+                    <span class="loading-icon">🤖</span>
+                </div>
+                <h2 class="loading-title">AI 正在分析 <span id="loadingTicker"></span>...</h2>
+                <div class="loading-steps">
+                    <div class="step active" id="step1">📊 獲取即時股價數據</div>
+                    <div class="step" id="step2">📰 搜尋相關新聞</div>
+                    <div class="step" id="step3">🧠 AI 深度分析中</div>
+                    <div class="step" id="step4">📝 生成研究報告</div>
+                </div>
+                <p class="loading-hint">首次分析約需 30~60 秒，請耐心等候</p>
+            </div>
+        </section>
+
+        <!-- Error State -->
+        <section class="error-section" id="errorSection" style="display:none">
+            <div class="error-card">
+                <span class="error-icon">⚠️</span>
+                <h2 class="error-title" id="errorTitle">出了點問題</h2>
+                <p class="error-message" id="errorMessage"></p>
+                <button class="retry-btn" onclick="resetToSearch()">重新搜尋</button>
+            </div>
+        </section>
+
+        <!-- Report Section -->
+        <section class="report-section" id="reportSection" style="display:none">
+            <div class="report-header">
+                <div class="report-meta">
+                    <span class="report-ticker" id="reportTicker"></span>
+                    <span class="report-name" id="reportName"></span>
+                    <span class="report-badge" id="reportBadge"></span>
+                </div>
+                <button class="back-btn" onclick="resetToSearch()">← 重新搜尋</button>
+            </div>
+            <div class="report-content" id="reportContent"></div>
+            <div class="report-footer">
+                <p>⚠️ 免責聲明：本報告由 AI 自動生成，僅供研究參考，不構成任何投資建議。投資有風險，請自行評估。</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2026 AI 個股研究員 — Powered by Gemini AI</p>
+    </footer>
+
+    <!-- Markdown rendering library -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
