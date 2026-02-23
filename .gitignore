@@ -23,3 +23,5 @@ venv/
 
 # Reports (optional - keep if you want to share)
 # reports/
+*.pdf
+*.png
