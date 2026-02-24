@@ -72,22 +72,23 @@ def generate_stock_research(ticker: str) -> str:
     Generate a deep research report for a single stock.
     Reuses existing data_fetcher and analyzer modules.
     """
-    # Determine Yahoo Finance symbol
-    if ticker.isdigit():
-        if len(ticker) == 4:
-            yf_symbol = f"{ticker}.TW"
-        else:
-            yf_symbol = f"{ticker}.TWO"
-    else:
-        yf_symbol = ticker
-
     stock_name = STOCK_NAMES.get(ticker, ticker)
 
     fetcher = DataFetcher(TAVILY_API_KEY)
     analyzer = MarketAnalyzer(GEMINI_API_KEY)
 
-    # 1. Get stock data
-    stock_data = fetcher.get_stock_data(yf_symbol)
+    # 1. Get stock data (Try .TW first, fallback to .TWO for OTC stocks)
+    stock_data = None
+    if ticker.isdigit():
+        yf_symbol = f"{ticker}.TW"
+        stock_data = fetcher.get_stock_data(yf_symbol)
+        
+        if not stock_data:
+            yf_symbol = f"{ticker}.TWO"
+            stock_data = fetcher.get_stock_data(yf_symbol)
+    else:
+        yf_symbol = ticker
+        stock_data = fetcher.get_stock_data(yf_symbol)
 
     # 2. Get relevant news
     search_query = f"{stock_name} {ticker} 台股 營收 展望 法人 2026"
