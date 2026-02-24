@@ -267,6 +267,13 @@ async def research(req: ResearchRequest, request: Request):
         stock_name = STOCK_NAMES.get(ticker, ticker)
         content = generate_stock_research(ticker)
 
+        # Check if Gemini returned an error string instead of a valid report
+        if content and content.startswith("Error generating"):
+            return JSONResponse(
+                status_code=500,
+                content={"error": content, "remaining_quota": remaining}
+            )
+
         # Save to cache
         save_report(ticker, content)
 
