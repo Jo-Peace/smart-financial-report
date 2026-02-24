@@ -222,6 +222,13 @@ async def research(req: ResearchRequest, request: Request):
             status_code=400,
             content={"error": "請輸入有效的股票代號（例如：2330）"}
         )
+        
+    # Check if ticker contains Chinese characters
+    if any(u'\u4e00' <= c <= u'\u9fff' for c in ticker):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "⚠️ 請輸入股票「代號」（例如：2330 或 2543），目前暫不支援直接輸入中文名稱查詢喔！"}
+        )
 
     # Check cache first (doesn't cost quota)
     cached = get_cached_report(ticker)
