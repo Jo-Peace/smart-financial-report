@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 個股研究員 — 智能深度分析</title>
     <meta name="description" content="輸入股票代號，AI 幫你生成分析師等級的深度研究報告">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -40,18 +44,22 @@
                 涵蓋技術面、籌碼面、營收分析、成長引擎與風險評估
             </p>
 
+            <!-- YouTube Link -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <a href="YOUR_YOUTUBE_LINK_HERE" target="_blank"
+                    style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 0, 0, 0.1); color: #ff6b6b; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 600; border: 1px solid rgba(255, 0, 0, 0.2); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(255,0,0,0.1);"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255,0,0,0.15)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255,0,0,0.1)';">
+                    <span style="font-size: 1.2rem;">📺</span> 訂閱【AI帶你看股市】YouTube 頻道
+                </a>
+            </div>
+
             <!-- Search Box -->
             <div class="search-container">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
-                    <input
-                        type="text"
-                        id="tickerInput"
-                        class="search-input"
-                        placeholder="輸入股票代號，例如：2330"
-                        maxlength="10"
-                        autocomplete="off"
-                    >
+                    <input type="text" id="tickerInput" class="search-input" placeholder="輸入股票代號，例如：2330" maxlength="10"
+                        autocomplete="off">
                     <button class="search-btn" id="searchBtn" onclick="handleSearch()">
                         <span class="btn-text">分析</span>
                         <span class="btn-loading" style="display:none">
@@ -127,4 +135,5 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/static/app.js"></script>
 </body>
+
 </html>
