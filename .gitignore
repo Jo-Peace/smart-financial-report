@@ -25,3 +25,4 @@ venv/
 # reports/
 *.pdf
 *.png
+list_models.py
