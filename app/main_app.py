@@ -90,6 +90,9 @@ def generate_stock_research(ticker: str) -> str:
         yf_symbol = ticker
         stock_data = fetcher.get_stock_data(yf_symbol)
 
+    if not stock_data:
+        return f"Error generating report: 無法取得 {ticker} 的股價資料。請確認股票代號是否正確，且擁有足夠的近期交易數據。"
+
     # 2. Get relevant news
     search_query = f"{stock_name} {ticker} 台股 營收 展望 法人 2026"
     news_data = fetcher.get_news(search_query, days=7)
