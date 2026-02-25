@@ -6,8 +6,8 @@ import time
 class MarketAnalyzer:
     def __init__(self, api_key):
         genai.configure(api_key=api_key)
-        # 讀取環境變數，本地端預設可設為 gemini-1.5-pro，網站端若未設定則預設使用 1.5-flash 保證大配額
-        model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+        # 讀取環境變數，本地端預設可設為 gemini-pro-latest，網站端若未設定則預設使用 gemini-flash-latest
+        model_name = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
         self.model = genai.GenerativeModel(model_name)
 
     def _call_gemini_with_retry(self, prompt, max_retries=3):
