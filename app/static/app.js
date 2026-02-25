@@ -130,6 +130,27 @@ function showReport(data) {
     const content = document.getElementById('reportContent');
     if (typeof marked !== 'undefined') {
         content.innerHTML = marked.parse(data.content || '');
+
+        // Post-process blockquotes for GitHub-style alerts
+        const blockquotes = content.querySelectorAll('blockquote');
+        blockquotes.forEach(bq => {
+            const firstP = bq.querySelector('p');
+            if (firstP) {
+                if (firstP.innerHTML.startsWith('[!TIP]')) {
+                    firstP.innerHTML = firstP.innerHTML.replace('[!TIP]', '').trim();
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'custom-alert alert-tip';
+                    alertDiv.innerHTML = `<div class="alert-icon">💡</div><div class="alert-text">${bq.innerHTML}</div>`;
+                    bq.parentNode.replaceChild(alertDiv, bq);
+                } else if (firstP.innerHTML.startsWith('[!WARNING]')) {
+                    firstP.innerHTML = firstP.innerHTML.replace('[!WARNING]', '').trim();
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'custom-alert alert-warning';
+                    alertDiv.innerHTML = `<div class="alert-icon">⚠️</div><div class="alert-text">${bq.innerHTML}</div>`;
+                    bq.parentNode.replaceChild(alertDiv, bq);
+                }
+            }
+        });
     } else {
         content.innerHTML = '<pre>' + (data.content || '') + '</pre>';
     }

@@ -139,10 +139,11 @@ def generate_stock_research(ticker: str) -> str:
                 break
 
     prompt = f"""
-    You are a professional financial analyst specializing in Taiwan stock market.
-    Create a comprehensive deep research report for stock {ticker} ({stock_name}) as of {date_str}.
-    Write in Traditional Chinese (繁體中文) Markdown format.
-
+    You are a professional top-tier financial analyst specializing in the Taiwan stock market.
+    Your task is to create a highly professional, deep-dive research report for stock {ticker} ({stock_name}) as of {date_str}.
+    
+    You MUST output in Traditional Chinese (繁體中文) Markdown format.
+    
     # 股票數據
     {data_summary}
     {inst_info}
@@ -150,45 +151,44 @@ def generate_stock_research(ticker: str) -> str:
     # 相關新聞
     {news_summary}
 
-    # 報告要求（請嚴格按照以下結構）
+    # 報告要求（請嚴格按照以下結構生成內容，直接輸出 Markdown，不要閒話）
 
-    ## 1. 公司基本資料
-    - 公司名稱、代碼、產業別
-    - 主營業務概述
+    ## 1. 🏢 公司概況與核心業務
+    - 公司名稱、代碼、產業別、主營業務概述與護城河。
 
-    ## 2. 股價技術面快照
-    - 建立表格：價格、漲跌、漲跌幅、MA5、MA20、RSI
-    - 均線排列判斷（多頭/空頭/糾結）
-    - RSI 超買(>70)/超賣(<30) 判斷
+    ## 2. 📈 技術面與籌碼面快照
+    - 建立表格包含：價格、漲跌、漲跌幅、MA5、MA20、RSI。
+    - 均線與量價判斷（例如：多頭/空頭/糾結、量價配合度）。
+    - 籌碼動態解讀（結合上述法人買賣超數據，判斷資金流向）。
 
-    ## 3. 營收與獲利分析
-    - 根據新聞中找到的數據，整理近期營收表現
-    - EPS 趨勢（若有法人預估數據請列出）
-    - 毛利率趨勢觀察
+    ## 3. 📊 基本面與營收動能
+    - 綜合最新新聞與行情，解讀近期營收表現與 EPS 趨勢。
+    - 毛利率或獲利能力的觀察重點。
 
-    ## 4. 成長引擎分析
-    - 根據新聞，分析公司未來 1~2 年的主要成長動能
-    - 至少列出 2~3 個成長引擎，附上具體數據
+    ## 4. 🔍 盤面歸因分析（Why Behind the Move）
+    - 列出 2~4 項近期股價波動的關鍵驅動力。
+    - 使用「結果 ← 原因」的句型（例：「股價突破前高 ← 因為法說會上修全年財測」）。
 
-    ## 5. 🔍 盤面歸因分析（Why Behind the Move）
-    - 用「結果 ← 原因」格式，分析近期股價表現的驅動力
-    - 宏觀因素、產業催化劑、籌碼因素各至少 1 項
+    ## 5. 📝 投資結論與觀察重點
+    請將未來的催化劑（Catalysts）按時間軸拆解：
+    
+    ### 短期（1-3 個月）
+    - (列出 2-3 點短期股價催化劑，如：月營收發佈、特定展覽、短期均線支撐等)
+    
+    ### 中期（3-6 個月）
+    - (列出 2-3 點中期發展，如：新產能開出、新產品驗證進度、季報預期等)
+    
+    ### 長期（6-12 個月以上）
+    - (列出 2-3 點長期護城河或大趨勢題材，如：AI 滲透率提升、轉型計畫發酵等)
 
-    ## 6. 風險評估
-    - 列出 3~5 項主要風險
-    - 短期風險 vs 長期風險
+    > [!TIP] 核心投資邏輯：請用 2-3 句話總結這檔股票最核心的投資價值與買進理由，並給出目前股價位階的客觀評論。
 
-    ## 7. 投資結論
-    - 綜合評價（偏多/中性/偏空）
-    - 建議觀察重點
+    > [!WARNING] 風險提示：請列出 2-3 項投資此公司的主要風險（如：特定技術尚在驗證、競爭對手降價、總體經濟影響等）。
 
     # 數字格式（重要！）
-    在報告正文中提及關鍵數字時，必須在阿拉伯數字後加上中文括號標註：
+    在報告正文中提及關鍵數字時，必須在阿拉伯數字後加上中文括號標註（表格內的數字不需標註）：
     - 股價：1,915 元（一千九百一十五元）
     - 張數：12,634 張（一萬兩千六百三十四張）
-    - 表格內的數字不需要加中文標註。
-
-    請生成完整、專業的深度研究報告。
     """
 
     report = analyzer._call_gemini_with_retry(prompt)
