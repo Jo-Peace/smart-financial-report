@@ -5,7 +5,8 @@ import time
 class MarketAnalyzer:
     def __init__(self, api_key):
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-flash-latest')
+        # 使用 1.5-flash 以確保享有每天 1,500 次的最高免費用量
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
 
     def _call_gemini_with_retry(self, prompt, max_retries=3):
         """
