@@ -53,11 +53,14 @@ class DataFetcher:
             ma20 = round(float(np.mean(closes[-20:])), 2) if len(closes) >= 20 else None
             rsi = self._calc_rsi(closes) if len(closes) >= 15 else None
             
+            # 若為大盤或極小變動，保留較高精確度避免出現 0.00%
+            formatted_pct = round(float(pct_change), 3) if abs(pct_change) < 0.01 else round(float(pct_change), 2)
+            
             return {
                 "symbol": symbol,
                 "price": round(float(current_close), 2),
                 "change": round(float(change), 2),
-                "pct_change": round(float(pct_change), 2),
+                "pct_change": formatted_pct,
                 "volume": int(hist['Volume'].iloc[-1]),
                 "ma5": ma5,
                 "ma20": ma20,
