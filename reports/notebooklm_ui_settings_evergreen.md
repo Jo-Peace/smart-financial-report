@@ -47,3 +47,13 @@
 > #### 4. ❤️ 總編真心話 (Closing - MANDATORY)
 > * Mandatory Closing: The Strategist host MUST end the entire conversation exactly with this specific phrase in conversational tone:
 > "我們的 AI 模型持續在完善中，感謝指正。AI 正在跟各位高手學習中，讓我們一起學習在股市賺錢，跟著我們買的股票一起成長！"
+
+---
+
+## 📺 欄位三：YouTube 影片發布設定 (Video Metadata)
+*(影片產出後，上傳至 YouTube 時請直接使用以下設定)*
+
+*   **推薦影片標題 (Title)：**
+    深入解析 AI 泡沫疑慮！現在的美股和台股高檔震盪，到底像 2008 金融海嘯還是 2000 達康泡沫？
+*   **推薦資訊欄文案 (Description) 開頭第一段：**
+    深入解析 AI 泡沫疑慮！現在的美股和台股高檔震盪，到底像 2008 金融海嘯還是 2000 達康泡沫？從本益比、自由現金流看透科技巨頭的真面目。
