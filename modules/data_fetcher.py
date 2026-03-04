@@ -245,3 +245,4 @@ class DataFetcher:
         except Exception as e:
             print(f"[Error] Tavily 搜尋失敗: {e}")
             return []
+

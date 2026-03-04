@@ -13,7 +13,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Target Tickers (Taiwan Local Sectors)
 TARGET_SYMBOLS = ["^TWII", "2330.TW", "2454.TW", "2382.TW", "3231.TW", "2376.TW", "2603.TW"]
-TARGET_TOPICS = ["Taiwan Semiconductor", "AI Server Supply Chain", "Taiwan Shipping Industry"]
+TARGET_TOPICS = ["Taiwan Semiconductor", "AI Server Supply Chain", "Taiwan Shipping Industry", "台股 今日強勢族群 逆勢抗跌"]
 
 # Reports directory
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
