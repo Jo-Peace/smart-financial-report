@@ -70,6 +70,39 @@ class DataFetcher:
             print(f"[Error] 取得 {symbol} 數據失敗: {e}")
             return None
 
+    def get_commodity_data(self):
+        """
+        Fetches Gold, Oil, Silver prices via yfinance.
+        Returns a dict of commodity data.
+        """
+        commodities = {
+            "GC=F": "黃金 (Gold)",
+            "CL=F": "原油 (Crude Oil)",
+            "SI=F": "白銀 (Silver)",
+        }
+        results = {}
+        for symbol, name in commodities.items():
+            try:
+                ticker = yf.Ticker(symbol)
+                # Just fetch the last 2 days to get the exact 1-day change
+                hist = ticker.history(period="2d")
+                if hist.empty or len(hist) < 2:
+                    continue
+                current = float(hist['Close'].iloc[-1])
+                prev = float(hist['Close'].iloc[-2])
+                change = current - prev
+                pct = (change / prev) * 100
+                results[symbol] = {
+                    "name": name,
+                    "price": round(current, 2),
+                    "change": round(change, 2),
+                    "pct_change": round(pct, 2),
+                }
+                print(f"  ✅ {name}: ${results[symbol]['price']} ({results[symbol]['pct_change']:+.2f}%)")
+            except Exception as e:
+                print(f"  ⚠️  {name}: 取得失敗 ({e})")
+        return results
+
     def get_weekly_stock_data(self, symbol, trading_days=5):
         """
         Fetches a week's worth of daily stock data for weekly summary.
@@ -163,12 +196,26 @@ class DataFetcher:
                 url = f"https://www.twse.com.tw/rwd/zh/fund/T86?date={date_str}&selectType=ALLBUT0999&response=json"
 
                 try:
-                    try:
-                        resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
-                    except requests.exceptions.SSLError:
-                        if days_back == 0:
-                            print("  [Info] SSL 驗證失敗，嘗試跳過驗證...")
-                        resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15, verify=False)
+                    import time
+                    for attempt in range(3): # Retry up to 3 times for timeout
+                        try:
+                            # Increase timeout to 30 seconds since TWSE is very slow post-market
+                            resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=30)
+                            break
+                        except requests.exceptions.SSLError:
+                            if days_back == 0 and attempt == 0:
+                                print("  [Info] SSL 驗證失敗，嘗試跳過驗證...")
+                            resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=30, verify=False)
+                            break
+                        except requests.exceptions.ReadTimeout:
+                            if attempt < 2:
+                                print(f"  [Warning] TWSE API 讀取超時，重試第 {attempt+1} 次...")
+                                time.sleep(2)
+                                continue
+                            else:
+                                raise
+                        except Exception as e:
+                            raise e
 
                     result = resp.json()
                     if result.get("stat") == "OK" and "data" in result:
@@ -180,7 +227,10 @@ class DataFetcher:
                     else:
                         if days_back == 0:
                             print(f"  [Info] 今日數據尚未發布，往前搜尋中...")
-                except Exception:
+                        
+                except Exception as e:
+                    if days_back == 0:
+                        print(f"  [Info] 取得今日法人數據發生錯誤 ({e})，往前搜尋中...")
                     continue
 
             if data is None:
@@ -209,17 +259,49 @@ class DataFetcher:
                 except (ValueError, IndexError):
                     continue
 
-            # Sort by foreign investor net buy/sell
-            sorted_by_foreign = sorted(all_stocks, key=lambda x: x["foreign_net"], reverse=True)
-            top_buy = sorted_by_foreign[:top_n]
-            top_sell = sorted_by_foreign[-top_n:][::-1]  # Reverse so most sold is first
+            # Fetch close prices for top movers to compute dollar amounts
+            print("  正在計算法人買賣超金額...")
+            # Get unique stock IDs that need price lookup (top candidates)
+            sorted_by_shares = sorted(all_stocks, key=lambda x: abs(x["foreign_net"]), reverse=True)
+            price_candidates = sorted_by_shares[:top_n * 4]  # Look up more than needed
+            
+            for stock in price_candidates:
+                try:
+                    tw_symbol = f"{stock['id']}.TW"
+                    tk = yf.Ticker(tw_symbol)
+                    hist = tk.history(period="5d")
+                    if not hist.empty:
+                        close_price = float(hist['Close'].iloc[-1])
+                        stock['close_price'] = close_price
+                        # est_amount in TWD (shares * price), convert to 億
+                        stock['est_amount'] = round(stock['foreign_net'] * close_price / 1e8, 2)
+                    else:
+                        stock['close_price'] = None
+                        stock['est_amount'] = 0
+                except Exception:
+                    stock['close_price'] = None
+                    stock['est_amount'] = 0
 
-            print(f"  ✅ 外資買超前 {top_n} 名:")
+            # Fill 0 for stocks we didn't look up
+            for stock in all_stocks:
+                if 'est_amount' not in stock:
+                    stock['est_amount'] = 0
+
+            # Sort by estimated dollar amount
+            sorted_by_amount = sorted(all_stocks, key=lambda x: x["est_amount"], reverse=True)
+            top_buy = sorted_by_amount[:top_n]
+            # For sells, sort ascending (most negative first)
+            sorted_by_amount_sell = sorted(all_stocks, key=lambda x: x["est_amount"])
+            top_sell = sorted_by_amount_sell[:top_n]
+
+            print(f"  ✅ 外資買超前 {top_n} 名（依金額排序）:")
             for s in top_buy[:5]:
-                print(f"     {s['id']} {s['name']}: 外資 {s['foreign_net']:+,}")
-            print(f"  ✅ 外資賣超前 {top_n} 名:")
+                amt_str = f"{s['est_amount']:+.1f}億" if s.get('est_amount') else ""
+                print(f"     {s['id']} {s['name']}: {s['foreign_net']:+,} 股 ({amt_str})")
+            print(f"  ✅ 外資賣超前 {top_n} 名（依金額排序）:")
             for s in top_sell[:5]:
-                print(f"     {s['id']} {s['name']}: 外資 {s['foreign_net']:+,}")
+                amt_str = f"{s['est_amount']:+.1f}億" if s.get('est_amount') else ""
+                print(f"     {s['id']} {s['name']}: {s['foreign_net']:+,} 股 ({amt_str})")
 
             return {"top_buy": top_buy, "top_sell": top_sell, "data_date": data_date_str}
 

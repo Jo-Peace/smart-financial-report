@@ -4,6 +4,7 @@ import glob
 from dotenv import load_dotenv
 from modules.data_fetcher import DataFetcher
 from modules.analyzer import MarketAnalyzer
+from modules.notebooklm_generator import generate_notebooklm_prompt
 
 # Load environment variables from .env
 load_dotenv()
@@ -73,6 +74,12 @@ def main():
     has_inst_data = institutional_data.get("top_buy") or institutional_data.get("top_sell")
     if not has_inst_data:
         print("  ⚠️  無法取得三大法人數據（可能尚未發布）")
+    
+    # ========================================
+    # 2.5 Fetch Commodity Data (油金銀)
+    # ========================================
+    print("\n🛢️  正在獲取國際商品行情...")
+    commodity_data = fetcher.get_commodity_data()
             
     # ========================================
     # 3. Fetch News
@@ -114,7 +121,8 @@ def main():
         market_data, 
         unique_news, 
         institutional_data=institutional_data,
-        prev_report_path=prev_report
+        prev_report_path=prev_report,
+        commodity_data=commodity_data
     )
     
     # ========================================
@@ -127,7 +135,20 @@ def main():
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(report_content)
         
+    # ========================================
+    # 7. Generate NotebookLM Prompt
+    # ========================================
+    print("\n🎧 正在生成 NotebookLM Podcast 腳本指令...")
+    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+    notebooklm_prompt_content = generate_notebooklm_prompt(GEMINI_API_KEY, report_content, date_str)
+    nl_filename = f"notebooklm_prompt_podcast_{datetime.datetime.now().strftime('%Y%m%d')}.md"
+    nl_filepath = os.path.join(REPORTS_DIR, nl_filename)
+    
+    with open(nl_filepath, "w", encoding="utf-8") as f:
+        f.write(notebooklm_prompt_content)
+        
     print(f"\n✅ 報告已儲存至: {filepath}")
+    print(f"✅ NotebookLM 腳本指令已儲存至: {nl_filepath}")
     print("完成!")
 
 if __name__ == "__main__":
