@@ -775,3 +775,185 @@ body {
 .alert-text strong {
     color: var(--text-primary);
 }
+
+/* === Quota Group === */
+.quota-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quota-global .quota-label {
+    color: var(--text-muted);
+}
+
+/* === AI Industry Map === */
+.industry-map-section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+.industry-map-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--gradient-main);
+}
+
+.industry-map-header {
+    margin-bottom: 16px;
+}
+
+.industry-map-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+
+.industry-map-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.industry-map-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.industry-map-legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.industry-map-container {
+    width: 100%;
+    border-radius: var(--radius-md);
+    background: rgba(10, 14, 23, 0.6);
+    border: 1px solid rgba(30, 58, 95, 0.4);
+    overflow: hidden;
+    position: relative;
+}
+
+#industryMapSvg {
+    display: block;
+    width: 100%;
+}
+
+.industry-map-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 12px;
+}
+
+/* Map SVG elements */
+.map-link {
+    stroke: #1e3a5f;
+    transition: stroke-opacity 0.2s, stroke 0.2s;
+}
+
+.map-node circle {
+    transition: fill-opacity 0.2s, stroke-width 0.2s;
+}
+
+.map-node:hover circle {
+    filter: drop-shadow(0 0 8px currentColor);
+}
+
+.map-node text {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Tooltip */
+.map-tooltip {
+    position: absolute;
+    padding: 10px 14px;
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    pointer-events: none;
+    z-index: 1000;
+    line-height: 1.5;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+}
+
+/* === Responsive: Industry Map === */
+@media (max-width: 640px) {
+    .quota-group {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .quota-display {
+        padding: 4px 10px;
+    }
+
+    .quota-label {
+        font-size: 11px;
+    }
+
+    .quota-value {
+        font-size: 13px;
+    }
+
+    .industry-map-section {
+        padding: 20px 12px;
+    }
+
+    .industry-map-title {
+        font-size: 15px;
+    }
+
+    .industry-map-legend {
+        gap: 8px;
+    }
+
+    .legend-item {
+        font-size: 11px;
+    }
+}

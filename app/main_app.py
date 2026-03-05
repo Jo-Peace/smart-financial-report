@@ -18,7 +18,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 
 from modules.data_fetcher import DataFetcher
 from modules.analyzer import MarketAnalyzer
-from app.database import init_db, get_cached_report, save_report, get_remaining_quota, use_quota, get_cache_stats, check_global_limit
+from app.database import init_db, get_cached_report, save_report, get_remaining_quota, use_quota, get_cache_stats, check_global_limit, get_global_usage_today
 
 # === Config ===
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
@@ -210,7 +210,13 @@ async def check_quota(request: Request):
     """Check remaining quota for the requesting IP."""
     ip = get_client_ip(request)
     remaining = get_remaining_quota(ip)
-    return {"remaining": remaining, "total": 3}
+    global_used = get_global_usage_today()
+    return {
+        "remaining": remaining,
+        "total": 3,
+        "global_remaining": max(0, 20 - global_used),
+        "global_total": 20
+    }
 
 
 @app.post("/api/research")

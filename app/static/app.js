@@ -24,14 +24,27 @@ async function updateQuota() {
     try {
         const res = await fetch('/api/quota');
         const data = await res.json();
+
+        // Personal quota
         const el = document.getElementById('quotaValue');
         el.textContent = `${data.remaining}/${data.total}`;
-
         el.classList.remove('warning', 'empty');
         if (data.remaining === 0) {
             el.classList.add('empty');
         } else if (data.remaining === 1) {
             el.classList.add('warning');
+        }
+
+        // Global quota
+        const globalEl = document.getElementById('globalQuotaValue');
+        if (globalEl && data.global_remaining !== undefined) {
+            globalEl.textContent = `${data.global_remaining}/${data.global_total}`;
+            globalEl.classList.remove('warning', 'empty');
+            if (data.global_remaining === 0) {
+                globalEl.classList.add('empty');
+            } else if (data.global_remaining <= 5) {
+                globalEl.classList.add('warning');
+            }
         }
     } catch (e) {
         console.error('Quota check failed:', e);

@@ -24,9 +24,15 @@
             <span class="badge">MVP Beta</span>
         </div>
         <div class="header-right">
-            <div class="quota-display" id="quotaDisplay">
-                <span class="quota-label">今日額度</span>
-                <span class="quota-value" id="quotaValue">—/3</span>
+            <div class="quota-group">
+                <div class="quota-display" id="quotaDisplay">
+                    <span class="quota-label">👤 個人額度</span>
+                    <span class="quota-value" id="quotaValue">—/3</span>
+                </div>
+                <div class="quota-display quota-global" id="globalQuotaDisplay">
+                    <span class="quota-label">🌐 全站</span>
+                    <span class="quota-value" id="globalQuotaValue">—/20</span>
+                </div>
             </div>
         </div>
     </header>
@@ -98,6 +104,20 @@
                     <button class="hint-chip" onclick="quickSearch('3260')">威剛</button>
                 </div>
             </div>
+
+            <!-- AI Industry Map Section -->
+            <div class="industry-map-section" style="margin-top: 3rem;">
+                <div class="industry-map-header">
+                    <span class="industry-map-badge">🔥 AI 產業生態圖</span>
+                    <h3 class="industry-map-title">台股 AI 供應鏈全景 — 點擊節點立即分析</h3>
+                    <p class="industry-map-desc">力導向圖展示 AI 產業上下游關係，節點大小反映權重，顏色區分分類</p>
+                </div>
+                <div class="industry-map-legend" id="mapLegend"></div>
+                <div class="industry-map-container" id="industryMapContainer">
+                    <svg id="industryMapSvg"></svg>
+                </div>
+                <p class="industry-map-hint">💡 可拖曳節點、滾輪縮放，點擊節點觸發個股分析</p>
+            </div>
         </section>
 
         <!-- Loading State -->
@@ -157,7 +177,10 @@
 
     <!-- Markdown rendering library -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- D3.js for industry map -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="/static/app.js"></script>
+    <script src="/static/industry_map.js"></script>
 </body>
 
 </html>
