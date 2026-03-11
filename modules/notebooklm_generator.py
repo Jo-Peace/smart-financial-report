@@ -39,9 +39,9 @@ Aggressive Strategy: {structured_data.get('aggressive_strategy', 'N/A')}
 
 **Your task**: Based STRICTLY on the JSON data above, generate a NotebookLM Audio Overview prompt. 
 
-CRITICAL RULES FOR WRITING THIS PROMPT:
-1. SECTOR ACCURACY IS PARAMOUNT. If a stock (like Advantech 研華) is listed under "Industrial Computer (IPC)", DO NOT call it a Silicon Photonics (CPO) stock. Keep them strictly separated as the data dictates.
-2. Keep the structure to exactly 3 main segments + 1 ad-read. NotebookLM cuts content when there are too many segments.
+42. CRITICAL RULES FOR WRITING THIS PROMPT:
+43. 1. SECTOR ACCURACY IS PARAMOUNT. If a stock (like Advantech 研華) is listed under "Industrial Computer (IPC)", DO NOT call it a Silicon Photonics (CPO) stock. Keep them strictly separated as the data dictates.
+44. 2. Keep the structure to exactly 3 main segments. NotebookLM cuts content when there are too many segments.
 3. For MUST-INCLUDE items, write them as EXAMPLE DIALOGUE LINES (e.g., "Host 2 says: '...'").
 4. Bind commodity data (gold/oil/silver) INTO an existing segment's dialogue.
 
@@ -57,7 +57,7 @@ You are producing a daily financial podcast for Taiwan stock market investors. Y
 - **Host 1 (The Anchor):** Experienced, data-driven, and likes to connect today's market events with past historical lessons.
 - **Host 2 (The Color Commentator):** Curious, relatable to retail investors, asks smart questions, and translates complex financial jargon into simple concepts.
 
-**Today's Focus & Episode Flow (CRITICAL — only 3 segments + ad):**
+**Today's Focus & Episode Flow (CRITICAL — only 3 segments):**
 
 **1. The Hook & Institutional Data (0:00 - 1:30)**
 - **CRITICAL OPENING SLOGAN**: Host 1 MUST start by saying: Welcome to **"AI 帶你看股市，只看數據，不看情緒"**
@@ -65,9 +65,6 @@ You are producing a daily financial podcast for Taiwan stock market investors. Y
 - Host 1 calls out heavyweights being dumped: Mentioning specifically {', '.join(structured_data.get('heavyweights_dumped', []))}.
 - Host 2 reacts with surprise and asks about the contrarian buy-ins into safe havens: {', '.join(structured_data.get('safe_havens_bought', []))}
 - Host 1 explains the risk-off capital rotation logic.
-
-**AD-READ (around 1:15):**
-- Host 1 naturally says: "Quick interruption! If you find this daily AI financial analysis helpful, our system is currently in open beta for FREE. Check the link in the description to generate a custom report for your own stock portfolio! Remember, it's for reference only, not financial advice. Now, back to the market..."
 
 **2. Technical Damage & Sector Rotation (1:30 - 3:30)**
 - **MUST-INCLUDE Sector Analysis** — Host 1 MUST list the strong performing sectors based EXACTLY on this data:
@@ -78,7 +75,7 @@ You are producing a daily financial podcast for Taiwan stock market investors. Y
 **3. Strategy & Closing (3:30 - End)**
 - **Conservative strategy**: Host 1 advises: {structured_data.get('conservative_strategy', 'N/A')}
 - **Aggressive strategy**: Host 1 advises: {structured_data.get('aggressive_strategy', 'N/A')}
-- **CRITICAL CLOSING SLOGAN**: Host 1 or 2 MUST end with: "And remember our rule: **AI 帶你看股市，只看數據，不看情緒**. See you next time!"
+- **CRITICAL CLOSING SLOGAN**: Host 1 or 2 MUST end with: "And remember our rule: **AI 帶你看股市，只看數據，不看情緒**. Please subscribe, share, and leave a comment! See you next time!"
 
 ---
 
@@ -126,7 +123,7 @@ Monday Taiwan Tactics - Vulture/Dip Buying: {structured_data.get('taiwan_monday_
 
 CRITICAL RULES FOR WRITING THIS PROMPT:
 1. THE FINAL PODCAST SCRIPT INSTRUCTIONS MUST DEMAND TRADITIONAL CHINESE DIALOGUE.
-2. Keep the structure to exactly 3 main segments + 1 ad-read. 
+2. Keep the structure to exactly 3 main segments. 
 3. For MUST-INCLUDE items, write them as EXAMPLE DIALOGUE LINES (e.g., "Host 2 says: '...'").
 
 Now generate the prompt following this EXACT template, filling ALL placeholders with data above (translated into lively Mandarin):
@@ -141,15 +138,12 @@ You are producing a weekend special financial podcast for Taiwan stock market in
 - **Host 1 (The Anchor):** Experienced macro strategist. Focuses on the US drop and global capital flows.
 - **Host 2 (The Color Commentator):** Anxious retail investor representative, asking "What does this mean for Monday's open?"
 
-**Episode Flow (CRITICAL — only 3 segments + ad):**
+**Episode Flow (CRITICAL — only 3 segments):**
 
 **1. The Hook & The Wall Street Bloodbath (0:00 - 1:30)**
 - **CRITICAL OPENING SLOGAN**: Host 1 MUST start by saying: Welcome to **"AI 帶你看股市週末特輯：追蹤金錢猛獸"**
 - Host 1 immediately addresses the US market drop: Translate [{structured_data.get('us_market_hook', 'N/A')}] into a dramatic Mandarin dialogue line.
 - Host 2 reacts with fear/concern about tech stocks (NVDA, TSMC ADR).
-
-**AD-READ (around 1:15):**
-- Host 1 naturally says: "Quick interruption! If you are worried about your portfolio, our AI system is currently in open beta for FREE. Check the link in the description to generate a custom defensive report! Remember, it's for reference only. Now, back to the survival guide..."
 
 **2. The Shadow of War & Safe Havens (1:30 - 3:30)**
 - **MUST-INCLUDE Geopolitics** — Host 1 MUST explain the war/geopolitical narrative: Translate [{structured_data.get('geopolitical_impact', 'N/A')}] into a Mandarin dialogue line.
@@ -159,7 +153,7 @@ You are producing a weekend special financial podcast for Taiwan stock market in
 - Host 2 eagerly asks: "So what exactly should we do on Monday morning when the Taiwan market opens?"
 - **Defensive Posture**: Host 1 advises: Translate [{structured_data.get('taiwan_monday_defense', 'N/A')}] into a direct strategy.
 - **Vulture Strategy**: Host 1 advises: Translate [{structured_data.get('taiwan_monday_vulture', 'N/A')}] into specific indicators to watch.
-- **CRITICAL CLOSING SLOGAN**: Host 1 or 2 MUST end with: "And remember our rule: **AI 帶你看股市，只看數據，不看情緒**. Stay safe this Monday!"
+- **CRITICAL CLOSING SLOGAN**: Host 1 or 2 MUST end with: "And remember our rule: **AI 帶你看股市，只看數據，不看情緒**. Please subscribe, share, and discuss in the comments! Stay safe this Monday!"
 
 ---
 

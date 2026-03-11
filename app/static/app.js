@@ -8,6 +8,7 @@ let isLoading = false;
 // === Init ===
 document.addEventListener('DOMContentLoaded', () => {
     updateQuota();
+    loadRecentReports();
 
     // Enter key to search
     document.getElementById('tickerInput').addEventListener('keydown', (e) => {
@@ -24,6 +25,8 @@ async function updateQuota() {
     try {
         const res = await fetch('/api/quota');
         const data = await res.json();
+        let noQuota = false;
+        let quotaMessage = '';
 
         // Personal quota
         const el = document.getElementById('quotaValue');
@@ -31,6 +34,8 @@ async function updateQuota() {
         el.classList.remove('warning', 'empty');
         if (data.remaining === 0) {
             el.classList.add('empty');
+            noQuota = true;
+            quotaMessage = '個人額度已滿';
         } else if (data.remaining === 1) {
             el.classList.add('warning');
         }
@@ -42,10 +47,31 @@ async function updateQuota() {
             globalEl.classList.remove('warning', 'empty');
             if (data.global_remaining === 0) {
                 globalEl.classList.add('empty');
-            } else if (data.global_remaining <= 5) {
+                noQuota = true;
+                quotaMessage = '全站額度已滿';
+            } else if (data.global_remaining <= Math.max(5, data.global_total * 0.1)) {
                 globalEl.classList.add('warning');
             }
         }
+
+        // Disable UI if out of quota
+        const searchBtn = document.getElementById('searchBtn');
+        const tickerInput = document.getElementById('tickerInput');
+        if (noQuota) {
+            if (searchBtn) {
+                searchBtn.disabled = true;
+                const btnText = searchBtn.querySelector('.btn-text');
+                if (btnText) btnText.textContent = quotaMessage;
+                searchBtn.style.backgroundColor = '#4a5568';
+                searchBtn.style.color = '#a0aec0';
+                searchBtn.style.cursor = 'not-allowed';
+            }
+            if (tickerInput) {
+                tickerInput.disabled = true;
+                tickerInput.placeholder = `今日${quotaMessage}，請明日再來`;
+            }
+        }
+
     } catch (e) {
         console.error('Quota check failed:', e);
     }
@@ -216,3 +242,37 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// === Recent Reports ===
+async function loadRecentReports() {
+    try {
+        const res = await fetch('/api/recent');
+        const data = await res.json();
+        const container = document.getElementById('recentReportsContainer');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (!data || data.length === 0) {
+            container.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.9rem;">目前尚無近期紀錄</span>';
+            return;
+        }
+
+        data.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'hint-chip';
+            btn.style.border = '1px solid var(--border-color)';
+            
+            // Highlight today's reports
+            const twDate = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
+            const isToday = item.date === twDate;
+            const badge = isToday ? '<span style="color: #48bb78; margin-left:4px; font-weight:bold;">🆕</span>' : '';
+            
+            btn.innerHTML = `<strong>${item.ticker}</strong> ${item.name} <span style="font-size: 0.75rem; opacity: 0.8; margin-left: 4px;">(${item.date.slice(5)})</span>${badge}`;
+            btn.onclick = () => quickSearch(item.ticker);
+            container.appendChild(btn);
+        });
+    } catch (e) {
+        console.error('Failed to load recent reports:', e);
+    }
+}

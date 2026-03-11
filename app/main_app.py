@@ -4,6 +4,7 @@ AI 個股研究員 MVP — FastAPI Backend
 import os
 import sys
 import datetime
+import concurrent.futures
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
@@ -18,7 +19,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 
 from modules.data_fetcher import DataFetcher
 from modules.analyzer import MarketAnalyzer
-from app.database import init_db, get_cached_report, save_report, get_remaining_quota, use_quota, get_cache_stats, check_global_limit, get_global_usage_today
+from app.database import init_db, get_cached_report, save_report, get_remaining_quota, use_quota, get_cache_stats, check_global_limit, get_global_usage_today, get_recent_reports
 
 # === Config ===
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
@@ -77,28 +78,36 @@ def generate_stock_research(ticker: str) -> str:
     fetcher = DataFetcher(TAVILY_API_KEY)
     analyzer = MarketAnalyzer(GEMINI_API_KEY)
 
-    # 1. Get stock data (Try .TW first, fallback to .TWO for OTC stocks)
-    stock_data = None
-    if ticker.isdigit():
-        yf_symbol = f"{ticker}.TW"
-        stock_data = fetcher.get_stock_data(yf_symbol)
+    # Use ThreadPoolExecutor to run blocking network calls concurrently
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        # 1. Start fetching stock data
+        def fetch_stock(ticker_symbol):
+            if ticker_symbol.isdigit():
+                symbol = f"{ticker_symbol}.TW"
+                data = fetcher.get_stock_data(symbol)
+                if not data:
+                    symbol = f"{ticker_symbol}.TWO"
+                    data = fetcher.get_stock_data(symbol)
+                return symbol, data
+            else:
+                return ticker_symbol, fetcher.get_stock_data(ticker_symbol)
+
+        future_stock = executor.submit(fetch_stock, ticker)
         
-        if not stock_data:
-            yf_symbol = f"{ticker}.TWO"
-            stock_data = fetcher.get_stock_data(yf_symbol)
-    else:
-        yf_symbol = ticker
-        stock_data = fetcher.get_stock_data(yf_symbol)
+        # 2. Start fetching news
+        search_query = f"{stock_name} {ticker} 台股 營收 展望 法人 2026"
+        future_news = executor.submit(fetcher.get_news, search_query, 7)
+        
+        # 3. Start fetching institutional data
+        future_inst = executor.submit(fetcher.get_single_stock_institutional_data, ticker)
+
+        # Wait for all futures
+        yf_symbol, stock_data = future_stock.result()
+        news_data = future_news.result()
+        institutional_data = future_inst.result()
 
     if not stock_data:
         return f"Error generating report: 無法取得 {ticker} 的股價資料。請確認股票代號是否正確，且擁有足夠的近期交易數據。"
-
-    # 2. Get relevant news
-    search_query = f"{stock_name} {ticker} 台股 營收 展望 法人 2026"
-    news_data = fetcher.get_news(search_query, days=7)
-
-    # 3. Get institutional data
-    institutional_data = fetcher.get_institutional_data(top_n=10)
 
     # 4. Build market data dict
     market_data = {yf_symbol: stock_data}
@@ -127,16 +136,9 @@ def generate_stock_research(ticker: str) -> str:
 
     # Institutional data for this specific stock
     inst_info = ""
-    if institutional_data and institutional_data.get("top_buy"):
-        for s in institutional_data["top_buy"]:
-            if s["id"] == ticker:
-                inst_info = f"\n此股三大法人動態：外資 {s['foreign_net']:+,}, 投信 {s['trust_net']:+,}, 合計 {s['total_net']:+,}\n"
-                break
-    if not inst_info and institutional_data and institutional_data.get("top_sell"):
-        for s in institutional_data["top_sell"]:
-            if s["id"] == ticker:
-                inst_info = f"\n此股三大法人動態：外資 {s['foreign_net']:+,}, 投信 {s['trust_net']:+,}, 合計 {s['total_net']:+,}\n"
-                break
+    if institutional_data:
+        inst_info = f"\n此股三大法人動態：外資 {institutional_data['foreign_net']:+,}, 投信 {institutional_data['trust_net']:+,}, 合計 {institutional_data['total_net']:+,}\n"
+
 
     prompt = f"""
     You are a professional top-tier financial analyst specializing in the Taiwan stock market.
@@ -213,10 +215,17 @@ async def check_quota(request: Request):
     global_used = get_global_usage_today()
     return {
         "remaining": remaining,
-        "total": 3,
-        "global_remaining": max(0, 20 - global_used),
         "global_total": 20
     }
+
+
+@app.get("/api/recent")
+async def recent_reports():
+    """Get list of recently cached reports (within last 3 days) available for free reading."""
+    recent = get_recent_reports(days=3, limit=12)
+    for r in recent:
+        r["name"] = STOCK_NAMES.get(r["ticker"], "未知")
+    return recent
 
 
 @app.post("/api/research")
@@ -250,7 +259,7 @@ async def research(req: ResearchRequest, request: Request):
             "content": cached["content"],
             "cached": True,
             "remaining_quota": remaining,
-            "message": f"📦 快取命中！此報告今日稍早已生成（不扣額度）"
+            "message": f"📦 快取命中！此報告生成於 ({cached.get('date', '今日')})，直接觀看（不扣本次額度）"
         }
 
     # Check quota (only for new reports)

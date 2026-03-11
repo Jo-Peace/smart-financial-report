@@ -53,6 +53,11 @@ class DataFetcher:
             ma20 = round(float(np.mean(closes[-20:])), 2) if len(closes) >= 20 else None
             rsi = self._calc_rsi(closes) if len(closes) >= 15 else None
             
+            # Volume Profile Analysis
+            volumes = hist['Volume'].values
+            avg_vol_5d = int(np.mean(volumes[-5:])) if len(volumes) >= 5 else int(volumes[-1])
+            vol_ratio = round(float(volumes[-1] / avg_vol_5d), 2) if avg_vol_5d > 0 else 1.0
+            
             # 若為大盤或極小變動，保留較高精確度避免出現 0.00%
             formatted_pct = round(float(pct_change), 3) if abs(pct_change) < 0.01 else round(float(pct_change), 2)
             
@@ -62,6 +67,8 @@ class DataFetcher:
                 "change": round(float(change), 2),
                 "pct_change": formatted_pct,
                 "volume": int(hist['Volume'].iloc[-1]),
+                "avg_vol_5d": avg_vol_5d,
+                "vol_ratio": vol_ratio,
                 "ma5": ma5,
                 "ma20": ma20,
                 "rsi": rsi,
@@ -102,6 +109,19 @@ class DataFetcher:
             except Exception as e:
                 print(f"  ⚠️  {name}: 取得失敗 ({e})")
         return results
+
+    def get_macro_events(self, days=5):
+        """
+        Fetches upcoming global macro economic events (e.g., CPI, Fed meetings, Non-farm payrolls).
+        """
+        try:
+            print("\n📅 正在獲取本週全球重要財經日曆與總體經濟事件...")
+            query = "本週全球重要財經日曆 總經數據 發布時間表 (CPI, Fed, 聯準會, 非農, 財報)"
+            response = self.tavily_client.search(query, search_depth="basic", max_results=3, days=days)
+            return response.get('results', [])
+        except Exception as e:
+            print(f"[Error] Tavily 總經事件搜尋失敗: {e}")
+            return []
 
     def get_weekly_stock_data(self, symbol, trading_days=5):
         """
@@ -308,6 +328,62 @@ class DataFetcher:
         except Exception as e:
             print(f"[Error] 取得三大法人數據失敗: {e}")
             return {"top_buy": [], "top_sell": [], "data_date": None}
+
+    def get_single_stock_institutional_data(self, ticker):
+        """
+        Fetches TWSE institutional data and ONLY parses the requested ticker.
+        This is extremely fast because it skips hitting Yahoo Finance 40 times.
+        """
+        try:
+            for days_back in range(0, 15):
+                check_date = datetime.datetime.now() - datetime.timedelta(days=days_back)
+                if check_date.weekday() >= 5:
+                    continue
+
+                date_str = check_date.strftime("%Y%m%d")
+                url = f"https://www.twse.com.tw/rwd/zh/fund/T86?date={date_str}&selectType=ALLBUT0999&response=json"
+
+                try:
+                    import time
+                    for attempt in range(3):
+                        try:
+                            resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
+                            break
+                        except requests.exceptions.SSLError:
+                            resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15, verify=False)
+                            break
+                        except requests.exceptions.ReadTimeout:
+                            if attempt < 2:
+                                time.sleep(1)
+                                continue
+                            else:
+                                raise
+
+                    result = resp.json()
+                    if result.get("stat") == "OK" and "data" in result:
+                        
+                        def parse_num(s):
+                            return int(s.replace(",", "").replace(" ", ""))
+
+                        for row in result["data"]:
+                            try:
+                                stock_id = row[0].strip()
+                                if stock_id == ticker:
+                                    foreign_net = parse_num(row[4])
+                                    trust_net = parse_num(row[10])
+                                    total_net = parse_num(row[-1])
+                                    return {"foreign_net": foreign_net, "trust_net": trust_net, "total_net": total_net}
+                            except (ValueError, IndexError):
+                                continue
+                                
+                        # If reached here, TWSE data was fetched but ticker not found (e.g., it's OTC or no institutional action)
+                        return None
+                except Exception:
+                    continue
+            return None
+        except Exception as e:
+            print(f"[Error] 快速取得單一個股法人數據失敗: {e}")
+            return None
 
     def get_news(self, query, days=2):
         """

@@ -178,15 +178,18 @@ class MarketAnalyzer:
     def generate_weekend_special_report(self, market_data, news_data, commodity_data=None, macro_events=None):
         """
         Generates a Weekend Special Markdown report focusing on the US Market and Geopolitical events.
-        Crucially, this report is generated entirely in ENGLISH for maximum AI reasoning accuracy.
+        Crucially, this report is generated entirely in TRADITIONAL CHINESE.
         """
         date_str = datetime.datetime.now().strftime("%Y-%m-%d")
         
-        # === US Stock Data Summary ===
+        # === US Stock Data Summary (Weekly View) ===
         data_summary = ""
         for symbol, data in market_data.items():
             if data:
-                line = f"- {symbol}: Price {data['price']}, Change {data['change']} ({data['pct_change']}%), Volume {data['volume']} (5-Day Avg Vol {data.get('avg_vol_5d', 'N/A')}, Vol Ratio {data.get('vol_ratio', 'N/A')}x)"
+                line = f"- {symbol}: 本週收盤 ${data.get('week_close', data.get('price'))}, 本週漲跌 {data.get('week_change', 'N/A')} ({data.get('week_pct_change', 'N/A')}%), 本週高點 ${data.get('week_high', 'N/A')}, 本週低點 ${data.get('week_low', 'N/A')}"
+                if 'daily_series' in data and data['daily_series']:
+                    friday = data['daily_series'][-1]
+                    line += f"  [週五單日表現: 價格 ${friday['close']}, 跌幅 {friday['pct_change']}%]"
                 data_summary += line + "\n"
             else:
                 data_summary += f"- {symbol}: Data unavailable\n"
@@ -215,7 +218,7 @@ class MarketAnalyzer:
         Create a "Weekend Special" financial report for {date_str}.
         CRITICAL: The entire report MUST BE WRITTEN IN TRADITIONAL CHINESE (繁體中文).
         
-        # US Indices & Key Stock Data
+        # US Indices & Key Stock Data (Weekly Performance + Friday Action)
         {data_summary}
         
         # Global News (Geopolitics & Market Drops)
@@ -226,13 +229,13 @@ class MarketAnalyzer:
         
         # Report Requirements (Elite Macro Perspective)
         
-        1. **血洗的真相 (The Bloodbath Hook)**: 開篇以強烈且具震撼力的筆觸總結近期美股大跌（參考 S&P 500 ^GSPC 與 Nasdaq ^IXIC）。必須點出這是一般的健康修正，還是恐慌性拋售？請分析恐慌指數 VIX 的變化。
+        1. **一週總結與週五血洗 (The Weekly Story & Friday Bloodbath)**: 開篇以總體角度回顧本「整週」美股的情境變化（參考 S&P 500 ^GSPC 與 Nasdaq ^IXIC 的全週漲跌幅），並將焦點強力收束在地緣政治爆發導致的「週五大拋售」。分析恐慌指數 VIX 的飆升。不要只寫週五，要寫出「一週總結+週五恐慌拋售」的層次感。
         
         2. **戰火陰霾 (The War Narrative & Safe Havens)**: 將股市下跌與提供的地緣政治/戰爭新聞強烈連結。
            - 點出避險資產（黃金、原油、白銀）的異動，資金是否正在逃命？
            - 帶入歷史借鑑。這跟 1991 波灣戰爭或 2022 烏俄戰爭有何異同？提及「買在砲聲隆隆時」的華爾街概念。
            
-        3. **科技股重災區 (Tech Damage)**: 針對輝達 (NVDA) 與台積電 ADR (TSM) 的跌幅做深度點評。為何最賺錢的公司最先被提款？（解釋流動性變現與去槓桿的邏輯）。
+        3. **科技股重災區 (Tech Damage)**: 針對輝達 (NVDA) 與台積電 ADR (TSM) 的全週跌幅與週五重摔做深度點評。為何最賺錢的公司最先被提款？（解釋流動性變現與去槓桿的邏輯）。
         
         4. **台股週一生存指南 (Monday Survival Guide)**: 
            - 基於美股大逃殺與戰火敘事，預判下週一台股開盤的「心理面與結構面」衝擊。

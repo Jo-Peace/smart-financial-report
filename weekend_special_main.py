@@ -38,14 +38,14 @@ def main():
     fetcher = DataFetcher(TAVILY_API_KEY)
     analyzer = MarketAnalyzer(GEMINI_API_KEY)
     
-    # 1. Fetch US Market Data
+    # 1. Fetch US Market Data (Weekly Summary)
     market_data = {}
-    print("\n📊 正在獲取美股與避險指標數據 (S&P500, Nasdaq, VIX, NVDA, TSM)...")
+    print("\n📊 正在獲取美股與避險指標一週動態數據 (S&P500, Nasdaq, VIX, NVDA, TSM)...")
     for symbol in US_SYMBOLS:
-        data = fetcher.get_stock_data(symbol)
+        data = fetcher.get_weekly_stock_data(symbol)
         if data:
             market_data[symbol] = data
-            print(f"  ✅ {symbol}: ${data['price']} ({data['pct_change']:+.2f}%)")
+            print(f"  ✅ {symbol}: 週收盤 ${data['week_close']} (本週漲跌 {data['week_pct_change']:+.2f}%)")
         else:
             print(f"  ❌ {symbol}: 數據獲取失敗")
             

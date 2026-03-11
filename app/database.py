@@ -7,7 +7,7 @@ import os
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stock_research.db")
 DAILY_FREE_QUOTA = 3
-DAILY_GLOBAL_LIMIT = 20  # 全站每日新報告上限（保護 Gemini API 額度）
+DAILY_GLOBAL_LIMIT = 200  # 根據預算（約 100 元台幣/月）推算，全站每日新報告上限為 200 份
 
 
 def get_db():
@@ -58,23 +58,44 @@ def get_today_str():
 
 def get_cached_report(ticker: str) -> dict | None:
     """
-    Get cached report for a ticker from today.
-    Returns {"content": str, "cached": True} or None.
+    Get cached report for a ticker from the last 3 days.
+    Returns {"content": str, "cached": True, "date": str} or None.
     """
     conn = get_db()
     cursor = conn.cursor()
-    today = get_today_str()
-
-    cursor.execute(
-        "SELECT content FROM report_cache WHERE ticker = ? AND date = ?",
-        (ticker.upper(), today)
-    )
+    
+    base_time = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+    dates = [(base_time - datetime.timedelta(days=i)).strftime("%Y-%m-%d") for i in range(3)]
+    
+    placeholders = ",".join("?" for _ in dates)
+    query = f"SELECT content, date FROM report_cache WHERE ticker = ? AND date IN ({placeholders}) ORDER BY date DESC LIMIT 1"
+    
+    params = [ticker.upper()] + dates
+    cursor.execute(query, params)
     row = cursor.fetchone()
     conn.close()
 
     if row:
-        return {"content": row["content"], "cached": True}
+        return {"content": row["content"], "cached": True, "date": row["date"]}
     return None
+
+def get_recent_reports(days: int = 3, limit: int = 12) -> list:
+    """Get a list of recently searched tickers in the last few days."""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    base_time = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+    dates = [(base_time - datetime.timedelta(days=i)).strftime("%Y-%m-%d") for i in range(days)]
+    
+    placeholders = ",".join("?" for _ in dates)
+    query = f"SELECT ticker, MAX(date) as recent_date FROM report_cache WHERE date IN ({placeholders}) GROUP BY ticker ORDER BY recent_date DESC LIMIT ?"
+    
+    params = dates + [limit]
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+    conn.close()
+    
+    return [{"ticker": row["ticker"], "date": row["recent_date"]} for row in rows]
 
 
 def save_report(ticker: str, content: str):

@@ -12,9 +12,16 @@ load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Target Tickers (Taiwan Local Sectors)
-TARGET_SYMBOLS = ["^TWII", "2330.TW", "2454.TW", "2382.TW", "3231.TW", "2376.TW", "2603.TW"]
-TARGET_TOPICS = ["Taiwan Semiconductor", "AI Server Supply Chain", "Taiwan Shipping Industry", "台股 今日強勢族群 逆勢抗跌"]
+# BASE Tickers and Topics (這些會永遠保留，其它依當日法人動態加入)
+BASE_SYMBOLS = ["^TWII", "2330.TW"]
+# 根據觀眾回饋，加入特定熱門族群的關鍵字，讓 AI 每天固定查這些族群的新聞
+BASE_TOPICS = [
+    "Taiwan Semiconductor", 
+    "台股 今日強勢族群 逆勢抗跌",
+    "台灣 記憶體族群 報價 反撲 (南亞科, 華邦電)",
+    "台灣 矽光子 CPO 族群 (聯亞, 訊芯)",
+    "台灣 低軌衛星 網通族群 補跌 反彈"
+]
 
 # Reports directory
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
@@ -48,11 +55,36 @@ def main():
     analyzer = MarketAnalyzer(GEMINI_API_KEY)
     
     # ========================================
-    # 1. Fetch Market Data (with Technical Indicators)
+    # 1. Fetch Institutional Data (三大法人 — Top 10 動態排名)
+    # ========================================
+    institutional_data = fetcher.get_institutional_data(top_n=10)
+    has_inst_data = institutional_data.get("top_buy") or institutional_data.get("top_sell")
+    if not has_inst_data:
+        print("  ⚠️  無法取得三大法人數據（可能尚未發布）")
+
+    # 動態決定今日分析標的 (大盤 + 台積電 + 外資買賣超前三名)
+    dynamic_symbols = BASE_SYMBOLS.copy()
+    dynamic_topics = BASE_TOPICS.copy()
+    
+    if has_inst_data:
+        for item in institutional_data.get("top_buy", [])[:3]:
+            symbol_yf = f"{item['id']}.TW"
+            if symbol_yf not in dynamic_symbols:
+                dynamic_symbols.append(symbol_yf)
+                dynamic_topics.append(f"Taiwan stock {item['id']} {item['name']}")
+                
+        for item in institutional_data.get("top_sell", [])[:3]:
+            symbol_yf = f"{item['id']}.TW"
+            if symbol_yf not in dynamic_symbols:
+                dynamic_symbols.append(symbol_yf)
+                dynamic_topics.append(f"Taiwan stock {item['id']} {item['name']}")
+
+    # ========================================
+    # 2. Fetch Market Data (with Technical Indicators)
     # ========================================
     market_data = {}
-    print("📊 正在獲取股票數據與技術指標...")
-    for symbol in TARGET_SYMBOLS:
+    print("\n📊 正在獲取動態股票數據與技術指標...")
+    for symbol in dynamic_symbols:
         data = fetcher.get_stock_data(symbol)
         if data:
             market_data[symbol] = data
@@ -68,26 +100,26 @@ def main():
             print(f"  ❌ {symbol}: 失敗")
     
     # ========================================
-    # 2. Fetch Institutional Data (三大法人 — Top 10 動態排名)
-    # ========================================
-    institutional_data = fetcher.get_institutional_data(top_n=10)
-    has_inst_data = institutional_data.get("top_buy") or institutional_data.get("top_sell")
-    if not has_inst_data:
-        print("  ⚠️  無法取得三大法人數據（可能尚未發布）")
-    
-    # ========================================
     # 2.5 Fetch Commodity Data (油金銀)
     # ========================================
     print("\n🛢️  正在獲取國際商品行情...")
     commodity_data = fetcher.get_commodity_data()
             
     # ========================================
-    # 3. Fetch News
+    # 2.6 Fetch Macro Economic Events (日曆事件)
+    # ========================================
+    macro_events = fetcher.get_macro_events()
+
+    # ========================================
+    # 3. Fetch News (加上資金輪動搜尋)
     # ========================================
     news_data = []
     print("\n📰 正在獲取新聞...")
     
-    for topic in TARGET_TOPICS:
+    # 加入資金排擠效應專屬搜尋
+    dynamic_topics.append("台股 資金輪動 排擠效應 最新分析")
+    
+    for topic in dynamic_topics:
         query = f"{topic} market news today"
         results = fetcher.get_news(query)
         if results:
@@ -97,7 +129,7 @@ def main():
             print(f"  ⚠️  {topic}: 未找到文章")
             
     # Stock-specific news
-    for symbol in TARGET_SYMBOLS[:2]:
+    for symbol in dynamic_symbols[:2]:
         query = f"{symbol} stock news today"
         results = fetcher.get_news(query)
         if results:
@@ -122,7 +154,8 @@ def main():
         unique_news, 
         institutional_data=institutional_data,
         prev_report_path=prev_report,
-        commodity_data=commodity_data
+        commodity_data=commodity_data,
+        macro_events=macro_events
     )
     
     # ========================================
@@ -136,11 +169,24 @@ def main():
         f.write(report_content)
         
     # ========================================
-    # 7. Generate NotebookLM Prompt
+    # 7. Generate Structured Data & NotebookLM Prompt
     # ========================================
-    print("\n🎧 正在生成 NotebookLM Podcast 腳本指令...")
+    from modules.data_extractor import extract_structured_data
+    
+    print("\n📦 正在萃取結構化數據 (防止 AI 幻覺)...")
+    structured_data = extract_structured_data(GEMINI_API_KEY, report_content)
+    
+    # Save the structured data json for debugging
+    json_filename = f"structured_data_{datetime.datetime.now().strftime('%Y%m%d')}.json"
+    json_filepath = os.path.join(REPORTS_DIR, json_filename)
+    import json
+    with open(json_filepath, "w", encoding="utf-8") as f:
+        json.dump(structured_data, f, ensure_ascii=False, indent=2)
+    print(f"  ✅ 結構化數據已儲存: {json_filename}")
+    
+    print("\n🎧 正在基於結構化數據生成 NotebookLM Podcast 腳本指令...")
     date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-    notebooklm_prompt_content = generate_notebooklm_prompt(GEMINI_API_KEY, report_content, date_str)
+    notebooklm_prompt_content = generate_notebooklm_prompt(GEMINI_API_KEY, structured_data, date_str)
     nl_filename = f"notebooklm_prompt_podcast_{datetime.datetime.now().strftime('%Y%m%d')}.md"
     nl_filepath = os.path.join(REPORTS_DIR, nl_filename)
     

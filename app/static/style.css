@@ -155,7 +155,7 @@ body {
 
 /* === Special Feature Section === */
 .special-feature-section {
-    max-width: 680px;
+    max-width: 560px;
     margin: 0 auto 3rem;
     padding: 24px;
     background: var(--bg-card);
