@@ -11,9 +11,12 @@ You are producing a daily financial podcast for Taiwan stock market investors. Y
 **1. The Hook & Institutional Data (0:00 - 1:30)**
 - **CRITICAL OPENING SLOGAN**: Host 1 MUST start by saying: Welcome to **"AI 帶你看股市，只看數據，不看情緒"**
 - Host 1 mentions the index action: "Today was a massive shock to the system, with the index 下跌 1489.12 點 (-4.43%)."
-- Host 1 calls out heavyweights being dumped: "Institutional investors completely exited the room, dumping 台積電 (-197.8億), 元大台灣50 (-55.6億), 富邦金 (-21.4億), 欣興 (-18.0億), 旺宏 (-14.5億), 南亞 (-7.2億), 元晶 (-7.0億), 國泰台灣領袖50 (-5.6億), 中信金 (-5.0億), and 新興 (-4.3億)."
-- Host 2 reacts with surprise: "That is a bloodbath for the heavyweights! But I noticed some contrarian capital flowing into safe havens. Who is actually buying right now?"
-- Host 1 explains the risk-off capital rotation logic: "There's a clear flight to safety or value. We saw significant buy-ins for 群創 (+33.9億), 研華 (+18.7億), 台塑化 (+12.0億), 兆赫 (+7.6億), 友達 (+5.7億), 華邦電 (+5.6億), 力積電 (+5.5億), 皇昌 (+4.5億), 第一金 (+2.6億), and 中石化 (+2.4億)."
+- Host 1 highlights the BIGGEST sell-offs only (DO NOT list all 10): "Institutional investors dumped the heavyweights hard — 台積電 alone was sold 197.8 億, 元大台灣50 was sold 55.6 億, 富邦金 21.4 億. Overall, the top 10 sell list is dominated by blue-chip names like 欣興, 旺宏, and major financial stocks."
+- Host 2 reacts with surprise: "That is a bloodbath! But I noticed some contrarian capital flowing in. Who is actually buying in this chaos?"
+- Host 1 highlights the BIGGEST buy-ins only (DO NOT list all 10): "The smart money is rotating into value plays — 群創 attracted a massive 33.9 億 in foreign buying, 研華 got 18.7 億, and 台塑化 pulled in 12.0 億. The rest of the buy list includes names like 兆赫, 友達, and 華邦電, all in the single-digit billions range, pointing to a clear flight toward low-price, defensive, or turnaround stories."
+
+**AD-READ (around 1:15):**
+- Host 1 naturally says: "Quick interruption! If you find this daily AI financial analysis helpful, our system is currently in open beta for FREE. Check the link in the description to generate a custom report for your own stock portfolio! Remember, it's for reference only, not financial advice. Now, back to the market..."
 
 **2. Technical Damage & Sector Rotation (1:30 - 3:30)**
 - **MUST-INCLUDE Sector Analysis** — Host 1 MUST list the performing sectors based EXACTLY on this data:
@@ -31,3 +34,11 @@ You are producing a daily financial podcast for Taiwan stock market investors. Y
 - **Conservative strategy**: Host 1 advises: "For our conservative listeners, wait to 觀察總經數據止穩後，針對富邦金等進入極端超賣區的金融股進行長線價值分批佈局。"
 - **Aggressive strategy**: Host 1 advises: "If you're aggressive, 跟隨外資買盤鎖定群創及面板族群，利用其抗跌特性作為短線避風港，但 remember: 切勿盲目抄底剛爆量的記憶體族群。"
 - **CRITICAL CLOSING SLOGAN**: Host 2 MUST end with: "And remember our rule: **AI 帶你看股市，只看數據，不看情緒**. Please subscribe, share, and leave a comment! See you next time!"
+
+---
+
+**ABSOLUTE RULES (non-negotiable):**
+1. Every data point (e.g., -1489.12 points, -197.8億, +33.9億, 漲停 +10%) MUST match exactly as provided above. DO NOT round or modify any numbers.
+2. DO NOT hallucinate sector associations. 研華 is IPC (工業電腦), NOT CPO. 群創 is Panels (面板), NOT Memory. 台塑化 is Energy/Petrochemical (傳產/能源), NOT Semiconductor.
+3. Preserve Chinese financial terms exactly (e.g., 爆量翻黑, 勿接飛刀, 逆勢漲停, 流動性擠壓, 極端超賣區).
+4. Follow the specific dialogue lines provided to ensure the LLM captures the data accurately. Do NOT ad-lib new data points.
