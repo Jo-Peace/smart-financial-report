@@ -38,3 +38,4 @@ You are producing a daily financial podcast for Taiwan stock market investors. Y
 2. DO NOT hallucinate sector associations. Stick to the list provided.
 3. Preserve Chinese financial terms as listed.
 4. Host 1 and Host 2 MUST use the provided example dialogue lines to ensure specific data points (like the 38.8億 sell-off of Nanya Tech) are highlighted.
+5. **CRITICAL PHONETIC RULE FOR 友達 (2409)**: If the data includes "友達 (2409 AUO)", the AI hosts MUST pronounce it exactly as "AUO" or "You-Da". DO NOT ever mispronounce this as "大野" (Da-Ye) or any other unrelated word.

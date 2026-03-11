@@ -66,11 +66,13 @@ You are producing a daily financial podcast for Taiwan stock market investors. Y
 - Host 2 reacts with surprise and asks about the contrarian buy-ins into safe havens: {', '.join(structured_data.get('safe_havens_bought', []))}
 - Host 1 explains the risk-off capital rotation logic.
 
-**2. Technical Damage & Sector Rotation (1:30 - 3:30)**
+**2. Technical Damage & Market Dynamics (1:30 - 3:30)**
 - **MUST-INCLUDE Sector Analysis** — Host 1 MUST list the strong performing sectors based EXACTLY on this data:
 {sectors_formatted}
-- Host 1 MUST NOT mix up the sectors. Example dialogue: "While Memory stocks like X are rebounding, we are also seeing distinct strength in Industrial Computers like Y..."
-- **MUST-INCLUDE Commodities in dialogue** — Host 2 MUST say something like: "And looking globally, commodities like {', '.join(structured_data.get('commodities', []))} are surging, confirming risk-off behavior."
+- **CRITICAL VOCABULARY & CONTINUITY RULE**: Host 1 MUST NOT just say "Sector Rotation" repeatedly. If a trend has been happening for days, Host 1 should acknowledge it. Example dialogue: "Host 1 says: 'Just like we discussed yesterday, this isn't just a simple rotation. We are seeing a complete **Sector Repricing (板塊重新定價)**. Funds are systematically draining from X and creating an absolute **Vampire Effect (吸血效應)** in Y...'"
+- Use advanced terms like "拉高出貨" (Pump and Dump), "流動性枯竭" (Liquidity Drain), "機構級避險泊車" (Institutional Safe Haven Parking) where appropriate instead of just "Rotation".
+- Host 1 MUST NOT mix up the sectors. Example dialogue: "While Memory stocks like X are experiencing a pump and dump, we are seeing distinct safe haven parking in Industrial Computers like Y..."
+- **MUST-INCLUDE Commodities in dialogue** — Host 2 MUST say something like: "And looking globally, commodities like {', '.join(structured_data.get('commodities', []))} are surging, confirming this risk-off behavior."
 
 **3. Strategy & Closing (3:30 - End)**
 - **Conservative strategy**: Host 1 advises: {structured_data.get('conservative_strategy', 'N/A')}
@@ -84,6 +86,7 @@ You are producing a daily financial podcast for Taiwan stock market investors. Y
 2. DO NOT hallucinate sector associations. Stick to the list provided.
 3. Preserve Chinese financial terms.
 4. Write HOST DIALOGUE EXAMPLES for every MUST-INCLUDE item. NotebookLM needs example lines to follow.
+5. **CRITICAL PHONETIC RULE FOR 友達 (2409)**: If the data includes "友達 (2409 AUO)", the AI hosts MUST pronounce it exactly as "AUO" or "You-Da". DO NOT ever mispronounce this as "大野" (Da-Ye) or any other unrelated word.
 
 Output ONLY the final NotebookLM prompt.
 """
