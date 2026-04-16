@@ -1,0 +1,72 @@
+{
+  "1802": {
+    "name": "台玻",
+    "sector": "AI PCB基板材料族群",
+    "sub_sector": "玻纖布",
+    "supply_chain_role": "AI伺服器高速PCB基板核心輔材",
+    "key_products": ["T布", "Q布", "電子級玻纖紗"],
+    "ai_connection": "T/Q布是AI GPU主機板PCB的必需材料，需求量與AI伺服器出貨正相關",
+    "not_classify_as": ["傳統產業", "窯業", "玻璃"],
+    "history_notes": "2024年起T布報價隨AI伺服器需求上漲，為族群補漲潛力股"
+  },
+  "1303": {
+    "name": "南亞",
+    "sector": "AI PCB材料族群",
+    "sub_sector": "CCL 銅箔基板",
+    "supply_chain_role": "AI伺服器電路板核心材料供應商",
+    "key_products": ["CCL", "玻纖布", "環氧樹脂"],
+    "ai_connection": "AI伺服器需要更高層數與低損耗的CCL，南亞為主要供應商之一",
+    "not_classify_as": ["傳統塑化", "傳產"],
+    "history_notes": "雖名為塑化，但電子材料比重高，常隨PCB與AI伺服器題材連動"
+  },
+  "2383": {
+    "name": "台光電",
+    "sector": "AI 高頻高速 PCB 族群",
+    "sub_sector": "CCL 高階銅箔基板",
+    "supply_chain_role": "AI伺服器高階CCL龍頭",
+    "key_products": ["高頻高頻CCL"],
+    "ai_connection": "NVIDIA等AI晶片伺服器主板關鍵材料供應商",
+    "not_classify_as": ["傳統零組件"],
+    "history_notes": "AI伺服器出貨量爆發的主要受惠者"
+  },
+  "6213": {
+    "name": "聯茂",
+    "sector": "AI 高頻高速 PCB 族群",
+    "sub_sector": "CCL 高階銅箔基板",
+    "supply_chain_role": "AI伺服器CCL供應商",
+    "key_products": ["高頻高頻CCL"],
+    "ai_connection": "打入多款AI伺服器與交換器供應鏈",
+    "not_classify_as": ["傳統零組件"],
+    "history_notes": ""
+  },
+  "3324": {
+    "name": "雙鴻",
+    "sector": "AI 伺服器熱管理族群",
+    "sub_sector": "散熱模組",
+    "supply_chain_role": "AI 伺服器冷卻系統龍頭",
+    "key_products": ["液冷散熱模組", "3D VC", "水冷板"],
+    "ai_connection": "AI晶片功耗大增，必須使用其高階散熱解決方案",
+    "not_classify_as": ["傳統PC零組件"],
+    "history_notes": ""
+  },
+  "3017": {
+    "name": "奇鋐",
+    "sector": "AI 伺服器熱管理族群",
+    "sub_sector": "散熱模組",
+    "supply_chain_role": "AI 伺服器3D VC及液冷散熱主力供應商",
+    "key_products": ["3D VC", "水冷散熱模組", "風扇"],
+    "ai_connection": "NVIDIA AI伺服器主力散熱供應商之一",
+    "not_classify_as": ["傳統PC零組件"],
+    "history_notes": ""
+  },
+  "2313": {
+    "name": "華通",
+    "sector": "低軌衛星與高密度PCB族群",
+    "sub_sector": "HDI板與低軌衛星",
+    "supply_chain_role": "低軌衛星星系與蘋果供應鏈主機板",
+    "key_products": ["HDI高密度連接板", "低軌衛星主板"],
+    "ai_connection": "同時受惠手機復甦與星鏈衛星佈建",
+    "not_classify_as": ["傳產", "舊光電"],
+    "history_notes": "常與SpaceX與蘋果產品週期連動"
+  }
+}

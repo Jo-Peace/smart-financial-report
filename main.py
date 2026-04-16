@@ -11,6 +11,7 @@ load_dotenv()
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+PROJECT_THEME = os.getenv("PROJECT_THEME", "") # e.g. "中東地緣政治危機" or "GTC 大會"
 
 # BASE Tickers and Topics (這些會永遠保留，其它依當日法人動態加入)
 BASE_SYMBOLS = ["^TWII", "2330.TW"]
@@ -60,7 +61,9 @@ def main():
     institutional_data = fetcher.get_institutional_data(top_n=10)
     has_inst_data = institutional_data.get("top_buy") or institutional_data.get("top_sell")
     if not has_inst_data:
-        print("  ⚠️  無法取得三大法人數據（可能尚未發布）")
+        print("  ❌ 無法取得三大法人數據（今日資料尚未發布），停止執行。")
+        print("  💡 請等待台灣證交所發布後（通常下午 4 點後）再重新執行。")
+        return
 
     # 動態決定今日分析標的 (大盤 + 台積電 + 外資買賣超前三名)
     dynamic_symbols = BASE_SYMBOLS.copy()
@@ -104,11 +107,39 @@ def main():
     # ========================================
     print("\n🛢️  正在獲取國際商品行情...")
     commodity_data = fetcher.get_commodity_data()
+
+    # ========================================
+    # 2.6 Fetch Top Volume Stocks (今日成交量前20名 - 真實市場投票)
+    # ========================================
+    volume_data = fetcher.get_top_volume_stocks(top_n=20)
             
     # ========================================
     # 2.6 Fetch Macro Economic Events (日曆事件)
     # ========================================
     macro_events = fetcher.get_macro_events()
+
+    # ========================================
+    # 2.7 Fetch Tech Catalyst Events (NVIDIA GTC / Fed / 財報 等)
+    # ========================================
+    tech_catalyst_events = fetcher.get_tech_catalyst_events()
+
+    # ========================================
+    # 2.8 Auto Update Stock Database
+    # ========================================
+    print("\n🔍 正在檢查是否有新股票需要 AI 供應鏈調查...")
+    from modules.stock_db_updater import StockDatabaseUpdater
+    try:
+        updater = StockDatabaseUpdater(GEMINI_API_KEY)
+        stocks_to_check = []
+        if has_inst_data:
+            for s in institutional_data.get("top_buy", []) + institutional_data.get("top_sell", []):
+                stocks_to_check.append({"id": s["id"], "name": s["name"]})
+        if volume_data:
+            for s in volume_data:
+                stocks_to_check.append({"id": s["id"], "name": s["name"]})
+        updater.update_new_stocks(stocks_to_check)
+    except Exception as e:
+        print(f"  [Error] 自動資料庫調查失敗: {e}")
 
     # ========================================
     # 3. Fetch News (加上資金輪動搜尋)
@@ -155,7 +186,9 @@ def main():
         institutional_data=institutional_data,
         prev_report_path=prev_report,
         commodity_data=commodity_data,
-        macro_events=macro_events
+        macro_events=macro_events,
+        tech_catalyst_events=tech_catalyst_events,
+        volume_data=volume_data
     )
     
     # ========================================
@@ -186,7 +219,8 @@ def main():
     
     print("\n🎧 正在基於結構化數據生成 NotebookLM Podcast 腳本指令...")
     date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-    notebooklm_prompt_content = generate_notebooklm_prompt(GEMINI_API_KEY, structured_data, date_str)
+    print(f"  📌 目前專案主題標籤: {PROJECT_THEME if PROJECT_THEME else '無 (日常盤勢)'}")
+    notebooklm_prompt_content = generate_notebooklm_prompt(GEMINI_API_KEY, structured_data, date_str, current_theme=PROJECT_THEME)
     nl_filename = f"notebooklm_prompt_podcast_{datetime.datetime.now().strftime('%Y%m%d')}.md"
     nl_filepath = os.path.join(REPORTS_DIR, nl_filename)
     
@@ -195,6 +229,14 @@ def main():
         
     print(f"\n✅ 報告已儲存至: {filepath}")
     print(f"✅ NotebookLM 腳本指令已儲存至: {nl_filepath}")
+    
+    # ========================================
+    # 8. Update Knowledge Wiki (The Second Brain)
+    # ========================================
+    from modules.knowledge_manager import KnowledgeUpdater
+    knowledge_updater = KnowledgeUpdater(GEMINI_API_KEY)
+    knowledge_updater.update_knowledge_base(report_content)
+    
     print("完成!")
 
 if __name__ == "__main__":

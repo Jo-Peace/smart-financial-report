@@ -2,6 +2,7 @@ import os
 import google.generativeai as genai
 import datetime
 import time
+import json
 
 class MarketAnalyzer:
     def __init__(self, api_key):
@@ -9,6 +10,17 @@ class MarketAnalyzer:
         # 讀取環境變數，本地端預設可設為 gemini-pro-latest，網站端若未設定則預設使用 gemini-flash-latest
         model_name = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
         self.model = genai.GenerativeModel(model_name)
+        self.stock_db = self._load_stock_db()
+
+    def _load_stock_db(self):
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "stock_db.json")
+        try:
+            with open(db_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"[Warning] Could not load stock_db.json: {e}")
+            return {}
+
 
     def _call_gemini_with_retry(self, prompt, max_retries=3):
         """
@@ -32,7 +44,7 @@ class MarketAnalyzer:
                 else:
                     return f"Error generating report: {e}"
 
-    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None):
+    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None):
         """
         Generates a Markdown report using Gemini with enhanced data.
         """
@@ -88,92 +100,280 @@ class MarketAnalyzer:
             for item in macro_events:
                 macro_summary += f"- {item['title']} ({item['url']})\n"
                 
+        # === Tech Catalyst Events ===
+        catalyst_summary = ""
+        if tech_catalyst_events:
+            catalyst_summary = "\n# 重大科技/總經催化劍事件（趁近 14 天）\n"
+            for ev in tech_catalyst_events:
+                catalyst_summary += f"- {ev['event']}\n  └→ {ev['snippet']}\n"
+
+        # === Volume Ranking Data (今日成交量排名 - 真實市場投票) ===
+        volume_summary = ""
+        if volume_data:
+            volume_summary = "\n# 📊 今日成交量前20名（真實市場行動，分析必須以此為主軸）\n"
+            volume_summary += "⚠️ 警示：這才是今日市場『最有共識』的實際行動。外資買超金額≠成交量。\n"
+            for s in volume_data[:20]:
+                volume_summary += f"- 第{s['rank']}名: {s['id']} {s['name']} | 成交量 {s['volume']:,} 股 | 收盤 {s.get('close_price', 'N/A')} | 漲跌 {s.get('pct_change', 0):+.2f}%\n"
+
         # === Historical Comparison ===
         hist_section = ""
         if prev_report_path:
             try:
                 with open(prev_report_path, "r", encoding="utf-8") as f:
                     prev_content = f.read()
-                hist_section = f"\n# 前日報告（供比較用）\n{prev_content[:2000]}\n"
+                hist_section = f"\n# 前日報告（供昨日預測驗收用）\n{prev_content[:3000]}\n"
             except Exception:
                 hist_section = ""
             
+        # 廣告插播：僅周四放送
+        is_thursday = datetime.datetime.now().weekday() == 3  # 0=Mon, 3=Thu
+        if is_thursday:
+            ad_instruction = "           - 範例語氣：「插播一下！如果你覺得每天這個客製化的 AI 財經報告對你有幫助，這套系統現在開放免費測試中！**免費試用連結已經放在說明欄**，另外提醒，這個網站功能還在 Beta 階段，分析結果僅供參考，不構成投資建議喔！好，我們回到個股新聞...」"
+        else:
+            ad_instruction = "           - 今日非週四，請「完全略過」此廳播段落，不要在報告中出現任何廣告詞外內容。"
+        # === Dynamic Stock Database (Lazy Loading) ===
+        # Extract active tickers from today's data to avoid bloating the prompt
+        active_tickers = set()
+        
+        # from market_data keys e.g. "2330.TW"
+        for symbol in market_data.keys():
+            active_tickers.add(symbol.replace('.TW', '').replace('.TWO', ''))
+            
+        # from volume_data
+        if volume_data:
+            for s in volume_data:
+                active_tickers.add(str(s['id']))
+                
+        # from institutional_data
+        if institutional_data:
+            for s in institutional_data.get('top_buy', []):
+                active_tickers.add(str(s['id']))
+            for s in institutional_data.get('top_sell', []):
+                active_tickers.add(str(s['id']))
+                
+        stock_db_str = ""
+        if self.stock_db:
+            appended_count = 0
+            for sid, info in self.stock_db.items():
+                if sid in active_tickers:
+                    stock_db_str += f"- {sid} {info.get('name', '')}：分類為「{info.get('sector', '')}」\n"
+                    stock_db_str += f"  └→ 角色：{info.get('supply_chain_role', '')}\n"
+                    not_class = "、".join(info.get('not_classify_as', []))
+                    if not_class:
+                        stock_db_str += f"  🚫 絕對禁止分類為：{not_class}\n"
+                    appended_count += 1
+            if appended_count == 0:
+                stock_db_str = "（今日主力個股尚無特殊之自訂分類，請依常理判斷）"
+        else:
+            stock_db_str = "（目前資料庫為空，請依常理判斷）"
+            
+        # === Second Brain: Historical Knowledge Wiki ===
+        wiki_str = ""
+        wiki_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "knowledge_wiki")
+        if os.path.exists(wiki_dir):
+            for filename in os.listdir(wiki_dir):
+                if filename.endswith(".md"):
+                    try:
+                        with open(os.path.join(wiki_dir, filename), "r", encoding="utf-8") as f:
+                            wiki_str += f"\n=== {filename} ===\n{f.read()}\n"
+                    except Exception as e:
+                        print(f"  [Warning] 無法讀取 Wiki 檔案 {filename}: {e}")
+        if not wiki_str.strip():
+            wiki_str = "（尚未累積任何歷史知識）"
+
         prompt = f"""
-        You are a professional financial analyst specializing in Taiwan stock market.
-        Create a daily financial report for {date_str} in Traditional Chinese (繁體中文) Markdown format.
-        
-        # 股票數據（含技術指標）
-        {data_summary}
-        
-        # 新聞
-        {news_summary}
-        {inst_summary}
-        {commodity_summary}
-        # 總經事件
-        {macro_summary}
-        {hist_section}
-        
-        # 報告要求：【華爾街頂級操盤手視角】
-        1. **市場快照**: 建立 Markdown 表格，欄位：代碼, 公司, 價格, 漲跌, 漲跌幅, 成交量, 爆量比(量增比), MA5, MA20, RSI。
-        2. **三大法人動態**: 建立外資買賣超前10名表格（含估計金額）。必須明確標示資料「日期」。
-        
-        【以下為頂級分析核心，報告品質好壞完全取決於這三點是否深刻】
-        
-        3. **籌碼層次與技術面 (Volume Profile & Flow)**: 
-           - 不要只報價格和均線。必須分析「量增比 (vol_ratio)」。
-           - 如果某檔權值股下跌但爆量 (> 1.5x)，必須判斷這是「恐慌性拋售 (Panic Dump)」還是「主力在關鍵成本區自救護盤 (Institutional Self-Rescue)」。找出誰在接刀、誰在倒貨，結合外資淨額分析。
-        
-        4. **資金排擠效應 (Sector Rotation / Capital Displacement)**: 
-           - 華爾街看的是資金流向。必須根據新聞和股價表現，具體寫出「水庫的水從哪裡被抽走，流向了哪裡」。
-           - 【強制要求】如果大盤資金集中在特定族群（例如記憶體反撲、或 CPO 矽光子），必須指出哪些邊緣族群（如衛星網通、航運）因此遭遇「流動性枯竭 / 資金排擠」而下跌。不要單獨解釋下跌，要把漲跌建立在資金挪移的因果關係上。
-        
-        5. **事件驅動與總經預期 (Event-Driven Expectation)**: 
-           - 股市是買預期、賣事實。結合提供的【總經事件】(如 CPI, Fed 決策, 重大財報)。
-           - 必須在分析中寫出：「法人今日在台股的佈局（如大買黃金/債券、大賣半導體），是為了防禦/押注即將到來的 XXX 事件」。讓盤面動作與未來日曆掛鉤。
-        
-        6. **🔍 盤面深層歸因分析（Why Behind the Move）**: 
-           用「結果 ← 原因」邏輯，連結上述三點。例如：「【現象】低軌衛星族群無量大跌 ← 【原因】遭遇資金排擠效應，主力資金全面撤出轉往記憶體族群抄底。」
-           
-        7. **🎯 今日資金匯聚焦點族群與強勢領頭羊**: 
-           明確點名今日「吸血」最強的主流族群。
-           【強制分析熱門族群】請務必在文中特別關注並追蹤「**記憶體族群 (南亞科/華邦電大反撲)**」、「**矽光子 CPO 族群**」，以及「**低軌衛星網通族群**」的資金流向與當日表現。
+你是一個台股財金節目的「首席偵探型分析師」。
+你的工作不是寫報告。是找到今天「最讓人意外的數據現象」，然後用說故事的方式把它說得讓人無法跳過。
 
-        8. **🛢️ 國際商品與避險資產（極度重要）**: 
-           若黃金或原油有漲幅，必須開闢段落將其與「這週的總經事件」或「地緣政治戰爭風險」做強制且正面的連結。誇讚資金提早卡位避險的敏銳度。
+日期：{date_str}（繁體中文，數字需加括號標注中文讀音）
 
-        9. **💬 專業術語與位階語感拿捏（極度重要）**:
-           分析個股暴漲時，必須根據其「股價與 MA20 的關係」來決定用詞：
-           - 若股價剛從 MA20 下方站上，或從低檔剛帶量上漲：禁止使用「全面噴發、主升段、狂飆」等詞。請改用「絕地大反攻、主力自救、跌深強彈、帶量突圍、底部成型」。
-           - 若股價已經站穩 MA20 上方並持續創高：這時才能使用「全面噴發、狂飆、強勢點火、主升段確認」等詞彙。
-           確保報告的語感符合老手對「時間尺度」與「長線位階」的敏銳度，不輕易對初次反彈使用誇大字眼。
-           
-        9. **📢 節目口播贊助（約報告 1 分鐘處）**:
-           - 範例語氣：「插播一下！如果你覺得每天這個客製化的 AI 財經報告對你有幫助，這套系統現在開放免費測試中！**免費試用連結已經放在說明欄**，另外提醒，這個網站功能還在 Beta 階段，分析結果僅供參考，不構成投資建議喔！好，我們回到個股新聞...」
-           
-        10. **特別企劃呼應 (Callback)**: 
-            主動「呼應」前幾天發布的「戰爭與地緣政治對股市影響」特別節目。提及 1991 波灣戰爭、2003 美伊戰爭的歷史回測，以及「買在砲聲隆隆時（利空出盡）」的觀念。
-            
-        11. **總結與華爾街實戰策略 (Conclusion & Strategy)**: 
-            結尾給出兩種不同風格的操作建議：
-            - **(1) 機構級建倉（穩健）**：基於法人的籌碼成本區，尋找打底完成、準備承接事件紅利的標的。
-            - **(2) 游資狙擊（波段）**：跟隨今日資金排擠流向，尋找資金爆發初期的動能股。
-            
-        12. **數值讀音要求**: 
-            正文（非表格）提及關鍵數字時，必須加中文括號標註。如：33,605 點（三萬三千六百零五點）、1.5 倍（一點五倍）。
-        14. **語氣**: 專業、簡潔、客觀。
-        15. **格式**: 乾淨的 Markdown。
-        16. **數字格式（重要！）**: 在報告正文（非表格）中提及關鍵數字時，必須在阿拉伯數字後加上中文括號標註，以確保語音朗讀正確。範例：
-           - 指數：33,605 點（三萬三千六百零五點）
-           - 股價：1,915 元（一千九百一十五元）
-           - 張數：12,634 張（一萬兩千六百三十四張）
-           - 金額：449.6 億美元（四百四十九點六億美元）
-           - 表格內的數字不需要加中文標註。
-        
-        請生成完整報告。
+================================================================
+【原始數據輸入——這些是事實，禁止在事實之外捏造】
+================================================================
+
+## 今日成交量前20名（市場真實行動，最重要的數據）
+{volume_summary if volume_summary else '（成交量數據未能取得，改以外資買超數據為輔）'}
+
+## 個股技術指標（含均線與量增比）
+{data_summary}
+
+## 三大法人數據
+{inst_summary}
+
+## 國際商品
+{commodity_summary}
+
+## 新聞資訊
+{news_summary}
+
+## 催化劑事件
+{catalyst_summary}
+
+## 前日報告（用於昨日預測驗收）
+{hist_section}
+
+================================================================
+【我們的內部私有財經歷史記憶庫 (The Second Brain)】
+================================================================
+這些是我們在過去追蹤到的市場敘事、大事件、資金輪動趨勢。
+你在分析今日數據時，必須以此為「既有認知基礎」。
+- 如果今天的數據「延續」了記憶庫裡的趨勢，請在報告中點出這個連貫性（例如「正如我們此前的觀察...」）。
+- 如果今天的數據「打破或反轉」了過去的敘事，這就是今日「最強異常」的絕佳題材！
+{wiki_str}
+
+================================================================
+STEP 0【昨日預測驗收】最高優先，必須第一個出現，不得省略
+================================================================
+從前日報告的「AI 數據抓漏」段落提取預測標的，與今日實際表現誠實比對：
+- 命中：寫「✅ 昨日預測 XXX，今日實際 +X%，預測成立。」
+- 失準：寫「❌ 昨日預測 XXX，今日實際 -X%，預測失敗。原因推測：[具體分析]」
+- 無可驗收：寫「本日無昨日預測標的可驗收。」
+此段是頻道信譽的命脈。失準時不得省略或美化。
+
+================================================================
+STEP 1【找出今日的最強異常】整集的靈魂，只選一個現象
+================================================================
+從以下類型找出最反直覺、最有衝突感的數據現象：
+A) 量價矛盾：大成交量但股價小漲（分配訊號）？縮量但大漲（假突破）？
+B) 法人 vs 市場矛盾：外資大買的股票，成交量排名卻在20名以外？
+C) 族群內部分歧：多支同族群個股同向，但關鍵個股逆勢？（需3支以上才能說「族群」）
+D) 技術位攻防：MA20、月線有無被突破或失守？
+E) 昨日預測 vs 今日現實的反差
+
+選出最值得追問的ONE個。所有後續分析圍繞它展開。
+
+================================================================
+STEP 2【今日勾魂開場句——讓人停下來的問題】
+================================================================
+用最強異常設計一個帶衝突感的問題，例如：
+「外資今天買進台積電 358 億，但成交量前三名沒有台積電。那錢去哪了？」
+「大盤漲了X點，但成交量冠軍是一支下跌的股票。誰在逆勢操作？」
+「昨天我們說 XXX 會漲，但它今天跌了。判斷哪裡出了問題？」
+
+必須：(1) 基於真實數據 (2) 有內在衝突或懸念 (3) 讓人想知道答案
+
+================================================================
+【台股供應鏈族群知識庫——必須熟記，不得用產品名稱亂分類】
+================================================================
+以下是台股供應鏈的正確分類字典，當分析到這些股票時，必須強制使用這裡的「供應鏈角色」：
+
+{stock_db_str}
+
+📌 正確的族群分類原則：
+「這家公司的產品，有沒有進入AI伺服器的BOM表（物料清單）？」
+→ 有 = AI供應鏈族群；沒有 = 才是傳產
+
+================================================================
+STEP 3【偵探式展開——成交量帶路，法人對比，新聞輔助】
+================================================================
+順序：
+1. 成交量前10名完整列表（這才是市場真正的投票結果）
+2. 外資買賣超對比（機構的官方說法）
+3. 兩者一致？→ 趨勢確認。兩者矛盾？→ 這才是最值得挖掘的地方
+4. 新聞事件作補充（只是「可能原因之一」，不是確定答案）
+5. 族群分析（只在有3支以上個股同向時，才能下「族群性」結論）
+6. 【強制應用上方知識庫】：分析個股所屬族群時，先比對知識庫，用「供應鏈角色」分類，而非產品外觀
+
+================================================================
+🚫 五條鐵律，違反即失敗：
+================================================================
+
+
+1. 不能用單一個股代表整個族群
+2. 黃金漲不等於 Fed 避險；油跌不等於需求崩潰，要加「可能原因之一」
+3. 數據無法解釋的現象，直接寫「目前無法判斷，需持續觀察」，禁止捏造
+4. 詞彙每週各限一次：「史詩級修復」「板塊重新定價」「機構級建倉」「主升段點火」
+5. 股價剛從MA20下站上→用「跌深強彈」「底部成型」；已站穩且持續創高→才能用「主升段確認」
+
+================================================================
+STEP 4【今日唯一重要結論——觀眾明天還記得的那句話】
+================================================================
+整集只允許一個核心結論。必須具體、有可驗證的方向、和明天的行動有關。
+例如：「今天的關鍵不在台積電漲多少，而在成交量前3名是面板和衛星股，
+但法人偏偏在賣這些——這種量價背離，通常是散戶接最後一棒前的最後警告。」
+
+================================================================
+STEP 5【明日觀察焦點——AI 數據抓漏，嚴格門檻】
+================================================================
+推薦1支（最多2支）明日值得追蹤標的，需符合至少一項：
+- 外資連續多日買超（不只今日單日）
+- 成交量異常放大且爆量突破（vol_ratio > 2x）
+- 跌深有籌碼保護（外資買超 + 技術支撐）
+
+禁止推薦台積電（2330）、鴻海（2317）、聯發科（2454）等超級權值股。
+若無符合標的：直接說「今日數據無安全明牌，現金為王，靜待訊號。」
+若有推薦：給出停損點（例如：「收盤跌破 MA20 出場」）。
+
+================================================================
+STEP 6【技術位與商品——簡短補充，不是主角】
+================================================================
+商品每行一句，必須加「可能反映了...，需後續驗證」。
+技術位：哪支股票今天剛突破或跌破 MA20？為什麼重要？
+
+================================================================
+【輸出格式——Markdown，繁體中文，正文數字加中文讀音括號，表格內不需要】
+================================================================
+
+## 〔0〕昨日預測驗收
+
+---
+
+## 〔今日最強異常〕[直接把勾魂問題當標題]
+（1-2段，150字以內）
+
+---
+
+## 〔成交量排名〕今日最真實的市場投票
+| 排名 | 代號 | 名稱 | 成交量 | 漲跌幅 | 今日角色 |
+（前10名，最後欄說明它在今日故事中的意義）
+
+---
+
+## 〔法人籌碼〕外資買賣超（資料日期：XXXX-XX-XX）
+（前10買超 + 前10賣超，標注估計金額）
+
+---
+
+## 〔量價對比〕法人說的 vs 市場做的
+（成交量排名 vs 外資買超的一致或矛盾——這是今集最有料的段落）
+
+---
+
+## 〔資金脈絡〕錢從哪來、往哪去
+（根據真實數據說一個有頭有尾的資金故事）
+
+---
+
+## 〔技術位快報〕誰剛突破、誰剛失守 MA20
+（每項最多一行，商品加「可能反映了...，需驗證」）
+
+---
+
+## 〔今日唯一重要結論〕
+（100字以內，讓觀眾明天還記得的那句話）
+
+---
+
+## 〔明日觀察焦點〕AI 數據抓漏
+（標的 + 理由 + 停損點，或說「今日無安全明牌，現金為王。」）
+
+---
+
+## 〔操作建議〕
+- **穩健型**：...
+- **波段型**：...
+- **防禦股驗證**：找跌幅 < -0.5% 且 vol_ratio < 1.2x 的個股。找不到就說「今日無防禦角落，現金為王。」
+{ad_instruction}
+
+---
+
+語氣：像一個真正在查案的人。好奇、謹慎、偶爾有「我看懂了！」的興奮感。
+不知道的地方直接說不知道——這比假裝知道更有說服力，也更讓人信任。
         """
-        
-        
+
+
         return self._call_gemini_with_retry(prompt)
+
 
     def generate_weekend_special_report(self, market_data, news_data, commodity_data=None, macro_events=None):
         """
