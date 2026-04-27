@@ -335,6 +335,34 @@ def main():
     with open(json_filepath, "w", encoding="utf-8") as f:
         json.dump(structured_data, f, ensure_ascii=False, indent=2)
     print(f"  ✅ 結構化數據已儲存: {json_filename}")
+
+    # ========================================
+    # 7.1 Local Analytics DB (no extra AI quota)
+    # ========================================
+    print("\n📈 正在寫入本地 Analytics DB（資料複利，不消耗 AI 額度）...")
+    try:
+        from modules.analytics_store import AnalyticsStore
+
+        analytics_summary = AnalyticsStore().record_daily_run(
+            run_date=datetime.datetime.now().strftime("%Y-%m-%d"),
+            structured_data=structured_data,
+            report_path=filepath,
+            structured_data_path=json_filepath,
+            market_data=market_data,
+            institutional_data=institutional_data,
+            volume_data=volume_data,
+        )
+        hit_rate = analytics_summary.get("hit_rate")
+        hit_rate_str = f"{hit_rate:.1f}%" if hit_rate is not None else "尚無可驗收樣本"
+        print(
+            "  ✅ Analytics DB 已更新: "
+            f"日報 {analytics_summary['daily_runs']} 筆、"
+            f"預測 {analytics_summary['predictions']} 筆、"
+            f"驗收 {analytics_summary['evaluated_results']} 筆、"
+            f"命中率 {hit_rate_str}"
+        )
+    except Exception as e:
+        print(f"  ⚠️  Analytics DB 寫入失敗，略過本地統計: {e}")
     
     print("\n🎧 正在基於結構化數據生成 NotebookLM Podcast 腳本指令...")
     date_str = datetime.datetime.now().strftime("%Y-%m-%d")
