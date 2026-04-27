@@ -108,6 +108,11 @@ def append_channel_story_log(date_str, structured_data, visual_theme="", predict
         print(f"  [優化 C] 無法寫入頻道敘事紀錄: {e}")
 
 
+def is_generation_error(content):
+    """Return True when an AI generation helper returned an error string instead of content."""
+    return isinstance(content, str) and content.strip().startswith("Error generating")
+
+
 def main():
     print(f"{'='*50}")
     print(f"  智慧財經新聞助理 (V21 Pro)")
@@ -309,6 +314,11 @@ def main():
         volume_data=volume_data,
         deep_dive_data=deep_dive_data
     )
+    if is_generation_error(report_content):
+        print("\n❌ AI 報告生成失敗，停止流程以避免覆蓋正式報告。")
+        print(f"   錯誤摘要: {report_content.splitlines()[0]}")
+        print("   已抓取的市場資料未寫成正式日報；請稍後更換/恢復 Gemini 額度後重跑。")
+        return
     
     # ========================================
     # 6. Save Report
@@ -327,6 +337,16 @@ def main():
     
     print("\n📦 正在萃取結構化數據 (防止 AI 幻覺)...")
     structured_data = extract_structured_data(GEMINI_API_KEY, report_content)
+    if isinstance(structured_data, dict) and structured_data.get("error"):
+        failed_json_filename = f"structured_data_failed_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        failed_json_filepath = os.path.join(REPORTS_DIR, failed_json_filename)
+        import json
+        with open(failed_json_filepath, "w", encoding="utf-8") as f:
+            json.dump(structured_data, f, ensure_ascii=False, indent=2)
+        print("\n❌ 結構化數據萃取失敗，停止後續素材生成以避免覆蓋正式 JSON。")
+        print(f"   錯誤紀錄已儲存: {failed_json_filename}")
+        print("   日報已保留，可在 Gemini 額度恢復後只重跑後續素材流程。")
+        return
     
     # Save the structured data json for debugging
     json_filename = f"structured_data_{datetime.datetime.now().strftime('%Y%m%d')}.json"
@@ -375,14 +395,19 @@ def main():
     date_str = datetime.datetime.now().strftime("%Y-%m-%d")
     print(f"  📌 目前專案主題標籤: {PROJECT_THEME if PROJECT_THEME else '無 (日常盤勢)'}")
     notebooklm_prompt_content = generate_notebooklm_prompt(GEMINI_API_KEY, structured_data, date_str, current_theme=PROJECT_THEME)
+    if is_generation_error(notebooklm_prompt_content):
+        print("  ⚠️  NotebookLM prompt 生成失敗，跳過寫入。")
+        notebooklm_prompt_content = None
     nl_filename = f"notebooklm_prompt_podcast_{datetime.datetime.now().strftime('%Y%m%d')}.md"
     nl_filepath = os.path.join(REPORTS_DIR, nl_filename)
     
-    with open(nl_filepath, "w", encoding="utf-8") as f:
-        f.write(notebooklm_prompt_content)
+    if notebooklm_prompt_content:
+        with open(nl_filepath, "w", encoding="utf-8") as f:
+            f.write(notebooklm_prompt_content)
         
     print(f"\n✅ 報告已儲存至: {filepath}")
-    print(f"✅ NotebookLM 腳本指令已儲存至: {nl_filepath}")
+    if notebooklm_prompt_content:
+        print(f"✅ NotebookLM 腳本指令已儲存至: {nl_filepath}")
     
     # ========================================
     # 7.5 Generate YouTube Content Package (titles + description + pinned comment)
@@ -406,15 +431,18 @@ def main():
         from modules.thumbnail_generator import generate_ab_test_thumbnails, print_ab_test_summary
 
         print("\n🎨 正在用 DALL-E 3 生成 YouTube 縮圖背景...")
-        ab_results = generate_ab_test_thumbnails(
-            gemini_api_key=GEMINI_API_KEY,
-            openai_api_key=OPENAI_API_KEY,
-            report_content=report_content,
-            reports_dir=YOUTUBE_ASSETS_DIR,
-            styles=["dc_comics", "cyberpunk"],
-            num_titles=3,
-        )
-        print_ab_test_summary(ab_results)
+        try:
+            ab_results = generate_ab_test_thumbnails(
+                gemini_api_key=GEMINI_API_KEY,
+                openai_api_key=OPENAI_API_KEY,
+                report_content=report_content,
+                reports_dir=YOUTUBE_ASSETS_DIR,
+                styles=["dc_comics", "cyberpunk"],
+                num_titles=3,
+            )
+            print_ab_test_summary(ab_results)
+        except Exception as e:
+            print(f"  ⚠️  縮圖生成失敗，跳過，不影響日報與文字素材: {e}")
     else:
         print("\n⚠️  未設定 OPENAI_API_KEY，跳過 DALL-E 3 縮圖生成。")
         print("   請在 .env 加入 OPENAI_API_KEY=sk-... 以啟用自動縮圖。")
@@ -440,7 +468,10 @@ def main():
     print("\n" + "="*50)
     print("  ✅ 所有任務完成！")
     print(f"  📄 日報: {filename}")
-    print(f"  🎙️  Podcast 腳本: {nl_filename}")
+    if notebooklm_prompt_content:
+        print(f"  🎙️  Podcast 腳本: {nl_filename}")
+    else:
+        print("  🎙️  Podcast 腳本: 未生成")
     print(f"  📺 頻道紀錄: {os.path.basename(CHANNEL_STORY_LOG)}")
     print("  🧠 Knowledge Wiki 已更新 (Append-Only)")
     print("="*50)
