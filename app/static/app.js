@@ -8,6 +8,7 @@ let isLoading = false;
 // === Init ===
 document.addEventListener('DOMContentLoaded', () => {
     updateQuota();
+    loadHotStocks();
     loadRecentReports();
 
     // Enter key to search
@@ -276,3 +277,67 @@ async function loadRecentReports() {
         console.error('Failed to load recent reports:', e);
     }
 }
+
+// === Hot Stocks ===
+async function loadHotStocks() {
+    try {
+        const res = await fetch('/api/hot_stocks');
+        const data = await res.json();
+        const container = document.getElementById('hotStocksWrapper');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (!data || data.length === 0) {
+            container.innerHTML = '<span style="color: #64748b; font-size: 0.9rem;">目前尚無精選資料</span>';
+            return;
+        }
+
+        data.forEach(item => {
+            const btn = document.createElement('button');
+            // Using inline styling for immediate visual impact without extra CSS edits
+            btn.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(249,115,22,0.1) 100%)';
+            btn.style.border = '1px solid rgba(239,68,68,0.3)';
+            btn.style.color = '#f87171';
+            btn.style.padding = '8px 12px';
+            btn.style.borderRadius = '8px';
+            btn.style.fontSize = '0.9rem';
+            btn.style.cursor = 'pointer';
+            btn.style.display = 'flex';
+            btn.style.alignItems = 'center';
+            btn.style.gap = '6px';
+            btn.style.transition = 'all 0.2s ease';
+            
+            btn.onmouseover = () => {
+                btn.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.2) 0%, rgba(249,115,22,0.2) 100%)';
+                btn.style.transform = 'translateY(-1px)';
+            };
+            btn.onmouseout = () => {
+                btn.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(249,115,22,0.1) 100%)';
+                btn.style.transform = 'none';
+            };
+            
+            // Format views with commas
+            const formattedViews = new Intl.NumberFormat().format(item.views);
+            
+            // Format date (remove year for cleaner look)
+            const displayDate = item.date.length > 5 ? item.date.substring(5) : item.date;
+            
+            btn.innerHTML = `
+                <strong style="font-size:1rem;">${item.ticker}</strong> 
+                <span>${item.name}</span>
+                <div style="background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 4px; display:flex; gap: 6px;">
+                    <span title="累積觀看次數">👁️ ${formattedViews}</span>
+                    <span style="opacity: 0.6;">|</span>
+                    <span title="資料更新日期">📅 ${displayDate}</span>
+                </div>
+            `;
+            
+            btn.onclick = () => quickSearch(item.ticker);
+            container.appendChild(btn);
+        });
+    } catch (e) {
+        console.error('Failed to load hot stocks:', e);
+    }
+}
+

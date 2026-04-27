@@ -18,7 +18,7 @@ def extract_structured_data(api_key, report_content):
     )
     
     prompt = f"""
-    You are a precise data extraction AI. Read the following financial report and extract the key data into a STRCUTRED JSON format.
+    You are a precise data extraction AI. Read the following financial report and extract the key data into a STRUCTURED JSON format.
     
     RULES:
     1. NEVER invent data, companies, or sectors. Only extract what is specifically mentioned.
@@ -30,8 +30,14 @@ def extract_structured_data(api_key, report_content):
     - `"index_action"`: Very brief summary of the main index movement (e.g. "下跌 73.4點")
     - `"heavyweights_dumped"`: Array of strings. E.g. ["台積電 (-206.5億)", "0050 (-58.1億)"]
     - `"safe_havens_bought"`: Array of strings. E.g. ["群創 (+33.5億)"]
-    - `"sectors"`: A dictionary where keys are sector names (e.g. "記憶體", "CPO矽光子", "工業電腦(IPC)", "低軌衛星網通") and values are arrays of stock names/statuses mentioned for that sector.
+    - `"sectors"`: A dictionary where keys are sector names and values are arrays of stock names/statuses.
         * IMPORTANT: Differentiate CPO and IPC if the report states Advantech is IPC or industrial AI.
+    - `"ai_data_picks"`: Array of strings representing the 1-2 stock picks deduced from data (e.g. ["華邦電 (外資大買)"]). If the report says no reliable picks, return ["今日無安全推薦標的"].
+    - `"prediction_targets"`: [優化 B] Array of objects for TOMORROW's watch list. Extract from the 「明日觀察焦點」section.
+        Each object: {{ "id": "股票代號(數字)", "name": "公司名稱", "direction": "多/空", "trigger": "推薦理由摘要", "stop_loss_price": 停損價格(數字，找不到則為null), "stop_loss_desc": "停損條件描述(e.g. 收盤跌破MA20)" }}
+        If no targets: return [].
+    - `"prev_day_picks_result"`: Array of strings. EXPLICITLY extract the results from the "昨日預測驗收" section. You MUST include specific numbers (like +6.3% or 3.17億股). E.g. ["華邦電 (+6.3%, 預測成立)", "台玻 (加碼27.2億, 預測成立)"]. If none, return [].
+    - `"price_volume_divergence"`: Array of strings. Extract any price-volume or institutional-divergence phenomena mentioned (e.g. "股價噴漲76%但外資同步賣超12.3億"). If none, return [].
     - `"commodities"`: Any commodity movements (e.g. ["黃金漲X%", "白銀漲Y%"])
     - `"conservative_strategy"`: Brief summary of the conservative strategy recommendation
     - `"aggressive_strategy"`: Brief summary of the aggressive strategy recommendation
@@ -45,6 +51,8 @@ def extract_structured_data(api_key, report_content):
         response = model.generate_content(prompt)
         # Verify it's parsable JSON
         data = json.loads(response.text)
+        if isinstance(data, list) and len(data) > 0:
+            data = data[0]
         return data
     except Exception as e:
         print(f"Error extracting structured data: {e}")

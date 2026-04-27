@@ -4,7 +4,7 @@
 # ============================================
 # Usage: Add to crontab for automatic daily execution
 # Example crontab entry (runs Mon-Fri at 3:45 PM, after institutional data release):
-#   45 15 * * 1-5 /Users/shenghanchou/Desktop/bug/smart_financial_report/run_daily.sh
+#   45 15 * * 1-5 /Users/shenghanchou/Desktop/AntiGravity專案/stock-youtube/smart_financial_report/run_daily.sh
 #
 # To set up:
 #   1. chmod +x run_daily.sh

@@ -73,14 +73,13 @@
                         </span>
                     </button>
                 </div>
-                <div class="search-hints">
-                    <span class="hint-label">熱門：</span>
-                    <button class="hint-chip" onclick="quickSearch('2330')">台積電</button>
-                    <button class="hint-chip" onclick="quickSearch('2317')">鴻海</button>
-                    <button class="hint-chip" onclick="quickSearch('2454')">聯發科</button>
-                    <button class="hint-chip" onclick="quickSearch('2382')">廣達</button>
-                    <button class="hint-chip" onclick="quickSearch('3037')">欣興</button>
-                    <button class="hint-chip" onclick="quickSearch('3260')">威剛</button>
+                <div class="hot-stocks-container" style="margin-top: 1.5rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1.2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                        <span style="font-size: 0.95rem; font-weight: 600; color: #f87171;">🔥 本週精選當紅個股 <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8; margin-left: 6px;">(免扣額度)</span></span>
+                    </div>
+                    <div id="hotStocksWrapper" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span style="color: #64748b; font-size: 0.9rem;">載入中...</span>
+                    </div>
                 </div>
             </div>
 

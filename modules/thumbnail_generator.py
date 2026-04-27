@@ -1,13 +1,16 @@
 """
 YouTube Thumbnail Generator with A/B Testing Support.
-Uses Gemini's native image generation with 16:9 aspect ratio.
+Uses DALL-E 3 (OpenAI) for image generation and Gemini for title generation.
 Generates multiple style variants and title options for A/B testing.
 """
 import os
+import base64
 import time
 import datetime
+import requests as _requests
 from google import genai
 from google.genai import types
+from openai import OpenAI
 
 
 # === Visual Style Presets ===
@@ -82,8 +85,9 @@ def generate_titles(client, report_content, num_titles=3):
     請直接輸出標題，每行一個，不要編號，不要其他說明文字。
     """
 
+    model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model=model_name,
         contents=[prompt],
     )
     
@@ -91,127 +95,129 @@ def generate_titles(client, report_content, num_titles=3):
     return titles[:num_titles]
 
 
-def generate_thumbnail(client, style_key, title, date_str, output_path, max_retries=3):
+def _build_image_prompt(style_key_or_custom, title):
     """
-    Generate a single YouTube thumbnail using Gemini native image generation.
-    Includes retry logic with backoff for rate limit handling.
+    Returns the final image prompt string.
+    - If style_key_or_custom matches a STYLE_PRESETS key → use that preset.
+    - Otherwise treat it as a free-form custom style description (daily override).
+    """
+    preset = STYLE_PRESETS.get(style_key_or_custom)
+    visual_desc = preset["prompt"] if preset else style_key_or_custom
+
+    return (
+        "YouTube thumbnail background image, landscape 16:9 format. "
+        f"{visual_desc} "
+        "Leave a bold clear area at the bottom 25% of the image for text overlay. "
+        f"The composition should visually suggest the theme: '{title}'. "
+        "No text, no letters, no characters in the image — pure visual only. "
+        "Ultra high quality, dramatic, eye-catching at small sizes."
+    )
+
+
+def generate_thumbnail(openai_client, style_key_or_custom, title, date_str, output_path, max_retries=2):
+    """
+    Generate a single YouTube thumbnail using DALL-E 3 (OpenAI).
+    style_key_or_custom: a STYLE_PRESETS key (e.g. "dc_comics") OR a free-form style description.
+    Produces a clean visual background (1792x1024, ~16:9).
+    Text overlay should be added separately in Canva or similar tools.
     Returns True if successful, False otherwise.
     """
-    style = STYLE_PRESETS.get(style_key)
-    if not style:
-        print(f"  [Error] 未知的風格: {style_key}")
-        return False
+    image_prompt = _build_image_prompt(style_key_or_custom, title)
 
-    image_prompt = f"""
-    Generate a YouTube thumbnail image in wide landscape 16:9 format.
-
-    Visual Style: {style['prompt']}
-
-    Text overlay requirements (MUST include these Chinese characters prominently):
-    - Main title: "{title}" in very large, bold font with strong outline and shadow
-    - Date: "{date_str}" in a banner or badge in the corner
-    
-    The text must be clearly readable, very large, and eye-catching.
-    This is a YouTube thumbnail so it needs to grab attention even at small sizes.
-    Professional quality, no human faces, focus on financial/stock market theme.
-    """
-
-    wait_times = [30, 45, 60]
+    wait_times = [20, 40]
 
     for attempt in range(max_retries + 1):
         try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash-image",
-                contents=[image_prompt],
-                config=types.GenerateContentConfig(
-                    response_modalities=["Image"],
-                    image_config=types.ImageConfig(
-                        aspect_ratio="16:9",
-                    ),
-                ),
+            response = openai_client.images.generate(
+                model="dall-e-3",
+                prompt=image_prompt,
+                size="1792x1024",
+                quality="hd",
+                n=1,
+                response_format="b64_json",
             )
-
-            for part in response.parts:
-                if part.inline_data is not None:
-                    image = part.as_image()
-                    image.save(output_path)
-                    return True
-
-            print(f"     [Warning] Gemini 未返回圖片")
-            return False
+            image_data = base64.b64decode(response.data[0].b64_json)
+            with open(output_path, "wb") as f:
+                f.write(image_data)
+            return True
 
         except Exception as e:
             error_str = str(e)
-            is_rate_limit = "429" in error_str or "RESOURCE_EXHAUSTED" in error_str
+            is_rate_limit = "429" in error_str or "rate_limit" in error_str.lower()
 
             if is_rate_limit and attempt < max_retries:
                 wait = wait_times[min(attempt, len(wait_times) - 1)]
-                print(f"     [Retry] API 速率限制，等待 {wait} 秒後重試 ({attempt + 1}/{max_retries})...")
+                print(f"     [Retry] 速率限制，等待 {wait} 秒後重試 ({attempt + 1}/{max_retries})...")
                 time.sleep(wait)
             else:
-                print(f"     [Error] 圖片生成失敗: {e}")
+                print(f"     [Error] DALL-E 3 圖片生成失敗: {e}")
                 return False
 
 
-def generate_ab_test_thumbnails(api_key, report_content, reports_dir, 
+def generate_ab_test_thumbnails(gemini_api_key, openai_api_key, report_content, reports_dir,
                                  styles=None, num_titles=3):
     """
-    Generate multiple thumbnails + titles for A/B testing.
-    
-    Args:
-        api_key: Gemini API key
-        report_content: The weekly report text (for title generation)
-        reports_dir: Directory to save thumbnails
-        styles: List of style keys to use. If None, uses all presets.
-        num_titles: Number of title variations to generate.
-    
+    Generate thumbnails (DALL-E 3) + titles (Gemini) for A/B testing.
+
+    styles 可以是：
+      - None              → 讀 THUMBNAIL_STYLE 環境變數；若沒設定則用預設兩種 preset
+      - ["dc_comics"]     → 指定 STYLE_PRESETS 中的 key
+      - ["午夜霓虹，紫金配色"] → 直接用作自訂 prompt（每天換風格就改這裡）
+
     Returns:
         dict with 'titles' and 'thumbnails' lists
     """
-    client = genai.Client(api_key=api_key)
+    gemini_client = genai.Client(api_key=gemini_api_key)
+    openai_client = OpenAI(api_key=openai_api_key)
+
     date_str = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%m/%d")
     date_full = datetime.datetime.now().strftime("%Y-%m-%d")
 
+    # 優先順序：函數參數 → THUMBNAIL_STYLE 環境變數 → 預設兩種 preset
     if styles is None:
-        styles = list(STYLE_PRESETS.keys())
+        env_style = os.getenv("THUMBNAIL_STYLE", "").strip()
+        if env_style:
+            styles = [env_style]
+            print(f"\n  🎨 使用今日自訂風格: {env_style[:60]}...")
+        else:
+            styles = ["dc_comics", "cyberpunk"]
 
     results = {"titles": [], "thumbnails": []}
 
-    # === Step 1: Generate title variations ===
+    # === Step 1: Generate title variations with Gemini ===
     print("\n🎯 正在生成 YouTube 標題變體（A/B Test）...")
-    titles = generate_titles(client, report_content, num_titles)
+    titles = generate_titles(gemini_client, report_content, num_titles)
     results["titles"] = titles
     for i, title in enumerate(titles):
         print(f"  📝 標題 {i+1}: {title}")
 
-    # === Step 2: Generate thumbnails with different styles ===
-    print(f"\n🎨 正在生成 {len(styles)} 種風格的 YouTube 縮圖（16:9）...")
-    print(f"   （每張之間會間隔 15 秒以避免 API 速率限制）")
+    # === Step 2: Generate thumbnails with DALL-E 3 ===
+    print(f"\n🎨 正在用 DALL-E 3 生成 {len(styles)} 張縮圖背景（1792x1024）...")
 
-    for i, style_key in enumerate(styles):
-        style_name = STYLE_PRESETS[style_key]["name"]
-        # Pair each style with a title (cycle if more styles than titles)
-        title = titles[i % len(titles)]
-        short_title = title[:15] + "..." if len(title) > 15 else title
+    for i, style in enumerate(styles):
+        # 判斷是 preset key 還是自訂描述
+        preset = STYLE_PRESETS.get(style)
+        style_label = preset["name"] if preset else f"自訂風格 {i+1}"
 
-        filename = f"yt_thumbnail_{date_full}_{style_key}.png"
+        title = titles[i % len(titles)] if titles else "台股今日分析"
+        short_title = title[:20] + "..." if len(title) > 20 else title
+
+        filename = f"yt_thumbnail_{date_full}_{i+1}.png"
         output_path = os.path.join(reports_dir, filename)
 
-        # Wait between requests to avoid rate limiting
         if i > 0:
-            print(f"\n     ⏳ 等待 15 秒避免速率限制...")
-            time.sleep(15)
+            print(f"\n     ⏳ 等待 8 秒...")
+            time.sleep(8)
 
-        print(f"\n  🖼️  風格 {i+1}/{len(styles)}: {style_name}")
-        print(f"     標題: {short_title}")
-        print(f"     生成中...")
+        print(f"\n  🖼️  縮圖 {i+1}/{len(styles)}: {style_label}")
+        print(f"     主題方向: {short_title}")
 
-        success = generate_thumbnail(client, style_key, title, date_str, output_path)
+        success = generate_thumbnail(openai_client, style, title, date_str, output_path)
 
         if success:
-            print(f"     ✅ 已儲存: {filename}")
+            print(f"     ✅ 已儲存: {filename}（請在 Canva 加上標題文字）")
             results["thumbnails"].append({
-                "style": style_name,
+                "style": style_label,
                 "title": title,
                 "path": output_path,
             })

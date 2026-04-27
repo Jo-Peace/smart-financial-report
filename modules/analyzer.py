@@ -44,7 +44,7 @@ class MarketAnalyzer:
                 else:
                     return f"Error generating report: {e}"
 
-    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None):
+    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None):
         """
         Generates a Markdown report using Gemini with enhanced data.
         """
@@ -115,6 +115,13 @@ class MarketAnalyzer:
             for s in volume_data[:20]:
                 volume_summary += f"- 第{s['rank']}名: {s['id']} {s['name']} | 成交量 {s['volume']:,} 股 | 收盤 {s.get('close_price', 'N/A')} | 漲跌 {s.get('pct_change', 0):+.2f}%\n"
 
+        # === Deep Dive Data (今日焦點股深度押注資料) ===
+        deep_dive_summary = ""
+        if deep_dive_data and deep_dive_data.get("summary_for_ai"):
+            deep_dive_summary = f"\n# 🔬 今日深度押注數據包（焦點股：{deep_dive_data['stock_id']} {deep_dive_data['stock_name']}\n"
+            deep_dive_summary += deep_dive_data["summary_for_ai"] + "\n"
+            deep_dive_summary += "🚨 此數據包是系統自動抓取的真實基本面資料。請基於此作出具體時間預測。\n"
+
         # === Historical Comparison ===
         hist_section = ""
         if prev_report_path:
@@ -125,12 +132,6 @@ class MarketAnalyzer:
             except Exception:
                 hist_section = ""
             
-        # 廣告插播：僅周四放送
-        is_thursday = datetime.datetime.now().weekday() == 3  # 0=Mon, 3=Thu
-        if is_thursday:
-            ad_instruction = "           - 範例語氣：「插播一下！如果你覺得每天這個客製化的 AI 財經報告對你有幫助，這套系統現在開放免費測試中！**免費試用連結已經放在說明欄**，另外提醒，這個網站功能還在 Beta 階段，分析結果僅供參考，不構成投資建議喔！好，我們回到個股新聞...」"
-        else:
-            ad_instruction = "           - 今日非週四，請「完全略過」此廳播段落，不要在報告中出現任何廣告詞外內容。"
         # === Dynamic Stock Database (Lazy Loading) ===
         # Extract active tickers from today's data to avoid bloating the prompt
         active_tickers = set()
@@ -167,17 +168,41 @@ class MarketAnalyzer:
         else:
             stock_db_str = "（目前資料庫為空，請依常理判斷）"
             
-        # === Second Brain: Historical Knowledge Wiki ===
+        # === Second Brain: Historical Knowledge Wiki (size-capped) ===
         wiki_str = ""
         wiki_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "knowledge_wiki")
+        MAX_WIKI_CHARS = 3500
+
         if os.path.exists(wiki_dir):
-            for filename in os.listdir(wiki_dir):
-                if filename.endswith(".md"):
-                    try:
-                        with open(os.path.join(wiki_dir, filename), "r", encoding="utf-8") as f:
-                            wiki_str += f"\n=== {filename} ===\n{f.read()}\n"
-                    except Exception as e:
-                        print(f"  [Warning] 無法讀取 Wiki 檔案 {filename}: {e}")
+            # 優先讀取 weekly_digest（壓縮版，最節省 token）
+            digest_path = os.path.join(wiki_dir, "weekly_digest.md")
+            if os.path.exists(digest_path):
+                try:
+                    with open(digest_path, "r", encoding="utf-8") as f:
+                        digest_content = f.read().strip()
+                    if digest_content:
+                        wiki_str += f"\n=== weekly_digest.md（本週精華）===\n{digest_content[:1500]}\n"
+                except Exception:
+                    pass
+
+            # 再從各 wiki 檔取最近 20 行（補充當週最新動態）
+            for filename in ["capital_rotation.md", "macro_events.md", "trading_strategies.md"]:
+                filepath = os.path.join(wiki_dir, filename)
+                if not os.path.exists(filepath):
+                    continue
+                try:
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        lines = f.readlines()
+                    recent = "".join(lines[-20:]).strip()
+                    if recent:
+                        wiki_str += f"\n=== {filename}（最近20行）===\n{recent}\n"
+                except Exception as e:
+                    print(f"  [Warning] 無法讀取 Wiki 檔案 {filename}: {e}")
+
+            # 硬上限：超過就截斷，防止 prompt 爆炸
+            if len(wiki_str) > MAX_WIKI_CHARS:
+                wiki_str = wiki_str[:MAX_WIKI_CHARS] + "\n...（已截斷，完整歷史請查閱 Wiki 檔案）"
+
         if not wiki_str.strip():
             wiki_str = "（尚未累積任何歷史知識）"
 
@@ -212,6 +237,9 @@ class MarketAnalyzer:
 ## 前日報告（用於昨日預測驗收）
 {hist_section}
 
+## 🔬 今日深度押注數據（由系統自動抓取，包含近4季毛利率、營收年増率、近期訂單消息）
+{deep_dive_summary if deep_dive_summary else '(未指定深度押注數據，該段展開請依揚現有數據判斷)'}
+
 ================================================================
 【我們的內部私有財經歷史記憶庫 (The Second Brain)】
 ================================================================
@@ -241,6 +269,31 @@ D) 技術位攻防：MA20、月線有無被突破或失守？
 E) 昨日預測 vs 今日現實的反差
 
 選出最值得追問的ONE個。所有後續分析圍繞它展開。
+
+================================================================
+【深度押注】STEP 內嵌——每日一支的大膽預測
+================================================================
+基於上方「今日深度押注數據」，對今日外資買超金額第一名的標的，產出一段「深度押注」專屬導言。
+
+請同時整合：
+- 毛利率趨勢（近4季毛利率是改善還是走弱？）
+- 營收年增率（賺錢能力有沒有在提升？）
+- 法人籌碼特徵（對比歷史上外資在低位大買的模式）
+- 成交量趨勢（放量還是縮量？）
+- 近期訂單/法說消息（新聞中有沒有潛在展望）
+
+必須應含的區塊格式：
+```
+【今日深度押注：XXXX ×× 】
+- 基本面：毛利率 X%（趨勢：改善/走弱），營收年增 X%
+- 法人籌碼：今日外資買超 XX 億（全市場第 X 名）
+- 成交量：[放量/縮量/量平]（今日量 Xx 倍 20日均量）
+- 預測：若 [具體條件，如「隔日量縮止跌」]，預期 [X 週內] 將 [回到MA20上方/突破XX元/維持強勢]
+- 信心度：★★★（依據強弱：1-5顆星）
+- 停損連戰尼：收盤跌破 XX 元，先撤
+```
+
+應該大膽不應該模糊。不要說「可能漲」，請說「若條件X成立，預期2週內將回到MA20上方的Y元」。有具體數字。如果基本面資料不足以支持預測，請誠實說明「基本面資料尚不充分」，而不是編造一個號碼。
 
 ================================================================
 STEP 2【今日勾魂開場句——讓人停下來的問題】
@@ -363,7 +416,6 @@ STEP 6【技術位與商品——簡短補充，不是主角】
 - **穩健型**：...
 - **波段型**：...
 - **防禦股驗證**：找跌幅 < -0.5% 且 vol_ratio < 1.2x 的個股。找不到就說「今日無防禦角落，現金為王。」
-{ad_instruction}
 
 ---
 

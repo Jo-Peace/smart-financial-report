@@ -4,9 +4,17 @@
     "sector": "AI PCB基板材料族群",
     "sub_sector": "玻纖布",
     "supply_chain_role": "AI伺服器高速PCB基板核心輔材",
-    "key_products": ["T布", "Q布", "電子級玻纖紗"],
+    "key_products": [
+      "T布",
+      "Q布",
+      "電子級玻纖紗"
+    ],
     "ai_connection": "T/Q布是AI GPU主機板PCB的必需材料，需求量與AI伺服器出貨正相關",
-    "not_classify_as": ["傳統產業", "窯業", "玻璃"],
+    "not_classify_as": [
+      "傳統產業",
+      "窯業",
+      "玻璃"
+    ],
     "history_notes": "2024年起T布報價隨AI伺服器需求上漲，為族群補漲潛力股"
   },
   "1303": {
@@ -14,9 +22,16 @@
     "sector": "AI PCB材料族群",
     "sub_sector": "CCL 銅箔基板",
     "supply_chain_role": "AI伺服器電路板核心材料供應商",
-    "key_products": ["CCL", "玻纖布", "環氧樹脂"],
+    "key_products": [
+      "CCL",
+      "玻纖布",
+      "環氧樹脂"
+    ],
     "ai_connection": "AI伺服器需要更高層數與低損耗的CCL，南亞為主要供應商之一",
-    "not_classify_as": ["傳統塑化", "傳產"],
+    "not_classify_as": [
+      "傳統塑化",
+      "傳產"
+    ],
     "history_notes": "雖名為塑化，但電子材料比重高，常隨PCB與AI伺服器題材連動"
   },
   "2383": {
@@ -24,9 +39,13 @@
     "sector": "AI 高頻高速 PCB 族群",
     "sub_sector": "CCL 高階銅箔基板",
     "supply_chain_role": "AI伺服器高階CCL龍頭",
-    "key_products": ["高頻高頻CCL"],
+    "key_products": [
+      "高頻高頻CCL"
+    ],
     "ai_connection": "NVIDIA等AI晶片伺服器主板關鍵材料供應商",
-    "not_classify_as": ["傳統零組件"],
+    "not_classify_as": [
+      "傳統零組件"
+    ],
     "history_notes": "AI伺服器出貨量爆發的主要受惠者"
   },
   "6213": {
@@ -34,9 +53,13 @@
     "sector": "AI 高頻高速 PCB 族群",
     "sub_sector": "CCL 高階銅箔基板",
     "supply_chain_role": "AI伺服器CCL供應商",
-    "key_products": ["高頻高頻CCL"],
+    "key_products": [
+      "高頻高頻CCL"
+    ],
     "ai_connection": "打入多款AI伺服器與交換器供應鏈",
-    "not_classify_as": ["傳統零組件"],
+    "not_classify_as": [
+      "傳統零組件"
+    ],
     "history_notes": ""
   },
   "3324": {
@@ -44,9 +67,15 @@
     "sector": "AI 伺服器熱管理族群",
     "sub_sector": "散熱模組",
     "supply_chain_role": "AI 伺服器冷卻系統龍頭",
-    "key_products": ["液冷散熱模組", "3D VC", "水冷板"],
+    "key_products": [
+      "液冷散熱模組",
+      "3D VC",
+      "水冷板"
+    ],
     "ai_connection": "AI晶片功耗大增，必須使用其高階散熱解決方案",
-    "not_classify_as": ["傳統PC零組件"],
+    "not_classify_as": [
+      "傳統PC零組件"
+    ],
     "history_notes": ""
   },
   "3017": {
@@ -54,9 +83,15 @@
     "sector": "AI 伺服器熱管理族群",
     "sub_sector": "散熱模組",
     "supply_chain_role": "AI 伺服器3D VC及液冷散熱主力供應商",
-    "key_products": ["3D VC", "水冷散熱模組", "風扇"],
+    "key_products": [
+      "3D VC",
+      "水冷散熱模組",
+      "風扇"
+    ],
     "ai_connection": "NVIDIA AI伺服器主力散熱供應商之一",
-    "not_classify_as": ["傳統PC零組件"],
+    "not_classify_as": [
+      "傳統PC零組件"
+    ],
     "history_notes": ""
   },
   "2313": {
@@ -64,9 +99,1218 @@
     "sector": "低軌衛星與高密度PCB族群",
     "sub_sector": "HDI板與低軌衛星",
     "supply_chain_role": "低軌衛星星系與蘋果供應鏈主機板",
-    "key_products": ["HDI高密度連接板", "低軌衛星主板"],
+    "key_products": [
+      "HDI高密度連接板",
+      "低軌衛星主板"
+    ],
     "ai_connection": "同時受惠手機復甦與星鏈衛星佈建",
-    "not_classify_as": ["傳產", "舊光電"],
+    "not_classify_as": [
+      "傳產",
+      "舊光電"
+    ],
     "history_notes": "常與SpaceX與蘋果產品週期連動"
+  },
+  "2330": {
+    "name": "台積電",
+    "sector": "AI 核心晶圓代工族群",
+    "supply_chain_role": "AI 加速器與高效能運算 (HPC) 獨家先進製程代工與先進封裝 (CoWoS) 提供者",
+    "key_products": [
+      "3nm/5nm 先進製程晶圓",
+      "CoWoS 封裝"
+    ],
+    "ai_connection": "所有主流 AI 晶片 (NVIDIA H100/B200, AMD MI300) 的唯一製造與封裝來源",
+    "not_classify_as": [
+      "一般半導體代工",
+      "晶圓廠"
+    ]
+  },
+  "0050": {
+    "name": "元大台灣50",
+    "sector": "AI 高權重權值族群",
+    "supply_chain_role": "AI 供應鏈系統性流動性供應者與市值型代表",
+    "key_products": [
+      "台股前 50 大市值公司組合"
+    ],
+    "ai_connection": "權重高度集中於台積電及 AI 伺服器 ODM 廠，為 AI 產業趨勢的資金主要出入口",
+    "not_classify_as": [
+      "傳統共同基金",
+      "綜合類 ETF"
+    ]
+  },
+  "2327": {
+    "name": "國巨",
+    "sector": "AI 伺服器被動元件族群",
+    "supply_chain_role": "AI 伺服器電源管理模組高階 MLCC/電感供應商",
+    "key_products": [
+      "高容量 MLCC",
+      "高頻電感",
+      "精密電阻"
+    ],
+    "ai_connection": "AI 伺服器功耗大幅提升，單機搭載的高階被動元件價值量比傳統伺服器翻倍",
+    "not_classify_as": [
+      "傳統被動元件廠",
+      "傳產"
+    ]
+  },
+  "2408": {
+    "name": "南亞科",
+    "sector": "AI 記憶體關鍵材料族群",
+    "supply_chain_role": "AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商",
+    "key_products": [
+      "DRAM 記憶體顆粒"
+    ],
+    "ai_connection": "提供 AI 伺服器運行所需的系統記憶體，並轉型開發 DDR5 支援 AI 高速運算需求",
+    "not_classify_as": [
+      "傳統記憶體廠",
+      "景氣循環股"
+    ]
+  },
+  "2382": {
+    "name": "廣達",
+    "sector": "AI 伺服器系統整合族群",
+    "supply_chain_role": "AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠",
+    "key_products": [
+      "NVIDIA GB200 伺服器機櫃",
+      "AI 伺服器主機板"
+    ],
+    "ai_connection": "與 NVIDIA 合作開發最領先之 AI 整機與機櫃解決方案，為 AI 算力落地之關鍵節點",
+    "not_classify_as": [
+      "筆記型電腦代工",
+      "電腦組裝廠"
+    ]
+  },
+  "2344": {
+    "name": "華邦電",
+    "sector": "AI 邊緣運算記憶體族群",
+    "supply_chain_role": "AI 伺服器 BIOS 啟動與邊緣 AI 終端 Nor Flash 供應商",
+    "key_products": [
+      "Nor Flash",
+      "Specialty DRAM"
+    ],
+    "ai_connection": "AI 伺服器與相關網路設備對 Nor Flash 存儲容量與速度需求隨 AI 規格升級而提升",
+    "not_classify_as": [
+      "傳統記憶體廠",
+      "利基型記憶體"
+    ],
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-04-21",
+      "consecutive_foreign_buy_days": 1,
+      "last_foreign_buy_date": "2026-04-21",
+      "history": [
+        {
+          "date": "2026-04-21",
+          "direction": "多",
+          "trigger": "外資買超金額第一但股價逆勢下跌，呈現吸籌特徵，明日量縮止跌為反轉點",
+          "stop_loss": "跌破今日低點 85.0 元",
+          "result": "實際 +6.30% → ✅ 命中"
+        }
+      ]
+    }
+  },
+  "2303": {
+    "name": "聯電",
+    "sector": "AI 伺服器輔助晶片族群",
+    "supply_chain_role": "AI 伺服器周邊電源管理 IC (PMIC) 與高速傳輸介面晶片代工",
+    "key_products": [
+      "成熟製程晶圓代工",
+      "矽穿孔中介層 (Interposer)"
+    ],
+    "ai_connection": "切入 AI 封裝所需之中介層技術，並供應 AI 伺服器大量使用的電源管理與介面控制晶片",
+    "not_classify_as": [
+      "二線晶圓代工",
+      "成熟製程代工"
+    ]
+  },
+  "3231": {
+    "name": "緯創",
+    "sector": "AI 運算模組核心族群",
+    "supply_chain_role": "NVIDIA GPU 運算基板 (Baseboard) 全球主要供應商",
+    "key_products": [
+      "GPU 加速模組基板",
+      "AI 伺服器主機板"
+    ],
+    "ai_connection": "處於 AI 伺服器產業鏈最上游組裝位置，負責 GPU 核心模組與基板的精密組裝",
+    "not_classify_as": [
+      "筆記型電腦代工",
+      "代工廠"
+    ]
+  },
+  "6770": {
+    "name": "力積電",
+    "sector": "AI 記憶體整合技術族群",
+    "supply_chain_role": "提供 3D 堆疊晶片 (3D AI Foundry) 與 AI 相關驅動 IC 代工",
+    "key_products": [
+      "3D 晶片堆疊代工",
+      "功率半導體"
+    ],
+    "ai_connection": "推動邏輯晶片與記憶體 3D 堆疊技術，解決 AI 運算中的記憶體牆瓶頸",
+    "not_classify_as": [
+      "傳統記憶體代工",
+      "黃崇仁的公司"
+    ]
+  },
+  "0052": {
+    "name": "富邦科技",
+    "sector": "AI 高度集中投資族群",
+    "supply_chain_role": "台股 AI 科技半導體產業鏈純度最高之資金載體",
+    "key_products": [
+      "高純度科技股組合"
+    ],
+    "ai_connection": "台積電佔比極高，為投資者捕捉 AI 半導體漲幅的最直接指數工具",
+    "not_classify_as": [
+      "一般科技基金",
+      "綜合型 ETF"
+    ]
+  },
+  "3481": {
+    "name": "群創",
+    "sector": "AI 先進封裝材料族群",
+    "supply_chain_role": "AI 晶片面板級扇出型封裝 (FOPLP) 生產載板提供者",
+    "key_products": [
+      "FOPLP 封裝產能",
+      "車用 AI 顯示面板"
+    ],
+    "ai_connection": "利用舊代面板廠轉型 FOPLP 先進封裝，切入 AI 晶片後段製程以提升散熱與整合效能",
+    "not_classify_as": [
+      "面板廠",
+      "液晶顯示器業"
+    ]
+  },
+  "4958": {
+    "name": "臻鼎-KY",
+    "sector": "AI 伺服器高階載板族群",
+    "supply_chain_role": "AI 伺服器主機板與 GPU 專用高階 IC 載板供應商",
+    "key_products": [
+      "ABF 載板",
+      "高階 HDI 板"
+    ],
+    "ai_connection": "產品進入 NVIDIA 供應鏈，供應 AI 晶片連接至 PCB 關鍵的 ABF 載板與多層電路板",
+    "not_classify_as": [
+      "軟板廠",
+      "蘋果供應鏈"
+    ]
+  },
+  "2367": {
+    "name": "燿華",
+    "sector": "AI 伺服器傳輸材料族群",
+    "supply_chain_role": "AI 伺服器內部與交換器端高階 HDI 電路板供應商",
+    "key_products": [
+      "高階 HDI 板",
+      "軟硬結合板"
+    ],
+    "ai_connection": "切入 AI 伺服器供應鏈，提供高速運算環境所需的高頻、低訊號損耗之電路板",
+    "not_classify_as": [
+      "手機電路板廠",
+      "PCB 廠"
+    ]
+  },
+  "2409": {
+    "name": "友達",
+    "sector": "AI 邊緣人機介面族群",
+    "supply_chain_role": "AI 智慧座艙與 AI 終端顯控介面系統整合商",
+    "key_products": [
+      "Micro LED",
+      "車用 AI 整合面板"
+    ],
+    "ai_connection": "提供邊緣 AI 終端 (如 AI PC、智慧車) 所需之高階顯示與感測整合介面",
+    "not_classify_as": [
+      "面板廠",
+      "傳統顯示業"
+    ]
+  },
+  "2337": {
+    "name": "旺宏",
+    "sector": "AI 儲存基礎設施族群",
+    "supply_chain_role": "AI 伺服器基礎輸入輸出系統 (BIOS) 高階 Nor Flash 供應商",
+    "key_products": [
+      "Nor Flash",
+      "ROM"
+    ],
+    "ai_connection": "AI 伺服器架構需高容量且穩定之 Nor Flash 存放開機韌體，具備關鍵零組件地位",
+    "not_classify_as": [
+      "傳統記憶體廠",
+      "唯讀記憶體業"
+    ]
+  },
+  "2891": {
+    "name": "中信金",
+    "sector": "AI 產業資本供應族群",
+    "supply_chain_role": "AI 供應鏈擴廠融資、外匯避險與供應鏈金融服務商",
+    "key_products": [
+      "企業貸款",
+      "資本市場服務"
+    ],
+    "ai_connection": "為 AI 科技廠建廠擴產 (如台積電、廣達) 提供大規模資本支撐與併購融資服務",
+    "not_classify_as": [
+      "傳統銀行",
+      "壽險公司"
+    ]
+  },
+  "2881": {
+    "name": "富邦金",
+    "sector": "AI 產業資本供應族群",
+    "supply_chain_role": "AI 產業股權投資與高科技廠房保險規劃商",
+    "key_products": [
+      "人壽投資管理",
+      "產物保險"
+    ],
+    "ai_connection": "透過旗下創投與壽險資金直接投資 AI 核心企業，並為 AI 生產基地提供專業保險解決方案",
+    "not_classify_as": [
+      "傳統金融",
+      "保險業"
+    ]
+  },
+  "00918": {
+    "name": "凱基台灣TOP50",
+    "sector": "AI 精選優質權值族群",
+    "supply_chain_role": "AI 高獲利領先企業之系統性配置工具",
+    "key_products": [
+      "台灣前 50 大優質股組合"
+    ],
+    "ai_connection": "篩選指標高度納入 AI 伺服器與半導體獲利強勢股，為 AI 領先群的權重配置指標",
+    "not_classify_as": [
+      "普通高股息 ETF",
+      "綜合指數基金"
+    ]
+  },
+  "2489": {
+    "name": "瑞軒",
+    "sector": "AI 邊緣終端設備族群",
+    "supply_chain_role": "AI 賦能智慧視訊會議系統與邊緣運算顯示裝置代工",
+    "key_products": [
+      "AI 視訊會議系統",
+      "智慧顯示器"
+    ],
+    "ai_connection": "轉型代工具備 AI 演算法之視訊與聲控終端硬體，為邊緣 AI 落地之終端出口",
+    "not_classify_as": [
+      "電視代工廠",
+      "顯示器業"
+    ]
+  },
+  "1717": {
+    "name": "長興",
+    "sector": "AI PCB 材料族群",
+    "supply_chain_role": "AI 伺服器高階 PCB 用乾膜光阻與封裝用真空壓膜機供應商",
+    "key_products": [
+      "乾膜光阻",
+      "真空壓膜機"
+    ],
+    "ai_connection": "AI 伺服器所需的超多層板 (High Layer Count) 生產過程，必須使用其供應之特用化學與壓膜設備",
+    "not_classify_as": [
+      "傳產",
+      "合成樹脂業"
+    ]
+  },
+  "1301": {
+    "name": "台塑",
+    "sector": "AI 伺服器基礎材料族群",
+    "supply_chain_role": "AI 伺服器用高階 PCB/CCL 電子級環氧樹脂供應商",
+    "key_products": [
+      "電子級環氧樹脂 (Epoxy Resin)",
+      "銅箔基板 (CCL) 膠材"
+    ],
+    "ai_connection": "切入 AI 伺服器核心 BOM 表中的印刷電路板 (PCB) 與銅箔基板 (CCL) 環節，提供高頻高速傳輸所需的特用化學樹脂。",
+    "not_classify_as": [
+      "傳統塑化業",
+      "傳產",
+      "建築材料商"
+    ]
+  },
+  "1326": {
+    "name": "台化",
+    "sector": "AI 伺服器高階工程塑料族群",
+    "supply_chain_role": "AI 伺服器連接器與內部機構件特種工程塑料供應商",
+    "key_products": [
+      "聚碳酸酯 (PC)",
+      "酚 (Phenol) 等電子化學原材料"
+    ],
+    "ai_connection": "供應 AI 伺服器高速連接器與關鍵機構件所需的高強度、耐高溫電子級工程塑料與化學中間體。",
+    "not_classify_as": [
+      "紡織纖維業",
+      "化學工業",
+      "傳產"
+    ]
+  },
+  "2317": {
+    "name": "鴻海",
+    "sector": "AI 伺服器垂直整合龍頭",
+    "supply_chain_role": "AI 伺服器整機代工與系統集成 (Tier 1 整合商)",
+    "key_products": [
+      "AI 伺服器機櫃 (GB200)",
+      "GPU 基板 (Baseboard)",
+      "NVLink 交換機盒"
+    ],
+    "ai_connection": "全球 AI 伺服器市佔第一，掌握從 GPU 模組、基板、伺服器系統到散熱、交換機的高比例 AI BOM 價值量，為 NVIDIA 全球最大供應商。",
+    "not_classify_as": [
+      "手機組裝廠",
+      "EMS 代工",
+      "消費性電子代工"
+    ],
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 2,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-04-23",
+      "consecutive_foreign_buy_days": 1,
+      "last_foreign_buy_date": "2026-04-23",
+      "history": [
+        {
+          "date": "2026-04-23",
+          "direction": "多",
+          "trigger": "營收年增 58.5% 進入訂單爆發期，外資買超第 1 名，放量突破",
+          "stop_loss": "收盤跌破 210.5 元 (MA5)",
+          "result": "實際 +1.81% → ✅ 命中"
+        },
+        {
+          "date": "2026-04-23",
+          "direction": "多",
+          "trigger": "營收年增 58.5% 進入訂單爆發期，外資買超第 1 名，放量突破",
+          "stop_loss": "收盤跌破 210.5 元 (MA5)",
+          "result": "實際 +1.81% → ✅ 命中"
+        }
+      ]
+    }
+  },
+  "2402": {
+    "name": "毅嘉",
+    "sector": "車載與通訊軟板族群",
+    "supply_chain_role": "高階車用電子與 AIoT 通訊設備軟板供應商",
+    "key_products": [
+      "軟式印刷電路板 (FPC)",
+      "整合性機構件"
+    ],
+    "ai_connection": "雖然提供邊緣 AI 終端所需之軟板，但目前非 AI 伺服器核心 BOM 表成員，主要應用聚焦於車用感測器與高階穿戴式電子。",
+    "not_classify_as": [
+      "按鍵廠",
+      "傳產",
+      "傳統電子零件廠"
+    ]
+  },
+  "3037": {
+    "name": "欣興",
+    "sector": "AI 高階封裝載板族群",
+    "supply_chain_role": "AI 處理器 (GPU/ASIC) 核心 ABF 載板關鍵供應商",
+    "key_products": [
+      "ABF 載板 (ABF Substrate)",
+      "高階 HDI 板"
+    ],
+    "ai_connection": "提供封裝 AI 高速運算晶片 (如 NVIDIA/AMD GPU) 必備的高階 ABF 載板，為 AI 硬體運算的物理基礎環節。",
+    "not_classify_as": [
+      "PCB 印刷電路板",
+      "電路板廠",
+      "傳產"
+    ]
+  },
+  "2301": {
+    "name": "光寶科",
+    "sector": "AI 伺服器電源管理族群",
+    "supply_chain_role": "AI 伺服器高功率電源供應器與液冷解決方案供應商",
+    "key_products": [
+      "AI 伺服器專用 5.5kW 以上高階電源系統",
+      "浸沒式液冷散熱系統"
+    ],
+    "ai_connection": "直供 AI 伺服器機櫃所需的高功率電源模組，並整合液冷散熱技術，解決 AI 運算過程中的極端功耗與散熱痛點。",
+    "not_classify_as": [
+      "筆電電源廠",
+      "LED 代工廠",
+      "傳產"
+    ],
+    "tracking": {
+      "prediction_count": 3,
+      "hit_count": 1,
+      "hit_rate": "33.3%",
+      "last_recommended": "2026-04-23",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": "2026-04-22",
+      "history": [
+        {
+          "date": "2026-04-22",
+          "direction": "多",
+          "trigger": "量增 1.66 倍且外資買 31.8 億，突破 MA20 位階切換",
+          "stop_loss": "收盤跌破 163.7 元 (MA5)",
+          "result": "實際 +2.62% → ✅ 命中"
+        },
+        {
+          "date": "2026-04-23",
+          "direction": "多",
+          "trigger": "外資單日大買 26.5 億，帶量突破 MA20 關鍵壓力，RSI 進入攻擊區",
+          "stop_loss": "收盤跌破 163.7 元",
+          "result": "實際 -6.53% → ❌ 失準"
+        },
+        {
+          "date": "2026-04-23",
+          "direction": "多",
+          "trigger": "外資單日大買 26.5 億，帶量突破 MA20 關鍵壓力，RSI 進入攻擊區",
+          "stop_loss": "收盤跌破 163.7 元",
+          "result": "實際 -6.53% → ❌ 失準"
+        }
+      ]
+    }
+  },
+  "00919": {
+    "name": "群益台灣精選高息",
+    "sector": "科技權重資本組合族群",
+    "supply_chain_role": "台股 AI 科技產業鏈高息資本聚合平台",
+    "key_products": [
+      "AI 半導體與組裝成分股組合"
+    ],
+    "ai_connection": "高度配置於包含 PCB、代工、IC 設計等 AI BOM 核心個股，作為 AI 產業資金流入的關鍵投資載體。",
+    "not_classify_as": [
+      "高股息存股",
+      "傳產配置型基金",
+      "傳統金融型 ETF"
+    ]
+  },
+  "009816": {
+    "name": "凱基台灣TOP50",
+    "sector": "核心科技龍頭權重族群",
+    "supply_chain_role": "台股 AI 半導體與伺服器龍頭股權資本載體",
+    "key_products": [
+      "市值型 AI 科技龍頭成分股"
+    ],
+    "ai_connection": "權重集中於 AI 晶片代工 (TSMC) 與伺服器整機龍頭，直接反映台灣 AI 產業鏈在國際供應鏈中的總產值表現。",
+    "not_classify_as": [
+      "藍籌股基金",
+      "傳產組合",
+      "一般指數基金"
+    ]
+  },
+  "6239": {
+    "name": "力成",
+    "sector": "AI 先進封裝族群",
+    "supply_chain_role": "AI 伺服器 HBM 高頻寬記憶體封裝與測試",
+    "key_products": [
+      "HBM (高頻寬記憶體) 封裝",
+      "TSV (矽穿孔) 技術服務",
+      "先進記憶體測試"
+    ],
+    "ai_connection": "主要提供 AI 運算核心必備的 HBM (高頻寬記憶體) 之堆疊封裝服務，並具備與 CoWoS 連結的先進封裝技術，為 AI 晶片效能突破的關鍵後段製程。",
+    "not_classify_as": [
+      "傳統記憶體封測",
+      "封裝測試代工",
+      "傳產"
+    ]
+  },
+  "1711": {
+    "name": "永光",
+    "sector": "AI 半導體關鍵化學材料族群",
+    "supply_chain_role": "AI 晶片先進封裝光阻劑供應商",
+    "key_products": [
+      "感光聚醯亞胺 (PSPI)",
+      "半導體級光阻",
+      "封裝製程化學品"
+    ],
+    "ai_connection": "產品進入 AI 伺服器晶片的 CoWoS 先進封裝製程，提供關鍵的感光聚醯亞胺 (PSPI) 材料，是 AI 晶片載板與封裝層間不可或缺的感光材料。",
+    "not_classify_as": [
+      "染料化工業",
+      "塗料供應商",
+      "傳產"
+    ]
+  },
+  "2883": {
+    "name": "凱基金",
+    "sector": "金融服務族群",
+    "supply_chain_role": "金融中介與資產管理",
+    "key_products": [
+      "壽險服務",
+      "證券經紀",
+      "銀行業務"
+    ],
+    "ai_connection": "未進入 AI 伺服器 BOM 表，屬於終端應用之金融服務與投資工具。",
+    "not_classify_as": [
+      "AI 供應鏈",
+      "科技股"
+    ]
+  },
+  "6005": {
+    "name": "群益證",
+    "sector": "金融證券服務族群",
+    "supply_chain_role": "資本市場交易平台",
+    "key_products": [
+      "證券經紀",
+      "財富管理",
+      "自營投資"
+    ],
+    "ai_connection": "未進入 AI 伺服器 BOM 表，主要角色為資本市場之交易通路與融資中介。",
+    "not_classify_as": [
+      "AI 科技業",
+      "硬體供應鏈"
+    ]
+  },
+  "00940": {
+    "name": "元大台灣價值高息",
+    "sector": "指數股票型基金 (ETF)",
+    "supply_chain_role": "資本市場資金匯集與分配工具",
+    "key_products": [
+      "受益憑證"
+    ],
+    "ai_connection": "未進入 AI 伺服器 BOM 表，為追蹤指數之被動投資金融商品。",
+    "not_classify_as": [
+      "科技公司",
+      "個股",
+      "製造業"
+    ]
+  },
+  "2481": {
+    "name": "強茂",
+    "sector": "AI 伺服器電源關鍵元件族群",
+    "supply_chain_role": "伺服器電源供應器 (PSU) 之高壓功率半導體封測",
+    "key_products": [
+      "Fred",
+      "Trench MOSFET",
+      "Schottky Diodes"
+    ],
+    "ai_connection": "切入 AI 伺服器高功率電源供應器供應鏈，提供高效能功率元件以滿足 AI 運算所需之高電壓、大電流功率轉換環境。",
+    "not_classify_as": [
+      "傳統二極體廠",
+      "消費電子零組件",
+      "傳產"
+    ]
+  },
+  "00878": {
+    "name": "國泰永續高股息",
+    "sector": "AI 權值股資金配置族群",
+    "supply_chain_role": "AI 供應鏈核心企業之二級市場資本提供者",
+    "key_products": [
+      "AI 伺服器代工龍頭成分股",
+      "半導體封測成分股"
+    ],
+    "ai_connection": "透過高度權重配置於緯創、廣達、技嘉等 AI 伺服器 ODM 廠商，成為 AI 族群在資本市場的流動性核心與穩定器。",
+    "not_classify_as": [
+      "一般共同基金",
+      "防禦型定存股",
+      "傳產"
+    ]
+  },
+  "1528": {
+    "name": "恩德",
+    "sector": "AI PCB 製造設備族群",
+    "supply_chain_role": "AI 伺服器高層數 PCB 與 CCL 成型加工設備",
+    "key_products": [
+      "PCB 鑽孔機",
+      "CNC 銑床加工機"
+    ],
+    "ai_connection": "提供 AI 伺服器主板所需之高精度 PCB 鑽孔與成型技術，係 AI 零組件生產端的基礎生產力工具。",
+    "not_classify_as": [
+      "木工機械廠",
+      "傳統工具機",
+      "傳產"
+    ]
+  },
+  "0056": {
+    "name": "元大高股息",
+    "sector": "AI 高殖利率龍頭資金族群",
+    "supply_chain_role": "AI 關鍵零組件與系統整合廠之資本賦能者",
+    "key_products": [
+      "AI 散熱成分股",
+      "伺服器零組件成分股"
+    ],
+    "ai_connection": "納入大量 AI 散熱、PCB 及組裝大廠，作為支撐 AI 供應鏈龍頭企業評價與市值的關鍵被動型資金來源。",
+    "not_classify_as": [
+      "傳統價值投資工具",
+      "傳產資金池"
+    ]
+  },
+  "3714": {
+    "name": "富采",
+    "sector": "AI 高速光通訊元件族群",
+    "supply_chain_role": "AI 數據中心光連結 (Optical Interconnect) 之光源封裝",
+    "key_products": [
+      "VCSEL",
+      "EEL (邊射型雷射)",
+      "High Power LED"
+    ],
+    "ai_connection": "其 VCSEL 產品切入 AI 運算架構中 800G 以上高速光通訊模組，解決 AI 伺服器叢集間大規模數據傳輸的熱損耗與傳送速率問題。",
+    "not_classify_as": [
+      "傳統 LED 照明",
+      "面板背光廠",
+      "傳產"
+    ]
+  },
+  "00929": {
+    "name": "復華台灣科技優息",
+    "sector": "純科技 AI 產業鏈資金族群",
+    "supply_chain_role": "AI 中下游電子零組件供應商之資本加速器",
+    "key_products": [
+      "IC 設計成分股",
+      "電子零組件成分股"
+    ],
+    "ai_connection": "聚焦於 100% 科技產業，透過資金高度集中於 AI 相關 IC 設計、通路與零件廠，強化 AI 產業鏈的資本周轉能力。",
+    "not_classify_as": [
+      "平衡型基金",
+      "綜合型 ETF"
+    ]
+  },
+  "2834": {
+    "name": "臺企銀",
+    "sector": "科技產業金融授信族群",
+    "supply_chain_role": "AI 供應鏈中小企業擴產融資與供應鏈金融服務",
+    "key_products": [
+      "中小企業專案貸款",
+      "出口外匯融資"
+    ],
+    "ai_connection": "提供 AI 供應鏈下游二、三線零組件供應商在擴充 AI 產線、購買高精密設備時的週轉金與資本支出貸款。",
+    "not_classify_as": [
+      "傳統房貸銀行",
+      "區域性金融機構",
+      "傳產"
+    ]
+  },
+  "2324": {
+    "name": "仁寶",
+    "sector": "AI 伺服器系統組裝族群",
+    "supply_chain_role": "AI 伺服器 L10/L11 系統整合與散熱模組開發商",
+    "key_products": [
+      "AI 伺服器（NVIDIA MGX/HGX）",
+      "車載運算電腦",
+      "5G 終端設備"
+    ],
+    "ai_connection": "已進入 NVIDIA AI 伺服器供應鏈，提供基於 Blackwell 架構的 L10 系統組裝，並積極研發水冷散熱解決方案以切入高運算力伺服器市場。",
+    "not_classify_as": [
+      "筆電代工業",
+      "傳統 PC 製造",
+      "消費性電子組裝"
+    ]
+  },
+  "3045": {
+    "name": "台灣大",
+    "sector": "AI 數位基礎設施與雲端服務族群",
+    "supply_chain_role": "AI 雲端運算算力與資料中心基礎設施服務商",
+    "key_products": [
+      "GPU 雲端算力服務 (GaaS)",
+      "IDC 資料中心",
+      "5G 企業專網"
+    ],
+    "ai_connection": "非硬體 BOM 表組件，但為 AI 算力落地的終端基礎設施，透過與 NVIDIA 合作建置 AI 算力平台，提供企業端生成式 AI 應用之算力資源。",
+    "not_classify_as": [
+      "傳統電信服務",
+      "手機門號商",
+      "傳產零售"
+    ]
+  },
+  "4938": {
+    "name": "和碩",
+    "sector": "AI 伺服器運算節點組裝族群",
+    "supply_chain_role": "AI 伺服器主機板 (L6) 與高算力機櫃整合製造商",
+    "key_products": [
+      "AI 伺服器（GB200 機櫃）",
+      "衛星通訊設備",
+      "車載電子"
+    ],
+    "ai_connection": "正式進入 NVIDIA GB200 供應鏈，負責 AI 伺服器機櫃與運算節點的開發與組裝，將產能重心由消費性電子轉移至 AI 基礎建設。",
+    "not_classify_as": [
+      "手機代工廠",
+      "消費性電子製造",
+      "EMS 代工"
+    ]
+  },
+  "2887": {
+    "name": "台新新光金",
+    "sector": "金融服務與數位轉型資產族群",
+    "supply_chain_role": "高科技產業發展與 AI 供應鏈投融資平台",
+    "key_products": [
+      "企業融資服務",
+      "數位金融平台",
+      "保險資產配置"
+    ],
+    "ai_connection": "不進入 AI 伺服器 BOM 表，終端應用為 AI 科技產業之資金募集、風險控管與企業併購（如金金併後之資本結構調整）。",
+    "not_classify_as": [
+      "傳統銀行",
+      "保險公司",
+      "傳產金融"
+    ]
+  },
+  "3715": {
+    "name": "定穎投控",
+    "sector": "AI PCB 高階材料族群",
+    "supply_chain_role": "AI 伺服器加速器與高階控制板 HDI 供應商",
+    "key_products": [
+      "高階 HDI 電路板",
+      "AI 伺服器專用 OAM 板",
+      "AI 伺服器專用 UBB 板"
+    ],
+    "ai_connection": "成功由車用領域切入 AI 供應鏈，提供 AI 伺服器中所需的高層數、高密度 HDI 板，為運算模組中關鍵的載體。",
+    "not_classify_as": [
+      "傳統車用電子",
+      "低階 PCB 廠",
+      "傳產"
+    ]
+  },
+  "2371": {
+    "name": "大同",
+    "sector": "AI 資料中心基礎設施族群",
+    "supply_chain_role": "AI 算力中心特高壓電力系統與配電設施供應商",
+    "key_products": [
+      "特高壓電力變壓器",
+      "氣體絕緣開關 (GIS)",
+      "智慧型配電系統"
+    ],
+    "ai_connection": "AI 算力中心屬超高耗能基礎建設，其生產之大型電力變壓器與配電設備為 AI 資料中心穩定供電之核心組件，屬於 AI 硬體鏈的最前端電力基石。",
+    "not_classify_as": [
+      "傳統家電業",
+      "大同電鍋",
+      "傳產"
+    ]
+  },
+  "2027": {
+    "name": "大成鋼",
+    "sector": "美基建與綠能關鍵材料族群",
+    "supply_chain_role": "北美市場不鏽鋼與鋁合金高性能材料龍頭通路商",
+    "key_products": [
+      "不鏽鋼管材",
+      "工業級鋁捲板",
+      "高強度扣件"
+    ],
+    "ai_connection": "產品目前主要應用於美國大型基礎建設、儲能櫃外殼及航太材料，因未直接進入 AI 伺服器電子 BOM 表核心，定義為高效能材料供應鏈。",
+    "not_classify_as": [
+      "傳統鋼鐵工業",
+      "內需營造業",
+      "傳產"
+    ]
+  },
+  "4919": {
+    "name": "新唐",
+    "sector": "AI 伺服器管理晶片族群",
+    "supply_chain_role": "AI 伺服器遠端管理控制器 (BMC) 與安全晶片供應商",
+    "key_products": [
+      "BMC (遠端管理控制器)",
+      "eSPI 閃存控制器",
+      "TPM 安全晶片"
+    ],
+    "ai_connection": "其 BMC 晶片是 AI 伺服器主板的標配元件，負責監控 GPU 溫度、電力負載及遠端故障排除；同時提供資安防護晶片切入 AI 數據中心供應鏈。",
+    "not_classify_as": [
+      "消費性 MCU 廠",
+      "家電晶片業"
+    ]
+  },
+  "8028": {
+    "name": "昇陽半導體",
+    "sector": "AI 半導體先進封裝支援族群",
+    "supply_chain_role": "AI 伺服器電源管理晶片薄化與先進製程測試承載片供應商",
+    "key_products": [
+      "晶圓薄化服務",
+      "再生晶圓"
+    ],
+    "ai_connection": "AI 伺服器需處理極高功率，其電源管理 IC (PMIC) 必須透過晶圓薄化技術提升散熱與導電效能；同時其再生晶圓支撐台積電先進製程研發監控。",
+    "not_classify_as": [
+      "晶圓回收商",
+      "傳產"
+    ]
+  },
+  "9904": {
+    "name": "寶成",
+    "sector": "全球運動機能產品製造族群",
+    "supply_chain_role": "全球運動鞋設計、研發與規模化生產平台",
+    "key_products": [
+      "運動鞋",
+      "戶外機能鞋",
+      "運動用品零售"
+    ],
+    "ai_connection": "產品未進入 AI 伺服器 BOM 表。終端應用完全屬於消費電子以外的民生消費與運動健康領域。",
+    "not_classify_as": [
+      "傳統製鞋",
+      "勞力密集產業",
+      "傳產"
+    ]
+  },
+  "1605": {
+    "name": "華新",
+    "sector": "綠能電力基礎建設族群",
+    "supply_chain_role": "AI 數據中心電力傳輸系統與儲能用特殊合金供應商",
+    "key_products": [
+      "特種電力電纜",
+      "冰鎳",
+      "不鏽鋼材"
+    ],
+    "ai_connection": "雖未進伺服器機箱，但為 AI 數據中心外部的高壓配電系統提供關鍵線材，並透過冰鎳資源切入 AI 能源管理所需的電池供應鏈。",
+    "not_classify_as": [
+      "電線電纜業",
+      "鋼鐵廠",
+      "傳產"
+    ]
+  },
+  "4906": {
+    "name": "正文",
+    "sector": "AI 高速網絡通訊族群",
+    "supply_chain_role": "AI 數據中心高速光傳輸交換器與網路接取設備 OEM/RD 供應商",
+    "key_products": [
+      "高速交換器 (Switch)",
+      "光通訊模組",
+      "WiFi 7 整合方案"
+    ],
+    "ai_connection": "切入 AI 伺服器叢集所需的高速交換器模組，並積極投入 CPO (共封裝光學) 技術開發，以解決 AI 運算中的數據傳輸瓶頸。",
+    "not_classify_as": [
+      "無線路由器代工",
+      "低階網通"
+    ]
+  },
+  "1402": {
+    "name": "遠東新",
+    "sector": "綠色循環經濟新材料族群",
+    "supply_chain_role": "AI 數據中心節能相關特殊聚合物與回收材料供應商",
+    "key_products": [
+      "再生酯粒 (rPET)",
+      "機能性纖維",
+      "工業級固聚酯粒"
+    ],
+    "ai_connection": "產品未直接進入 AI 伺服器 BOM 表。主要發展 AI 輔助設計之綠色新材料，應用於全球高端品牌之永續供應鏈。",
+    "not_classify_as": [
+      "紡織業",
+      "化纖廠",
+      "傳產"
+    ]
+  },
+  "5871": {
+    "name": "中租-KY",
+    "sector": "綠能與數位轉型設備融資族群",
+    "supply_chain_role": "AI算力中心與綠能基建之資產開發與融資供應服務",
+    "key_products": [
+      "設備融資服務",
+      "太陽能電廠投資",
+      "儲能系統開發"
+    ],
+    "ai_connection": "提供AI伺服器機房建置所需之高額設備融資，並透過太陽能與儲能布局支撐AI運算的高能耗電力需求。",
+    "not_classify_as": [
+      "租賃業",
+      "銀行業"
+    ]
+  },
+  "2884": {
+    "name": "玉山金",
+    "sector": "Fintech 算力金融族群",
+    "supply_chain_role": "AI 數據模型演算與金融科技應用架構",
+    "key_products": [
+      "數位金融平台",
+      "AI 智能理財系統",
+      "企業數位轉型貸款"
+    ],
+    "ai_connection": "透過高度整合之私有雲算力發展生成式金融服務，並為AI供應鏈中小企業提供專項融資與財務顧問。",
+    "not_classify_as": [
+      "傳統金融業",
+      "存放款機構"
+    ]
+  },
+  "2105": {
+    "name": "正新",
+    "sector": "EV 智能移動終端族群",
+    "supply_chain_role": "高扭矩電動車專用高性能胎與智能感測胎體",
+    "key_products": [
+      "電動車專用胎 (EV Tire)",
+      "智能感測輪胎"
+    ],
+    "ai_connection": "其高效能輪胎為自動駕駛與AI輔助駕駛車輛提供物理層的高負載支撐，並研發內嵌感測器之輪胎以配合車載AI數據收集。",
+    "not_classify_as": [
+      "橡膠業",
+      "傳產"
+    ]
+  },
+  "1409": {
+    "name": "新纖",
+    "sector": "AI 伺服器工程材料族群",
+    "supply_chain_role": "AI 伺服器連接器與散熱風扇之電子級工程塑膠材料",
+    "key_products": [
+      "電子級 PBT 工程塑膠",
+      "高性能 PET 樹脂"
+    ],
+    "ai_connection": "其電子級 PBT 材料切入 AI 伺服器高頻連接器與散熱模組外殼，具備耐高溫、抗干擾之特性，屬伺服器 BOM 表內之關鍵材料。",
+    "not_classify_as": [
+      "紡織業",
+      "纖維化學"
+    ]
+  },
+  "2618": {
+    "name": "長榮航",
+    "sector": "AI 供應鏈高價值物流族群",
+    "supply_chain_role": "AI 高階晶片與伺服器整機全球限時物流載體",
+    "key_products": [
+      "冷鏈物流",
+      "航空貨運"
+    ],
+    "ai_connection": "擔任 Nvidia/AMD 晶片與 AI 伺服器空運出口之關鍵動能，是維持 AI 供應鏈週轉率與及時交貨的核心物流環節。",
+    "not_classify_as": [
+      "航空觀光",
+      "交通運輸"
+    ]
+  },
+  "2312": {
+    "name": "金寶",
+    "sector": "AI 伺服器基礎設施族群",
+    "supply_chain_role": "AI 伺服器電源分配單元 (PDU) 與液冷機殼組裝",
+    "key_products": [
+      "伺服器電源分配單元",
+      "液冷模組組裝",
+      "儲存設備"
+    ],
+    "ai_connection": "直接切入 AI 伺服器 L10 組裝線，特別是在電源管理系統與高效能散熱機殼的垂直整合領域。",
+    "not_classify_as": [
+      "消費性電子代工",
+      "印表機廠商"
+    ]
+  },
+  "8150": {
+    "name": "南茂",
+    "sector": "AI 半導體封測族群",
+    "supply_chain_role": "HBM 高頻寬記憶體與 DDR5 高速介面封裝測試",
+    "key_products": [
+      "DDR5 記憶體封測",
+      "顯示驅動 IC 封裝"
+    ],
+    "ai_connection": "提供 AI 伺服器必備之高速記憶體 (DDR5) 與高頻寬顯示介面板塊之封測服務，確保 AI 算力數據傳輸的穩定性。",
+    "not_classify_as": [
+      "面板驅動 IC 封測",
+      "傳統封測廠"
+    ]
+  },
+  "00830": {
+    "name": "國泰費城半導體",
+    "sector": "AI 半導體核心指數族群",
+    "supply_chain_role": "AI 算力底層硬體龍頭權值集合",
+    "key_products": [
+      "NVIDIA 股權",
+      "TSMC ADR",
+      "AMD 股權",
+      "Broadcom 股權"
+    ],
+    "ai_connection": "追蹤指數成分股為 AI 運算核心 (GPU/CPU/ASIC) 及網通晶片之全球最頂尖供應商，為 AI 算力的最上游來源。",
+    "not_classify_as": [
+      "一般海外基金",
+      "傳產"
+    ]
+  },
+  "3673": {
+    "name": "TPK-KY",
+    "sector": "消費性電子與車用觸控族群",
+    "supply_chain_role": "終端人機介面觸控模組供應商",
+    "key_products": [
+      "觸控模組",
+      "LCD 組裝",
+      "感應器"
+    ],
+    "ai_connection": "產品目前應用於邊緣運算設備（如平板、筆電）與車載螢幕，尚未進入 AI 伺服器機房內部 BOM 表。",
+    "not_classify_as": [
+      "AI 伺服器供應鏈",
+      "AI 族群"
+    ]
+  },
+  "2890": {
+    "name": "永豐金",
+    "sector": "金融服務族群",
+    "supply_chain_role": "特許金融中介與資產管理",
+    "key_products": [
+      "商業銀行業務",
+      "證券經紀",
+      "財富管理"
+    ],
+    "ai_connection": "主要受惠於 AI 帶動的台股成交量放大及企業聯貸需求，本體產品不進入 AI 伺服器物理結構。",
+    "not_classify_as": [
+      "AI 族群",
+      "科技業"
+    ]
+  },
+  "2886": {
+    "name": "兆豐金",
+    "sector": "金融服務族群",
+    "supply_chain_role": "外匯與大型企業融資特許金融機構",
+    "key_products": [
+      "外匯服務",
+      "企業融資",
+      "投資銀行"
+    ],
+    "ai_connection": "作為金融基礎設施，提供科技產業鏈營運資金，非 AI 伺服器硬體組成部分。",
+    "not_classify_as": [
+      "AI 族群",
+      "科技業"
+    ]
+  },
+  "1102": {
+    "name": "亞泥",
+    "sector": "基礎建設建材族群",
+    "supply_chain_role": "營建與工業基礎原材料供應商",
+    "key_products": [
+      "水泥",
+      "熟料",
+      "預拌混凝土"
+    ],
+    "ai_connection": "提供資料中心廠房建設所需之基礎建材，不屬於 AI 伺服器電子 BOM 表範疇。",
+    "not_classify_as": [
+      "AI 供應鏈",
+      "電子業"
+    ]
+  },
+  "00922": {
+    "name": "國泰台灣領袖50",
+    "sector": "台股 AI 核心權值指數族群",
+    "supply_chain_role": "台灣 AI 半導體與伺服器組裝龍頭集合",
+    "key_products": [
+      "台積電股權",
+      "鴻海股權",
+      "聯發科股權"
+    ],
+    "ai_connection": "權值成分股高度集中於全球 AI 伺服器代工（鴻海）與晶片製造（台積電），為台股 AI 供應鏈的代表性指數。",
+    "not_classify_as": [
+      "傳統大盤 ETF",
+      "傳產"
+    ]
+  },
+  "8039": {
+    "name": "台虹",
+    "sector": "AI 伺服器高頻傳輸軟板材料族群",
+    "supply_chain_role": "AI 伺服器內部高速傳輸用極低損耗軟板基板 (FCCL)",
+    "key_products": [
+      "高頻高速軟性銅箔基層板 (FCCL)",
+      "低耗損覆蓋膜"
+    ],
+    "ai_connection": "切入 AI 伺服器內部的內部高速線纜與訊號傳輸模組，解決高算力下的訊號衰減問題，已進入高速傳輸 BOM 表。",
+    "not_classify_as": [
+      "傳統軟板基板",
+      "消費性電子零組件"
+    ]
+  },
+  "009820": {
+    "name": "元大納斯達克精選",
+    "sector": "全球 AI 軟體與算力權值指數族群",
+    "supply_chain_role": "全球 AI 演算法、雲端算力與核心硬體龍頭集合",
+    "key_products": [
+      "Microsoft 股權",
+      "Alphabet 股權",
+      "Apple 股權",
+      "NVIDIA 股權"
+    ],
+    "ai_connection": "涵蓋 AI 產業的最下游應用層（雲端服務商）與上游算力層，是掌握 AI 生態系分配權的龍頭指數。",
+    "not_classify_as": [
+      "一般海外基金",
+      "傳產投資"
+    ]
+  },
+  "2356": {
+    "name": "英業達",
+    "sector": "AI伺服器ODM族群",
+    "supply_chain_role": "AI伺服器與AI加速器模組設計製造商",
+    "key_products": [
+      "AI伺服器",
+      "企業級伺服器",
+      "AI邊緣運算設備"
+    ],
+    "ai_connection": "直接為全球主要客戶設計及製造AI伺服器，是AI運算硬體供應鏈的核心成員。",
+    "not_classify_as": [
+      "筆電代工廠",
+      "傳統電子製造服務"
+    ]
+  },
+  "2485": {
+    "name": "兆赫",
+    "sector": "網通設備族群",
+    "supply_chain_role": "寬頻通訊與無線網路設備供應商",
+    "key_products": [
+      "寬頻閘道器",
+      "Wi-Fi路由器",
+      "網路交換器",
+      "光纖網路設備"
+    ],
+    "ai_connection": "其產品主要用於家庭及企業網路基礎設施，雖非直接進入AI伺服器BOM表，但受益於AI應用所帶動的數據流量增長，間接提升對網路設備的需求。",
+    "not_classify_as": [
+      "AI網通零組件供應商",
+      "AI伺服器內部網路模組"
+    ]
+  },
+  "3702": {
+    "name": "大聯大",
+    "sector": "電子零組件通路族群",
+    "supply_chain_role": "AI相關電子零組件整合性通路服務商",
+    "key_products": [
+      "半導體",
+      "被動元件",
+      "分立器件",
+      "記憶體等電子零組件分銷"
+    ],
+    "ai_connection": "作為全球領先的電子零組件通路商，分銷大量用於AI伺服器、AI加速器及相關基礎設施的半導體、記憶體及各類電子元件，是AI硬體供應鏈中關鍵的零組件橋樑。",
+    "not_classify_as": [
+      "貿易商",
+      "傳統電子代理商"
+    ]
+  },
+  "2882": {
+    "name": "國泰金",
+    "sector": "金融保險族群",
+    "supply_chain_role": "綜合性金融服務提供者",
+    "key_products": [
+      "人壽保險",
+      "銀行服務",
+      "產物保險",
+      "證券",
+      "資產管理"
+    ],
+    "ai_connection": "公司的產品不進入AI伺服器BOM表。AI技術主要應用於公司內部營運優化、風險管理、客戶服務等，非AI供應鏈成員。",
+    "not_classify_as": [
+      "AI科技公司",
+      "AI軟體服務商"
+    ]
+  },
+  "2002": {
+    "name": "中鋼",
+    "sector": "鋼鐵產業族群",
+    "supply_chain_role": "綜合鋼鐵材料製造商",
+    "key_products": [
+      "鋼板",
+      "棒鋼",
+      "線材",
+      "熱軋鋼捲",
+      "冷軋鋼捲"
+    ],
+    "ai_connection": "公司的產品不進入AI伺服器BOM表。鋼材可能用於數據中心建築、廠房設施或運輸工具，間接支持AI產業發展，但非AI伺服器核心元件。",
+    "not_classify_as": [
+      "AI伺服器結構件供應商",
+      "AI設備關鍵材料廠"
+    ]
+  },
+  "2885": {
+    "name": "元大金",
+    "sector": "金融證券族群",
+    "supply_chain_role": "綜合性金融服務提供者",
+    "key_products": [
+      "證券經紀",
+      "銀行服務",
+      "人壽保險",
+      "期貨",
+      "資產管理"
+    ],
+    "ai_connection": "公司的產品不進入AI伺服器BOM表。AI技術主要應用於公司內部營運分析、投資決策輔助、客戶交易平台等，非AI供應鏈成員。",
+    "not_classify_as": [
+      "AI科技股",
+      "AI概念股"
+    ]
+  },
+  "1101": {
+    "name": "台泥",
+    "sector": "水泥及能源族群",
+    "supply_chain_role": "水泥建材及能源解決方案供應商",
+    "key_products": [
+      "水泥",
+      "預拌混凝土",
+      "儲能系統",
+      "綠能發電"
+    ],
+    "ai_connection": "公司的主要產品不進入AI伺服器BOM表。水泥用於數據中心等建築基礎設施，而能源事業（如儲能）則間接支持AI應用對穩定電力供應的需求，但非AI伺服器內部材料。",
+    "not_classify_as": [
+      "AI數據中心建材供應商",
+      "AI電池供應鏈核心成員"
+    ]
+  },
+  "009819": {
+    "name": "中信數據及電力",
+    "sector": "指數股票型基金 (ETF) - 主題型",
+    "supply_chain_role": "追蹤數據與電力基礎設施產業鏈表現的投資工具",
+    "key_products": [
+      "ETF受益憑證"
+    ],
+    "ai_connection": "作為ETF，其本身產品不進入AI伺服器BOM表。該基金透過持有投資組合中的數據中心、電力供應、電網建設等相關企業，間接參與並反映AI發展所帶動的龐大數據與電力需求成長。",
+    "not_classify_as": [
+      "AI伺服器零組件製造商",
+      "AI硬體供應商",
+      "AI供應鏈實體公司"
+    ]
   }
 }

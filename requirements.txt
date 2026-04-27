@@ -1,7 +1,9 @@
 google-generativeai
+google-genai
 tavily-python
 yfinance
 python-dotenv
 fastapi
 uvicorn
 requests
+openai

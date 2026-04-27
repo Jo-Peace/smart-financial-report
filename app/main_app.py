@@ -19,7 +19,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 
 from modules.data_fetcher import DataFetcher
 from modules.analyzer import MarketAnalyzer
-from app.database import init_db, get_cached_report, save_report, get_remaining_quota, use_quota, get_cache_stats, check_global_limit, get_global_usage_today, get_recent_reports
+from app.database import init_db, get_cached_report, save_report, get_remaining_quota, use_quota, get_cache_stats, check_global_limit, get_global_usage_today, get_recent_reports, get_top_hot_stocks, increment_views, DAILY_FREE_QUOTA, DAILY_GLOBAL_LIMIT
 
 # === Config ===
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
@@ -215,7 +215,9 @@ async def check_quota(request: Request):
     global_used = get_global_usage_today()
     return {
         "remaining": remaining,
-        "global_total": 20
+        "total": DAILY_FREE_QUOTA,
+        "global_remaining": max(0, DAILY_GLOBAL_LIMIT - global_used),
+        "global_total": DAILY_GLOBAL_LIMIT
     }
 
 
@@ -226,6 +228,14 @@ async def recent_reports():
     for r in recent:
         r["name"] = STOCK_NAMES.get(r["ticker"], "未知")
     return recent
+
+@app.get("/api/hot_stocks")
+async def hot_stocks():
+    """Get curated weekly hot stocks with view counts."""
+    hot = get_top_hot_stocks(limit=5)
+    for r in hot:
+        r["name"] = STOCK_NAMES.get(r["ticker"], "未知")
+    return hot
 
 
 @app.post("/api/research")
@@ -251,6 +261,10 @@ async def research(req: ResearchRequest, request: Request):
     # Check cache first (doesn't cost quota)
     cached = get_cached_report(ticker)
     if cached:
+        # Increment views because user viewed it
+        if "date" in cached:
+            increment_views(ticker, cached["date"])
+            
         remaining = get_remaining_quota(ip)
         stock_name = STOCK_NAMES.get(ticker, ticker)
         return {
