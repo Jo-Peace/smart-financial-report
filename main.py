@@ -361,6 +361,13 @@ def main():
             f"驗收 {analytics_summary['evaluated_results']} 筆、"
             f"命中率 {hit_rate_str}"
         )
+        try:
+            from analytics_report import write_report as write_analytics_report
+
+            analytics_report_path = write_analytics_report()
+            print(f"  ✅ Analytics 摘要已更新: {os.path.basename(analytics_report_path)}")
+        except Exception as report_error:
+            print(f"  ⚠️  Analytics 摘要產生失敗: {report_error}")
     except Exception as e:
         print(f"  ⚠️  Analytics DB 寫入失敗，略過本地統計: {e}")
     
