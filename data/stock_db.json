@@ -1312,5 +1312,50 @@
       "AI硬體供應商",
       "AI供應鏈實體公司"
     ]
+  },
+  "2412": {
+    "name": "中華電",
+    "sector": "AI 雲端算力基礎建設族群",
+    "supply_chain_role": "AI 數據中心 (IDC) 與高效能算力代管服務商",
+    "key_products": [
+      "AI 高效能運算機房 (IDC)",
+      "5G 高速傳輸網路",
+      "GPU 算力租賃服務"
+    ],
+    "ai_connection": "提供 AI 伺服器運行的物理基礎設施與高速骨幹網路，並與輝達 (NVIDIA) 合作導入算力平台，為企業端 AI 應用之核心落腳點。",
+    "not_classify_as": [
+      "電信業",
+      "定存股",
+      "公共事業"
+    ]
+  },
+  "2880": {
+    "name": "華南金",
+    "sector": "金融服務族群",
+    "supply_chain_role": "科技供應鏈資本中介與融資服務",
+    "key_products": [
+      "企業金融融資",
+      "投資銀行服務",
+      "信託與財富管理"
+    ],
+    "ai_connection": "未進入 AI 伺服器硬體 BOM 表，主要提供科技產業擴產所需之資本融資與供應鏈金融支援。",
+    "not_classify_as": [
+      "傳統產業"
+    ]
+  },
+  "8112": {
+    "name": "至上",
+    "sector": "AI 記憶體供應鏈族群",
+    "supply_chain_role": "AI 伺服器高頻寬記憶體 (HBM) 與大容量存儲分銷",
+    "key_products": [
+      "HBM (高頻寬記憶體)",
+      "DDR5 高速記憶體",
+      "Enterprise SSD (企業級固態硬碟)"
+    ],
+    "ai_connection": "作為三星 (Samsung) 在台最大代理商，直接供應 AI 伺服器關鍵零件 BOM 表中的 HBM 與大容量存儲組件。",
+    "not_classify_as": [
+      "消費電子通路",
+      "電子零組件代理商"
+    ]
   }
 }

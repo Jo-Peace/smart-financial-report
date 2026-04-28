@@ -38,8 +38,8 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
 ===今日核心數據（必須用這些數據，不得捏造）===
 大盤狀況：{index_action}
 AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
-資金流入板塊：{', '.join(safe_havens) if safe_havens else '分散'}
-資金撤出標的：{', '.join(heavyweights_dumped) if heavyweights_dumped else '無明顯'}
+法人買超或強勢板塊：{', '.join(safe_havens) if safe_havens else '分散'}
+法人賣超或弱勢標的：{', '.join(heavyweights_dumped) if heavyweights_dumped else '無明顯'}
 量價背離現象：{', '.join(price_divergence) if price_divergence else '無明顯背離'}
 穩健策略：{conservative}
 波段策略：{aggressive}
@@ -63,6 +63,7 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 4. 數字必須來自今日真實數據，不得捏造
 5. 繁體中文，禁止「穩了」「嗨了」「躺平」等中國大陸流行語
 6. 可加 1-2 個 emoji，放最前面或最後面（末尾品牌標語前）
+7. 不要使用「資金輪動」；標題要講具體事件，例如三大法人買賣超、成交量、量價背離。
 
 ===描述撰寫規則===
 第1行（≤55字）：今日最強異常現象 + 核心數字 + 日期（包含「台股」）

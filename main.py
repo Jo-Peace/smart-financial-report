@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from modules.data_fetcher import DataFetcher
 from modules.analyzer import MarketAnalyzer
 from modules.notebooklm_generator import generate_notebooklm_prompt
+from modules.market_signal_scorer import build_market_signal_pack, format_signal_pack_for_prompt, load_stock_db
 
 # Load environment variables from .env
 load_dotenv()
@@ -25,7 +26,7 @@ BASE_SYMBOLS = ["^TWII", "2330.TW"]
 BASE_TOPICS = [
     "Taiwan Semiconductor",
     "台股 今日強勢族群 逆勢抗跌",
-    "台股 資金輪動 排擠效應 最新分析",
+    "台股 今日成交量 法人買賣超 量價背離 最新分析",
 ]
 
 # Reports directory
@@ -295,6 +296,30 @@ def main():
             print(f"  ⚠️  深度押注資料抓取失敗: {e}")
 
     # ========================================
+    # 3.6 Local Market Signal Scoring (no AI quota)
+    # ========================================
+    print("\n🧮 正在計算本地量化訊號包（不消耗 Gemini 額度）...")
+    stock_db = load_stock_db(os.path.dirname(os.path.abspath(__file__)))
+    signal_pack = build_market_signal_pack(
+        market_data=market_data,
+        institutional_data=institutional_data,
+        volume_data=volume_data,
+        stock_db=stock_db,
+    )
+    signal_summary = format_signal_pack_for_prompt(signal_pack)
+    strongest = signal_pack.get("strongest_anomaly")
+    if strongest:
+        print(f"  ✅ 今日最強異常: {strongest['type']} - {strongest['text']}")
+    else:
+        print("  ⚠️  未偵測到明確法人/成交量背離，將以成交量與技術位共振為主。")
+    watch_candidates = signal_pack.get("watch_candidates") or []
+    if watch_candidates:
+        preview = "、".join([f"{c['ticker']} {c.get('name', '')}".strip() for c in watch_candidates[:3]])
+        print(f"  ✅ 明日觀察候選: {preview}")
+    else:
+        print("  ⚠️  本地門檻下無安全明日觀察候選。")
+
+    # ========================================
     # 4. Historical Comparison
     # ========================================
     print("\n📁 檢查歷史報告...")
@@ -315,7 +340,8 @@ def main():
         macro_events=macro_events,
         tech_catalyst_events=tech_catalyst_events,
         volume_data=volume_data,
-        deep_dive_data=deep_dive_data
+        deep_dive_data=deep_dive_data,
+        signal_summary=signal_summary
     )
     if is_generation_error(report_content):
         print("\n❌ AI 報告生成失敗，停止流程以避免覆蓋正式報告。")

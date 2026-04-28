@@ -1,11 +1,11 @@
 # Analytics Summary
 
-- Generated at: 2026-04-27 16:31
+- Generated at: 2026-04-28 16:31
 - Database: `data/analytics.db`
-- Daily runs: 8
-- Predictions: 4
+- Daily runs: 9
+- Predictions: 6
 - Evaluated results: 12
-- AI pick records: 10
+- AI pick records: 12
 
 ## Performance By Horizon
 | Horizon | Samples | Hit Rate | Avg Return | Avg Excess |
@@ -38,6 +38,8 @@
 ## Recent Predictions
 | Date | Ticker | Name | Dir | Trigger |
 | --- | --- | --- | --- | --- |
+| 2026-04-28 | 2337 | 旺宏 | 多 | 帶量長紅突破 MA20，外資掃貨式建倉且毛利率改善 |
+| 2026-04-28 | 2408 | 南亞科 | 多 | 外資買超金額與市場成交量強大共振，籌碼洗盤完成且量增比1.59倍 |
 | 2026-04-22 | 2301 | 光寶科 | 多 | 外資單日大買 26.5 億，帶量突破 MA20 關鍵壓力，RSI 進入攻擊區 |
 | 2026-04-22 | 2317 | 鴻海 | 多 | 營收年增 58.5% 進入訂單爆發期，外資買超第 1 名，放量突破 |
 | 2026-04-21 | 2301 | 光寶科 | 多 | 量增 1.66 倍且外資買 31.8 億，突破 MA20 位階切換 |
@@ -54,5 +56,7 @@
 | 1 | 3231 緯創 (外資買超第一名) |
 | 1 | 今日無安全推薦標的 |
 | 1 | 南亞 (外資大舉掃貨，AI 基礎材料底部補漲標的) |
+| 1 | 南亞科 (外資由賣轉買，籌碼洗盤完成) |
 | 1 | 旺宏 (外資投信同步買進，AI BIOS 進入機構定價階段) |
+| 1 | 旺宏 (外資買超全市場第一) |
 | 1 | 聯電 (外資單日狂掃 42億，脫離底部區間) |

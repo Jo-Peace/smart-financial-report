@@ -40,7 +40,7 @@ def generate_notebooklm_prompt(api_key, structured_data, date_str=None, current_
     if current_theme:
         theme_context = (
             f"\n**【目前市場核心主題】：{current_theme}**\n"
-            f"- 請 A 在分析資金流向時，嘗試連結此主題（但只在有數據支持時）。\n"
+            f"- 請 A 在分析法人買賣與成交量證據時，嘗試連結此主題（但只在有數據支持時）。\n"
             f"- 請 B 針對此主題提出散戶的質疑：「這題材吵太久了吧？」或「現在進場是不是接隕石？」\n"
         )
 
@@ -67,8 +67,8 @@ def generate_notebooklm_prompt(api_key, structured_data, date_str=None, current_
 --- 今日已驗證數據（不得偏離或捏造）---
 日期：{structured_data.get('date', date_str)}
 大盤狀況：{structured_data.get('index_action', 'N/A')}
-資金撤出的權值股：{', '.join(structured_data.get('heavyweights_dumped', []))}
-資金流入的板塊：{', '.join(structured_data.get('safe_havens_bought', []))}
+法人賣超或弱勢標的：{', '.join(structured_data.get('heavyweights_dumped', []))}
+法人買超或強勢板塊：{', '.join(structured_data.get('safe_havens_bought', []))}
 商品行情：{', '.join(structured_data.get('commodities', []))}
 AI 數據觀察焦點：{', '.join(structured_data.get('ai_data_picks', []))}
 昨日預測驗收結果：{prev_picks_str}
@@ -111,6 +111,11 @@ AI 數據觀察焦點：{', '.join(structured_data.get('ai_data_picks', []))}
 ---
 
 ## 🎬 節目結構（故事主線：從異常發現，到解答結束）
+
+### 全集用語限制
+- 不要使用「資金輪動」這種空泛說法。
+- 核心任務是抓出「三大法人與成交量之間的主力買賣邏輯」。
+- 如果要談買賣方向，必須說清楚：誰買、誰賣、金額或成交量、哪個榜單支持、隔日要驗收什麼。
 
 ### 【段落 0】昨日預測驗收（誠信時刻——任何情況不得省略）
 - A：「在今天的分析開始前，先驗收昨天的預測。」
@@ -195,8 +200,8 @@ def generate_weekend_special_prompt(api_key, structured_data, date_str=None):
 --- 本週驗證數據 ---
 日期：{structured_data.get('date', date_str)}
 大盤狀況：{structured_data.get('index_action', 'N/A')}
-資金撤出：{', '.join(structured_data.get('heavyweights_dumped', []))}
-資金流入：{', '.join(structured_data.get('safe_havens_bought', []))}
+法人賣超或弱勢標的：{', '.join(structured_data.get('heavyweights_dumped', []))}
+法人買超或強勢板塊：{', '.join(structured_data.get('safe_havens_bought', []))}
 商品行情：{', '.join(structured_data.get('commodities', []))}
 AI 觀察焦點：{', '.join(structured_data.get('ai_data_picks', []))}
 
@@ -218,7 +223,7 @@ AI 觀察焦點：{', '.join(structured_data.get('ai_data_picks', []))}
 
 ## 🎙️ 主持人設定
 
-**主持人 A（數據張博士・偵探派）**：冷靜分析，找本週最大資金脈絡，帶出「下週觀察方向」。
+**主持人 A（數據張博士・偵探派）**：冷靜分析，找本週最大的主力買賣邏輯，帶出「下週觀察方向」。
 
 **主持人 B（熱血阿明・散戶代言人）**：代表散戶「這週被市場整了嗎？」的心理，情緒根據本週盤面決定。
 
@@ -232,8 +237,8 @@ AI 觀察焦點：{', '.join(structured_data.get('ai_data_picks', []))}
   - 本週外資行為和盤面一致嗎？
 - B 的反應根據本週盤面情緒設計（大漲週 vs 大跌週 vs 詭異盤整週）
 
-### 【段落 2】資金脈絡：本週的錢從哪裡來，往哪裡去？
-- 用成交量數據說話，不用主觀敘事
+### 【段落 2】主力買賣邏輯：三大法人 vs 成交量
+- 用成交量與三大法人買賣超數據說話，不用主觀敘事
 - 族群分析：只在有 3 支以上同向數據時說「族群性」，否則說「部分個股」
 
 ### 【段落 3】下週前瞻：一個具體觀察方向
@@ -249,6 +254,7 @@ AI 觀察焦點：{', '.join(structured_data.get('ai_data_picks', []))}
 
 ## 🚫 絕對規則
 1. 數字必須與驗證數據完全一致
+2. 不要使用「資金輪動」四字；必須改講具體的法人買賣、成交量與驗收條件。
 2. 族群歸屬不得混淆
 3. 每族群最多舉 1-2 支個股
 4. B 的情緒必須根據本週真實盤面設計

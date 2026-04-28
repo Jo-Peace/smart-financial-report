@@ -64,7 +64,7 @@ STYLE_PRESETS = {
 }
 
 
-def generate_titles(client, report_content, num_titles=3):
+def generate_titles(client, report_content, num_titles=3, date_label=None):
     """
     Use Gemini to generate multiple YouTube title variations for A/B testing.
     """
@@ -72,13 +72,15 @@ def generate_titles(client, report_content, num_titles=3):
     你是一位專業的 YouTube 財經頻道標題撰寫專家。
     根據以下影片文案內容，生成 {num_titles} 個不同風格的 YouTube 標題。
 
+    今日日期：{date_label or datetime.datetime.now().strftime("%m/%d")}
+
     文案摘要：
     {report_content[:1500]}
 
     要求：
     1. 每個標題要有不同的「鉤子」策略（好奇心、緊迫感、數據驅動等）
     2. 標題長度控制在 25-35 個中文字以內
-    3. 必須包含日期（明天的日期）
+    3. 必須包含今日日期「{date_label or datetime.datetime.now().strftime("%m/%d")}」，禁止自行推算或使用其他日期
     4. 使用 emoji 增加點擊率
     5. 針對台灣投資人
 
@@ -170,7 +172,7 @@ def generate_ab_test_thumbnails(gemini_api_key, openai_api_key, report_content, 
     gemini_client = genai.Client(api_key=gemini_api_key)
     openai_client = OpenAI(api_key=openai_api_key)
 
-    date_str = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%m/%d")
+    date_str = datetime.datetime.now().strftime("%m/%d")
     date_full = datetime.datetime.now().strftime("%Y-%m-%d")
 
     # 優先順序：函數參數 → THUMBNAIL_STYLE 環境變數 → 預設兩種 preset
@@ -186,7 +188,7 @@ def generate_ab_test_thumbnails(gemini_api_key, openai_api_key, report_content, 
 
     # === Step 1: Generate title variations with Gemini ===
     print("\n🎯 正在生成 YouTube 標題變體（A/B Test）...")
-    titles = generate_titles(gemini_client, report_content, num_titles)
+    titles = generate_titles(gemini_client, report_content, num_titles, date_label=date_str)
     results["titles"] = titles
     for i, title in enumerate(titles):
         print(f"  📝 標題 {i+1}: {title}")
