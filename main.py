@@ -2,6 +2,7 @@ import os
 import datetime
 import glob
 import json
+import time
 from dotenv import load_dotenv
 from modules.data_fetcher import DataFetcher
 from modules.analyzer import MarketAnalyzer
@@ -302,6 +303,8 @@ def main():
     # ========================================
     # 5. Generate AI Report
     # ========================================
+    print("\n⏳ [速率限制保護] 等待 5 秒後呼叫 Gemini 主報告...")
+    time.sleep(5)
     print("\n🤖 正在使用 Gemini 生成 AI 報告...")
     report_content = analyzer.generate_report(
         market_data, 
@@ -334,7 +337,9 @@ def main():
     # 7. Generate Structured Data & NotebookLM Prompt
     # ========================================
     from modules.data_extractor import extract_structured_data
-    
+
+    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 萃取結構化數據...")
+    time.sleep(8)
     print("\n📦 正在萃取結構化數據 (防止 AI 幻覺)...")
     structured_data = extract_structured_data(GEMINI_API_KEY, report_content)
     if isinstance(structured_data, dict) and structured_data.get("error"):
@@ -391,6 +396,8 @@ def main():
     except Exception as e:
         print(f"  ⚠️  Analytics DB 寫入失敗，略過本地統計: {e}")
     
+    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 生成 Podcast 腳本...")
+    time.sleep(8)
     print("\n🎧 正在基於結構化數據生成 NotebookLM Podcast 腳本指令...")
     date_str = datetime.datetime.now().strftime("%Y-%m-%d")
     print(f"  📌 目前專案主題標籤: {PROJECT_THEME if PROJECT_THEME else '無 (日常盤勢)'}")
@@ -414,6 +421,8 @@ def main():
     # ========================================
     from modules.youtube_content_generator import generate_youtube_package, save_youtube_package
 
+    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 生成 YouTube 素材...")
+    time.sleep(8)
     print("\n📢 正在生成 YouTube 上架素材（標題/描述/置頂留言）...")
     yt_package = generate_youtube_package(GEMINI_API_KEY, structured_data, report_content, date_str)
     if yt_package.get("titles"):
@@ -430,6 +439,8 @@ def main():
     if OPENAI_API_KEY:
         from modules.thumbnail_generator import generate_ab_test_thumbnails, print_ab_test_summary
 
+        print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 生成縮圖 Prompt...")
+        time.sleep(8)
         print("\n🎨 正在用 DALL-E 3 生成 YouTube 縮圖背景...")
         try:
             ab_results = generate_ab_test_thumbnails(
@@ -451,6 +462,8 @@ def main():
     # 8. Update Knowledge Wiki (The Second Brain) [優化 A]
     # ========================================
     from modules.knowledge_manager import KnowledgeUpdater
+    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 更新 Knowledge Wiki...")
+    time.sleep(8)
     knowledge_updater = KnowledgeUpdater(GEMINI_API_KEY)
     knowledge_updater.update_knowledge_base(report_content)
 
