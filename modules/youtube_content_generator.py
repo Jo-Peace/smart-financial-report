@@ -14,7 +14,7 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
     Generates a complete YouTube upload package using Gemini.
 
     Returns dict with:
-        titles         - list of 3 title variants (A/B/C)
+        titles         - list of 2 title variants (A/B)
         description    - full SEO-optimized description
         pinned_comment - pinned comment template
     """
@@ -48,17 +48,43 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 {report_content[:1000]}
 
 ===標題撰寫規則（最關鍵）===
-生成三個標題，各用不同心理鉤子：
-- 標題A：好奇心缺口型（製造「咦？這怎麼可能？」的疑問，讓人必須點進去看答案）
-  範例格式：「外資狂買XX億，這支股票卻跌了？背後原因出乎意料｜{short_date} AI帶你看股市」
-- 標題B：數據衝擊型（用最震撼的具體數字開頭，前15字必須有數字）
-  範例格式：「XX億！外資今天創歷史最大買超 卻沒人知道為什麼｜{short_date} AI帶你看股市」
-- 標題C：利益相關型（直接戳中持股者的焦慮或機會感）
-  範例格式：「持有這類股的注意！外資今天悄悄在做一件事｜{short_date} AI帶你看股市」
+只生成兩個標題，方便累積乾淨的 A/B Test：
+- 標題A：主推高勝率公式。優先檢查今日是否有重大「時事槓桿」；若有，標題A必須從時事切入，再連到台股風險/機會。若沒有時事槓桿，再檢查是否可呼應上集或昨日預測；最後才使用「大盤反差 + 核心股外資金額 + 隱藏買盤標的」。
+  範例格式：「上集說XX是地雷，但外資今天砸了XX億進去！這是接刀還是提前卡位？｜{short_date} AI帶你看股市」
+- 標題B：探索替換版。使用不同角度的好奇心缺口或數據衝擊，作為 48 小時後可替換版本。
+  範例格式：「XX億！外資狂砍權值股，卻反手鎖定這兩檔記憶體｜{short_date} AI帶你看股市」
+
+===已驗證較有效的頻道標題公式（高權重參考）===
+學習門檻：觀看數低於 900 的影片只能視為觀察樣本，不可作為 A/B Test 勝負依據。只有 900 觀看以上的案例，才視為可強化的標題/封面公式。
+
+近期表現較好的標題使用了這種結構：
+「台股大漲/大跌卻暗藏殺機？台積電大漲但外資狂砍XX億！主力反手鎖定『這檔』記憶體股｜AI帶你看股市」
+
+另一個表現較好的標題使用了「上集驗收 / 連續劇」結構：
+「上集說XX是地雷，但外資今天砸了XX億進去！股價卻繼續跌——這是接刀還是提前卡位？」
+
+另一個高觀看樣本使用了「節假日後風險預警」結構：
+「228連假後台股崩盤預警!?」
+
+目前最高觀看樣本使用了「地緣政治 / 美股血洗 / 台股風險傳導」結構：
+「戰火引爆美股血洗！台積電 ADR 暴跌 9.5% 週一台股開盤面臨斷頭危機？資金全逃去哪了！」
+
+請優先模仿這個邏輯，而不是照抄文字：
+1. 先判斷今天有沒有重大時事槓桿：戰爭、美股暴跌、台積電 ADR、輝達、VIX、Fed、匯率、關稅、長假、重大財報、台指期夜盤。
+2. 若有時事槓桿，標題A順序為：時事事件 → 台股會怎樣 → 核心標的/數字 → 散戶該怕什麼或看什麼。
+3. 若沒有時事槓桿，再給大盤表面現象：狂飆、重挫、翻紅、收黑。
+4. 馬上接反差：卻暗藏殺機、法人動作不對勁、散戶可能看錯。
+5. 放入最有辨識度的大型股或核心標的，例如台積電，並附上真實外資買賣超金額。
+6. 最後給觀眾一個想點進來的答案缺口：這檔、這兩檔、記憶體、AI伺服器、ETF 等具體題材。
+7. 不要只寫「資金輪動」。若要表達資金移動，請寫成具體行為：外資砍台積電、投信買超、三大法人反手買、成交量爆出異常。
+8. 若今日資料能呼應昨日或上集的預測，標題可使用「上集說過 / 昨天點名 / 真的驗收」結構，讓觀眾感覺這不是單集資訊，而是連續追蹤。
+9. 連續劇標題要有明確驗收點：上集說了什麼、今天發生什麼、外資買賣多少、股價是否反著走。
+10. 若今天接近長假、休市、重大總經事件或連假後開盤，標題A可使用「節假日後風險預警」結構，但必須搭配具體籌碼、期貨、美股或權值股風險證據。
+11. 若美股、VIX、台積電 ADR、輝達、油金、地緣政治出現重大異常，標題A可使用「全球風險傳導到台股」結構：全球觸發事件 + 台灣核心資產跌幅 + 下一交易日風險 + 投資人該追問的問題。
 
 標題硬規則：
-1. 每個標題 28-40 字（含符號）
-2. 前 15 字是黃金區——最有吸引力的詞必須在最前面
+1. 每個標題 35-60 字（含符號）；若今日數據很強，可以略長，但前半段必須完整有鉤子
+2. 前 22 字是黃金區——必須出現大盤反差、核心股、或外資金額之一
 3. 末尾固定加「｜AI帶你看股市」作為品牌識別
 4. 數字必須來自今日真實數據，不得捏造
 5. 繁體中文，禁止「穩了」「嗨了」「躺平」等中國大陸流行語
@@ -97,8 +123,6 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 （標題A）
 ###TITLE_B
 （標題B）
-###TITLE_C
-（標題C）
 ###DESCRIPTION
 （完整描述，包含所有段落和hashtag）
 ###PINNED_COMMENT
@@ -110,7 +134,7 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
         response = model.generate_content(prompt)
         output = response.text.strip()
 
-        sections = {"TITLE_A": [], "TITLE_B": [], "TITLE_C": [], "DESCRIPTION": [], "PINNED_COMMENT": []}
+        sections = {"TITLE_A": [], "TITLE_B": [], "DESCRIPTION": [], "PINNED_COMMENT": []}
         current = None
 
         for line in output.splitlines():
@@ -130,7 +154,6 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
             "titles": [
                 "\n".join(sections["TITLE_A"]).strip(),
                 "\n".join(sections["TITLE_B"]).strip(),
-                "\n".join(sections["TITLE_C"]).strip(),
             ],
             "description": "\n".join(sections["DESCRIPTION"]).strip(),
             "pinned_comment": "\n".join(sections["PINNED_COMMENT"]).strip(),
@@ -150,9 +173,9 @@ def save_youtube_package(result, output_dir, date_str):
 
     lines = [f"# YouTube 上架素材包 {date_str}\n"]
 
-    lines.append("## 📝 標題選項（選一個上傳，48小時後看數據再決定換不換）\n")
-    labels = ["A（好奇心缺口）", "B（數據衝擊）", "C（利益相關）"]
-    for i, title in enumerate(result.get("titles", [])):
+    lines.append("## 📝 A/B 標題選項（先用 A，48 小時後再判斷是否換 B）\n")
+    labels = ["A（主推高勝率公式）", "B（探索替換版）"]
+    for i, title in enumerate(result.get("titles", [])[:2]):
         label = labels[i] if i < len(labels) else str(i + 1)
         lines.append(f"**標題 {label}：**\n```\n{title}\n```\n")
 
@@ -165,11 +188,12 @@ def save_youtube_package(result, output_dir, date_str):
     lines.append("```\n")
 
     lines.append("---\n\n## 📌 上架流程提醒\n")
-    lines.append("1. 選一個標題上傳（建議先用標題A）")
+    lines.append("1. 先用標題 A 上傳")
     lines.append("2. 在 Canva 打開縮圖背景，加上今日標題文字")
     lines.append("3. 上傳影片，貼上描述和縮圖")
     lines.append("4. 發布後立即貼置頂留言")
-    lines.append("5. 48小時後檢查 CTR：< 3% 換標題，< 5% 換縮圖\n")
+    lines.append("5. 觀看數低於 900 不判斷 A/B 勝負，只記錄觀察")
+    lines.append("6. 48小時後若 views >= 900 且 CTR < 5%，再測 B 組\n")
 
     with open(filepath, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))

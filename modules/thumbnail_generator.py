@@ -1,7 +1,7 @@
 """
 YouTube Thumbnail Generator with A/B Testing Support.
 Uses DALL-E 3 (OpenAI) for image generation and Gemini for title generation.
-Generates multiple style variants and title options for A/B testing.
+Generates two style variants and title options for A/B testing.
 """
 import os
 import base64
@@ -64,7 +64,7 @@ STYLE_PRESETS = {
 }
 
 
-def generate_titles(client, report_content, num_titles=3, date_label=None):
+def generate_titles(client, report_content, num_titles=2, date_label=None):
     """
     Use Gemini to generate multiple YouTube title variations for A/B testing.
     """
@@ -78,11 +78,12 @@ def generate_titles(client, report_content, num_titles=3, date_label=None):
     {report_content[:1500]}
 
     要求：
-    1. 每個標題要有不同的「鉤子」策略（好奇心、緊迫感、數據驅動等）
-    2. 標題長度控制在 25-35 個中文字以內
-    3. 必須包含今日日期「{date_label or datetime.datetime.now().strftime("%m/%d")}」，禁止自行推算或使用其他日期
-    4. 使用 emoji 增加點擊率
-    5. 針對台灣投資人
+    1. 只輸出 A/B 兩個標題，不要輸出第三個
+    2. 每個標題要有不同的「鉤子」策略（好奇心、緊迫感、數據驅動等）
+    3. 標題長度控制在 25-35 個中文字以內
+    4. 必須包含今日日期「{date_label or datetime.datetime.now().strftime("%m/%d")}」，禁止自行推算或使用其他日期
+    5. 使用 emoji 增加點擊率
+    6. 針對台灣投資人
 
     請直接輸出標題，每行一個，不要編號，不要其他說明文字。
     """
@@ -157,7 +158,7 @@ def generate_thumbnail(openai_client, style_key_or_custom, title, date_str, outp
 
 
 def generate_ab_test_thumbnails(gemini_api_key, openai_api_key, report_content, reports_dir,
-                                 styles=None, num_titles=3):
+                                 styles=None, num_titles=2):
     """
     Generate thumbnails (DALL-E 3) + titles (Gemini) for A/B testing.
 
@@ -236,7 +237,7 @@ def print_ab_test_summary(results):
     print(f"{'='*60}")
 
     print("\n  📝 標題選項：")
-    for i, title in enumerate(results["titles"]):
+    for i, title in enumerate(results["titles"][:2]):
         print(f"     {chr(65+i)}. {title}")
 
     print(f"\n  🖼️  縮圖選項：")

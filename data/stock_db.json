@@ -163,7 +163,24 @@
     "not_classify_as": [
       "傳統記憶體廠",
       "景氣循環股"
-    ]
+    ],
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-04-29",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-04-29",
+          "direction": "多",
+          "trigger": "外資買超金額與市場成交量強大共振，籌碼洗盤完成且量增比1.59倍",
+          "stop_loss": "收盤跌破二百二十元或 MA5",
+          "result": "實際 -1.05% → ❌ 失準"
+        }
+      ]
+    }
   },
   "2382": {
     "name": "廣達",
@@ -333,7 +350,31 @@
     "not_classify_as": [
       "傳統記憶體廠",
       "唯讀記憶體業"
-    ]
+    ],
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 2,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-05-04",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": "2026-04-29",
+      "history": [
+        {
+          "date": "2026-04-29",
+          "direction": "多",
+          "trigger": "帶量長紅突破 MA20，外資掃貨式建倉且毛利率改善",
+          "stop_loss": "收盤跌破一百四十五元",
+          "result": "實際 +4.70% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-04",
+          "direction": "多",
+          "trigger": "成交量與外資買超雙料第一，毛利改善且營收年增強勁",
+          "stop_loss": "收盤跌破一百四十五元",
+          "result": "實際 +0.32% → ✅ 命中"
+        }
+      ]
+    }
   },
   "2891": {
     "name": "中信金",
@@ -1356,6 +1397,64 @@
     "not_classify_as": [
       "消費電子通路",
       "電子零組件代理商"
+    ]
+  },
+  "2451": {
+    "name": "創見",
+    "sector": "Edge AI 邊緣運算存儲族群",
+    "supply_chain_role": "工業級嵌入式存儲方案提供商",
+    "key_products": [
+      "工業級 SSD",
+      "高可靠度記憶體模組",
+      "嵌入式 Flash 解決方案"
+    ],
+    "ai_connection": "主要佈局 AI 伺服器之「邊緣端 (Edge)」應用。提供具備高耐用度、寬溫運行的存儲設備，用於支撐工廠、交通與電信等 AI 終端裝置之運算數據暫存與模型存放，確保 AI 推論過程之穩定性。",
+    "not_classify_as": [
+      "消費性記憶體通路商",
+      "隨身碟廠"
+    ]
+  },
+  "3026": {
+    "name": "禾伸堂",
+    "sector": "AI 電源管理被動元件族群",
+    "supply_chain_role": "AI 伺服器高壓高容 MLCC 關鍵供應商",
+    "key_products": [
+      "高壓陶瓷電容 (MLCC)",
+      "高容陶瓷電容 (MLCC)",
+      "自製陶瓷粉末"
+    ],
+    "ai_connection": "產品進入 AI 伺服器電源供應系統 (PSU) 與電壓調節模組 (VRM) 之 BOM 表。針對 AI 處理器所需之高功率、高瞬態電流環境，提供關鍵的濾波與能量穩定支撐，為少數具備自製粉末能力之 AI 高階電容廠。",
+    "not_classify_as": [
+      "電子零件代理商",
+      "傳統陶瓷材料商"
+    ]
+  },
+  "2801": {
+    "name": "彰銀",
+    "sector": "AI 供應鏈金流服務族群",
+    "supply_chain_role": "AI 硬體零組件商營運週轉金與擴廠資本提供者",
+    "key_products": [
+      "企業週轉金融資",
+      "供應鏈應收帳款承購"
+    ],
+    "ai_connection": "主要切入 AI 供應鏈中下游零組件製造商（如 PCB、散熱組件、機殼廠）之財務需求，提供 AI 伺服器產能擴張所需的低成本營運資本。",
+    "not_classify_as": [
+      "傳統存放款商業銀行",
+      "傳產"
+    ]
+  },
+  "2892": {
+    "name": "第一金",
+    "sector": "AI 供應鏈金流服務族群",
+    "supply_chain_role": "AI 全球製造業者大型聯貸案主辦行與跨境金流調度中心",
+    "key_products": [
+      "跨國聯合授信案",
+      "綠色金融 (低碳 AI 資料中心融資)"
+    ],
+    "ai_connection": "為 AI 伺服器組裝大廠與半導體權值股提供全球擴張所需的巨額聯貸支援，並針對符合 ESG 規範的 AI 資料中心提供專案融資。",
+    "not_classify_as": [
+      "官股老牌行庫",
+      "傳產"
     ]
   }
 }

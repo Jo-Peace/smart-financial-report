@@ -149,6 +149,64 @@ class AnalyticsStore:
             )
         """)
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS youtube_asset_plans (
+                run_date TEXT PRIMARY KEY,
+                youtube_package_path TEXT,
+                video_plan_path TEXT,
+                visual_theme TEXT,
+                main_topic TEXT,
+                raw_json TEXT NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS youtube_title_variants (
+                run_date TEXT NOT NULL,
+                variant TEXT NOT NULL,
+                title_type TEXT,
+                title TEXT NOT NULL,
+                selected INTEGER DEFAULT 0,
+                PRIMARY KEY (run_date, variant),
+                FOREIGN KEY (run_date) REFERENCES youtube_asset_plans(run_date)
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS youtube_thumbnail_variants (
+                run_date TEXT NOT NULL,
+                variant TEXT NOT NULL,
+                cover_text TEXT,
+                badges TEXT,
+                prompt TEXT,
+                selected INTEGER DEFAULT 0,
+                PRIMARY KEY (run_date, variant),
+                FOREIGN KEY (run_date) REFERENCES youtube_asset_plans(run_date)
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS youtube_video_metrics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_date TEXT NOT NULL,
+                measured_at TEXT NOT NULL,
+                video_id TEXT,
+                hours_since_publish REAL,
+                views INTEGER,
+                likes INTEGER,
+                comments INTEGER,
+                impressions INTEGER,
+                ctr REAL,
+                avg_view_duration_seconds REAL,
+                avg_view_percentage REAL,
+                title_variant TEXT,
+                thumbnail_variant TEXT,
+                notes TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         conn.commit()
         conn.close()
 
@@ -235,6 +293,139 @@ class AnalyticsStore:
         self._record_volume_rankings(cur, run_date, volume_data or [])
         self._evaluate_due_predictions(cur, run_date)
 
+        conn.commit()
+        summary = self.get_summary(conn)
+        conn.close()
+        return summary
+
+    def record_youtube_asset_plan(
+        self,
+        run_date,
+        asset_record,
+        youtube_package_path=None,
+        video_plan_path=None,
+        visual_theme="",
+    ):
+        run_date = str(run_date)
+        asset_record = asset_record or {}
+
+        conn = self._connect()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO youtube_asset_plans (
+                run_date, youtube_package_path, video_plan_path,
+                visual_theme, main_topic, raw_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(run_date) DO UPDATE SET
+                youtube_package_path = excluded.youtube_package_path,
+                video_plan_path = excluded.video_plan_path,
+                visual_theme = excluded.visual_theme,
+                main_topic = excluded.main_topic,
+                raw_json = excluded.raw_json
+            """,
+            (
+                run_date,
+                youtube_package_path,
+                video_plan_path,
+                visual_theme,
+                asset_record.get("main_topic", ""),
+                _json_dumps(asset_record),
+            ),
+        )
+
+        cur.execute("DELETE FROM youtube_title_variants WHERE run_date = ?", (run_date,))
+        for title in asset_record.get("title_variants", []) or []:
+            cur.execute(
+                """
+                INSERT INTO youtube_title_variants (
+                    run_date, variant, title_type, title, selected
+                )
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    run_date,
+                    title.get("variant", ""),
+                    title.get("title_type", ""),
+                    title.get("title", ""),
+                    1 if title.get("selected") else 0,
+                ),
+            )
+
+        cur.execute("DELETE FROM youtube_thumbnail_variants WHERE run_date = ?", (run_date,))
+        for thumb in asset_record.get("thumbnail_variants", []) or []:
+            cur.execute(
+                """
+                INSERT INTO youtube_thumbnail_variants (
+                    run_date, variant, cover_text, badges, prompt, selected
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    run_date,
+                    thumb.get("variant", ""),
+                    "\n".join(thumb.get("cover_text", []) or []),
+                    "\n".join(thumb.get("badges", []) or []),
+                    thumb.get("prompt", ""),
+                    1 if thumb.get("selected") else 0,
+                ),
+            )
+
+        conn.commit()
+        summary = self.get_summary(conn)
+        conn.close()
+        return summary
+
+    def record_youtube_metric(
+        self,
+        run_date,
+        measured_at=None,
+        video_id="",
+        hours_since_publish=None,
+        views=None,
+        likes=None,
+        comments=None,
+        impressions=None,
+        ctr=None,
+        avg_view_duration_seconds=None,
+        avg_view_percentage=None,
+        title_variant="",
+        thumbnail_variant="",
+        notes="",
+    ):
+        run_date = str(run_date)
+        measured_at = measured_at or datetime.datetime.now().replace(microsecond=0).isoformat(sep=" ")
+
+        conn = self._connect()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO youtube_video_metrics (
+                run_date, measured_at, video_id, hours_since_publish,
+                views, likes, comments, impressions, ctr,
+                avg_view_duration_seconds, avg_view_percentage,
+                title_variant, thumbnail_variant, notes
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_date,
+                measured_at,
+                video_id,
+                hours_since_publish,
+                views,
+                likes,
+                comments,
+                impressions,
+                ctr,
+                avg_view_duration_seconds,
+                avg_view_percentage,
+                title_variant,
+                thumbnail_variant,
+                notes,
+            ),
+        )
         conn.commit()
         summary = self.get_summary(conn)
         conn.close()
@@ -453,6 +644,8 @@ class AnalyticsStore:
         daily_runs = cur.execute("SELECT COUNT(*) AS count FROM daily_runs").fetchone()["count"]
         predictions = cur.execute("SELECT COUNT(*) AS count FROM predictions").fetchone()["count"]
         evaluated = cur.execute("SELECT COUNT(*) AS count FROM prediction_results").fetchone()["count"]
+        youtube_asset_plans = cur.execute("SELECT COUNT(*) AS count FROM youtube_asset_plans").fetchone()["count"]
+        youtube_metric_samples = cur.execute("SELECT COUNT(*) AS count FROM youtube_video_metrics").fetchone()["count"]
         hit_row = cur.execute(
             """
             SELECT AVG(hit) AS hit_rate
@@ -470,5 +663,7 @@ class AnalyticsStore:
             "daily_runs": daily_runs,
             "predictions": predictions,
             "evaluated_results": evaluated,
+            "youtube_asset_plans": youtube_asset_plans,
+            "youtube_metric_samples": youtube_metric_samples,
             "hit_rate": round(hit_rate * 100, 1) if hit_rate is not None else None,
         }

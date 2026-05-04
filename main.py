@@ -454,8 +454,47 @@ def main():
     if yt_package.get("titles"):
         yt_package_path = save_youtube_package(yt_package, YOUTUBE_ASSETS_DIR, date_str)
         print(f"  ✅ YouTube 素材包已儲存: {os.path.basename(yt_package_path)}")
-        for i, title in enumerate(yt_package["titles"]):
-            print(f"     標題{'ABC'[i]}: {title}")
+        for i, title in enumerate(yt_package["titles"][:2]):
+            print(f"     標題{'AB'[i]}: {title}")
+
+        try:
+            from modules.video_asset_planner import (
+                append_youtube_package_addendum,
+                build_video_asset_record,
+                build_youtube_package_addendum,
+            )
+
+            package_addendum = build_youtube_package_addendum(
+                structured_data=structured_data,
+                report_content=report_content,
+                youtube_package=yt_package,
+                date_str=date_str,
+                visual_theme=PROJECT_THEME,
+            )
+            append_youtube_package_addendum(yt_package_path, package_addendum)
+            print("  ✅ YouTube 素材包已補入封面/NotebookLM/驗收計畫")
+
+            try:
+                from modules.analytics_store import AnalyticsStore
+
+                asset_record = build_video_asset_record(
+                    structured_data=structured_data,
+                    youtube_package=yt_package,
+                    date_str=date_str,
+                    visual_theme=PROJECT_THEME,
+                )
+                AnalyticsStore().record_youtube_asset_plan(
+                    run_date=date_str,
+                    asset_record=asset_record,
+                    youtube_package_path=yt_package_path,
+                    video_plan_path=yt_package_path,
+                    visual_theme=PROJECT_THEME,
+                )
+                print("  ✅ 標題/封面學習資料庫已記錄本日 A/B 方案")
+            except Exception as e:
+                print(f"  ⚠️  標題/封面學習資料庫寫入失敗，略過: {e}")
+        except Exception as e:
+            print(f"  ⚠️  影片製作計畫產生失敗，略過: {e}")
     else:
         print("  ⚠️  YouTube 素材生成失敗，跳過。")
 
@@ -475,7 +514,7 @@ def main():
                 report_content=report_content,
                 reports_dir=YOUTUBE_ASSETS_DIR,
                 styles=["dc_comics", "cyberpunk"],
-                num_titles=3,
+                num_titles=2,
             )
             print_ab_test_summary(ab_results)
         except Exception as e:

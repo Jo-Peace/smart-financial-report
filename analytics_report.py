@@ -3,6 +3,8 @@ import datetime
 import os
 import sqlite3
 
+from modules.analytics_store import AnalyticsStore
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data", "analytics.db")
@@ -28,6 +30,12 @@ def _fmt_hit_rate(value):
     return f"{float(value) * 100:.1f}%"
 
 
+def _youtube_sample_quality(views):
+    if views is None:
+        return "unknown"
+    return "valid" if int(views) >= 900 else "low-sample"
+
+
 def _table(headers, rows):
     lines = []
     lines.append("| " + " | ".join(headers) + " |")
@@ -38,6 +46,7 @@ def _table(headers, rows):
 
 
 def build_report(limit=12):
+    AnalyticsStore()
     conn = _connect()
     cur = conn.cursor()
 
@@ -47,7 +56,9 @@ def build_report(limit=12):
             (SELECT COUNT(*) FROM daily_runs) AS daily_runs,
             (SELECT COUNT(*) FROM predictions) AS predictions,
             (SELECT COUNT(*) FROM prediction_results) AS evaluated_results,
-            (SELECT COUNT(*) FROM ai_picks) AS ai_picks
+            (SELECT COUNT(*) FROM ai_picks) AS ai_picks,
+            (SELECT COUNT(*) FROM youtube_asset_plans) AS youtube_asset_plans,
+            (SELECT COUNT(*) FROM youtube_video_metrics) AS youtube_metric_samples
         """
     ).fetchone()
 
@@ -117,6 +128,35 @@ def build_report(limit=12):
         (limit,),
     ).fetchall()
 
+    recent_youtube_metrics = cur.execute(
+        """
+        SELECT
+            run_date, measured_at, views, likes, comments, ctr,
+            title_variant, thumbnail_variant, notes
+        FROM youtube_video_metrics
+        ORDER BY measured_at DESC, id DESC
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+
+    youtube_variant_stats = cur.execute(
+        """
+        SELECT
+            COALESCE(NULLIF(title_variant, ''), 'N/A') AS title_variant,
+            COALESCE(NULLIF(thumbnail_variant, ''), 'N/A') AS thumbnail_variant,
+            COUNT(*) AS samples,
+            AVG(views) AS avg_views,
+            MAX(views) AS max_views,
+            AVG(ctr) AS avg_ctr
+        FROM youtube_video_metrics
+        GROUP BY title_variant, thumbnail_variant
+        ORDER BY avg_views DESC
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+
     conn.close()
 
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -130,6 +170,8 @@ def build_report(limit=12):
         f"- Predictions: {counts['predictions']}",
         f"- Evaluated results: {counts['evaluated_results']}",
         f"- AI pick records: {counts['ai_picks']}",
+        f"- YouTube asset plans: {counts['youtube_asset_plans']}",
+        f"- YouTube metric samples: {counts['youtube_metric_samples']}",
         "",
         "## Performance By Horizon",
     ]
@@ -217,6 +259,52 @@ def build_report(limit=12):
         )
     else:
         lines.append("No predictions yet.")
+
+    lines.extend(["", "## YouTube Title / Thumbnail Metrics"])
+    if youtube_variant_stats:
+        lines.append(
+            _table(
+                ["Title Var", "Thumb Var", "Samples", "Avg Views", "Max Views", "Avg CTR"],
+                [
+                    [
+                        row["title_variant"],
+                        row["thumbnail_variant"],
+                        row["samples"],
+                        f"{float(row['avg_views']):.0f}" if row["avg_views"] is not None else "N/A",
+                        row["max_views"] if row["max_views"] is not None else "N/A",
+                        f"{float(row['avg_ctr']):.2f}%" if row["avg_ctr"] is not None else "N/A",
+                    ]
+                    for row in youtube_variant_stats
+                ],
+            )
+        )
+    else:
+        lines.append("No YouTube metric samples yet.")
+
+    lines.extend(["", "## Recent YouTube Measurements"])
+    if recent_youtube_metrics:
+        lines.append(
+            _table(
+                ["Date", "Measured At", "Views", "Quality", "Likes", "Comments", "CTR", "Title", "Thumb", "Notes"],
+                [
+                    [
+                        row["run_date"],
+                        row["measured_at"],
+                        row["views"] if row["views"] is not None else "N/A",
+                        _youtube_sample_quality(row["views"]),
+                        row["likes"] if row["likes"] is not None else "N/A",
+                        row["comments"] if row["comments"] is not None else "N/A",
+                        f"{float(row['ctr']):.2f}%" if row["ctr"] is not None else "N/A",
+                        row["title_variant"] or "",
+                        row["thumbnail_variant"] or "",
+                        (row["notes"] or "")[:80],
+                    ]
+                    for row in recent_youtube_metrics
+                ],
+            )
+        )
+    else:
+        lines.append("No YouTube measurements yet.")
 
     lines.extend(["", "## Frequent AI Picks"])
     if top_picks:
