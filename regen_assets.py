@@ -35,6 +35,45 @@ CHANNEL_STORY_LOG = os.path.join(YOUTUBE_ASSETS_DIR, "channel_story_log.md")
 SLEEP_BETWEEN_CALLS = 8  # 秒，避免超過 15 RPM
 
 
+def _read_tail(path, max_chars=5000):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        return content[-max_chars:]
+    except Exception:
+        return ""
+
+
+def build_packaging_context(structured_data):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    title_rules_path = os.path.join(base_dir, "project_skills", "youtube_title_packaging.md")
+    analytics_path = os.path.join(REPORTS_DIR, "analytics_summary.md")
+    validation_results = structured_data.get("validation_results") or []
+    if validation_results:
+        validation_lines = ["# 本機正式驗收結果"]
+        for row in validation_results:
+            status = "✅" if row.get("hit") is True else ("❌" if row.get("hit") is False else "⚠️")
+            validation_lines.append(
+                f"- {status} {row.get('id')} {row.get('name')}：{row.get('result')}；"
+                f"漲跌 {row.get('pct_change')}%；成交量排名 {row.get('volume_rank') or '未進榜'}"
+            )
+        validation_summary = "\n".join(validation_lines)
+    else:
+        validation_summary = "\n".join(structured_data.get("prev_day_picks_result") or [])
+
+    return {
+        "validation_summary": validation_summary,
+        "analytics_summary": _read_tail(analytics_path, max_chars=4500),
+        "channel_story": _read_tail(CHANNEL_STORY_LOG, max_chars=3500),
+        "title_packaging_rules": _read_tail(title_rules_path, max_chars=5000),
+        "audience_profile": (
+            "觀眾偏好：標題與封面要具體點名個股；先講情境或矛盾，再回答哪幾檔。"
+            "避免只說 AI 族群、資金輪動、前景看好。"
+            "同一支股票要分清角色：例如鴻海偏資金方向與權值核心，廣達/光寶科/南亞科偏彈性觀察。"
+        ),
+    }
+
+
 def is_generation_error(content):
     return isinstance(content, str) and content.strip().startswith("Error generating")
 
@@ -122,7 +161,13 @@ def main():
             print(f"\n⏳ [速率限制保護] 等待 {SLEEP_BETWEEN_CALLS} 秒後呼叫 Gemini 生成 YouTube 素材...")
             time.sleep(SLEEP_BETWEEN_CALLS)
             print("📢 正在生成 YouTube 上架素材（標題/描述/置頂留言）...")
-            yt_package = generate_youtube_package(GEMINI_API_KEY, structured_data, report_content, date_str)
+            yt_package = generate_youtube_package(
+                GEMINI_API_KEY,
+                structured_data,
+                report_content,
+                date_str,
+                packaging_context=build_packaging_context(structured_data),
+            )
             if yt_package.get("titles"):
                 yt_package_path = save_youtube_package(yt_package, YOUTUBE_ASSETS_DIR, date_str)
                 print(f"  ✅ YouTube 素材包已儲存：{os.path.basename(yt_package_path)}")

@@ -9,7 +9,7 @@ import datetime
 import google.generativeai as genai
 
 
-def generate_youtube_package(gemini_api_key, structured_data, report_content, date_str):
+def generate_youtube_package(gemini_api_key, structured_data, report_content, date_str, packaging_context=None):
     """
     Generates a complete YouTube upload package using Gemini.
 
@@ -32,6 +32,12 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
     price_divergence = structured_data.get("price_volume_divergence", [])
     conservative = structured_data.get("conservative_strategy", "")
     aggressive = structured_data.get("aggressive_strategy", "")
+    packaging_context = packaging_context or {}
+    validation_summary = packaging_context.get("validation_summary", "")
+    analytics_summary = packaging_context.get("analytics_summary", "")
+    channel_story = packaging_context.get("channel_story", "")
+    title_packaging_rules = packaging_context.get("title_packaging_rules", "")
+    audience_profile = packaging_context.get("audience_profile", "")
 
     prompt = f"""你是一位專業的 YouTube 頻道成長策略師，深度熟悉台灣股市投資者的行為心理與 YouTube 演算法。
 
@@ -43,6 +49,20 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 量價背離現象：{', '.join(price_divergence) if price_divergence else '無明顯背離'}
 穩健策略：{conservative}
 波段策略：{aggressive}
+
+===本機正式驗收結果（若有，標題可使用「驗收 / 上集點名」連續劇鉤子）===
+{validation_summary if validation_summary else '（無本機驗收資料）'}
+
+===近期頻道敘事與觀看數（用來避免重複、延續有效敘事）===
+{channel_story if channel_story else '（無頻道敘事紀錄）'}
+
+===近期 Analytics / YouTube 學習（900 views 以上才是有效樣本）===
+{analytics_summary if analytics_summary else '（無 Analytics 摘要）'}
+
+===本頻道觀眾偏好與包裝規則===
+{audience_profile if audience_profile else '觀眾偏好：具體點名個股、外資買賣金額、驗收結果、情境推演；避免只有抽象族群。'}
+
+{title_packaging_rules if title_packaging_rules else ''}
 
 ===今日報告開場段落（用來抓取核心鉤子）===
 {report_content[:1000]}
@@ -90,6 +110,9 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 5. 繁體中文，禁止「穩了」「嗨了」「躺平」等中國大陸流行語
 6. 可加 1-2 個 emoji，放最前面或最後面（末尾品牌標語前）
 7. 不要使用「資金輪動」；標題要講具體事件，例如三大法人買賣超、成交量、量價背離。
+8. 標題必須至少點名 1 檔具體股票或 1 個具體族群；若標題點名族群，描述第一行或第二行必須補上個股。
+9. 若使用「外資已買 / 偷偷買 / 掃貨」等語氣，必須在標題或描述中放入實際金額或正式資料依據。
+10. 若核心股是權值大股但彈性有限，標題應區分「看方向」與「看彈性」，不要把權值核心包裝成最大飆股。
 
 ===描述撰寫規則===
 第1行（≤55字）：今日最強異常現象 + 核心數字 + 日期（包含「台股」）
