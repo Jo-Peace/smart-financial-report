@@ -14,6 +14,7 @@ from modules.prediction_validator import (
     format_validation_results_for_structured_data,
     validate_prediction_targets,
 )
+from modules.local_knowledge_compounder import LocalKnowledgeCompounder
 
 # Load environment variables from .env
 load_dotenv()
@@ -136,6 +137,8 @@ def build_packaging_context(validation_summary=""):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     title_rules_path = os.path.join(base_dir, "project_skills", "youtube_title_packaging.md")
     analytics_path = os.path.join(REPORTS_DIR, "analytics_summary.md")
+    local_memory_path = os.path.join(base_dir, "data", "knowledge_wiki", "local_market_memory.md")
+    role_taxonomy_path = os.path.join(base_dir, "data", "knowledge_wiki", "stock_role_taxonomy.md")
     audience_profile = (
         "觀眾偏好：標題與封面要具體點名個股；先講情境或矛盾，再回答哪幾檔。"
         "避免只說 AI 族群、資金輪動、前景看好。"
@@ -146,6 +149,8 @@ def build_packaging_context(validation_summary=""):
         "analytics_summary": _read_tail(analytics_path, max_chars=4500),
         "channel_story": _read_tail(CHANNEL_STORY_LOG, max_chars=3500),
         "title_packaging_rules": _read_tail(title_rules_path, max_chars=5000),
+        "local_market_memory": _read_tail(local_memory_path, max_chars=3500),
+        "stock_role_taxonomy": _read_tail(role_taxonomy_path, max_chars=2500),
         "audience_profile": audience_profile,
     }
 
@@ -457,6 +462,24 @@ def main():
             structured_data["validation_results"] = validation_results
         json.dump(structured_data, f, ensure_ascii=False, indent=2)
     print(f"  ✅ 結構化數據已儲存: {json_filename}")
+
+    # ========================================
+    # 7.0 Local Knowledge Compounding (no Gemini quota)
+    # ========================================
+    print("\n🧠 正在更新本機知識複利（市場記憶 + 個股角色分類，不消耗 AI 額度）...")
+    try:
+        compound_result = LocalKnowledgeCompounder().update_from_structured_data(
+            structured_data=structured_data,
+            report_content=report_content,
+            report_date=date_str,
+        )
+        print(
+            "  ✅ 本機知識已更新："
+            f"市場記憶 {'新增' if compound_result['memory_appended'] else '已存在'}；"
+            f"個股角色更新 {compound_result['roles_updated']} 檔"
+        )
+    except Exception as e:
+        print(f"  ⚠️  本機知識複利更新失敗，略過: {e}")
 
     # ========================================
     # 7.1 Local Analytics DB (no extra AI quota)

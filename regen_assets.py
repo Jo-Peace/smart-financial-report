@@ -48,6 +48,8 @@ def build_packaging_context(structured_data):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     title_rules_path = os.path.join(base_dir, "project_skills", "youtube_title_packaging.md")
     analytics_path = os.path.join(REPORTS_DIR, "analytics_summary.md")
+    local_memory_path = os.path.join(base_dir, "data", "knowledge_wiki", "local_market_memory.md")
+    role_taxonomy_path = os.path.join(base_dir, "data", "knowledge_wiki", "stock_role_taxonomy.md")
     validation_results = structured_data.get("validation_results") or []
     if validation_results:
         validation_lines = ["# 本機正式驗收結果"]
@@ -66,6 +68,8 @@ def build_packaging_context(structured_data):
         "analytics_summary": _read_tail(analytics_path, max_chars=4500),
         "channel_story": _read_tail(CHANNEL_STORY_LOG, max_chars=3500),
         "title_packaging_rules": _read_tail(title_rules_path, max_chars=5000),
+        "local_market_memory": _read_tail(local_memory_path, max_chars=3500),
+        "stock_role_taxonomy": _read_tail(role_taxonomy_path, max_chars=2500),
         "audience_profile": (
             "觀眾偏好：標題與封面要具體點名個股；先講情境或矛盾，再回答哪幾檔。"
             "避免只說 AI 族群、資金輪動、前景看好。"
@@ -126,6 +130,23 @@ def main():
 
     print(f"✅ 已載入報告：{os.path.basename(report_path)} ({len(report_content):,} chars)")
     print(f"✅ 已載入結構化數據：{os.path.basename(json_path)}")
+
+    print("\n🧠 正在更新本機知識複利（市場記憶 + 個股角色分類，不消耗 AI 額度）...")
+    try:
+        from modules.local_knowledge_compounder import LocalKnowledgeCompounder
+
+        compound_result = LocalKnowledgeCompounder().update_from_structured_data(
+            structured_data=structured_data,
+            report_content=report_content,
+            report_date=date_str,
+        )
+        print(
+            "  ✅ 本機知識已更新："
+            f"市場記憶 {'新增' if compound_result['memory_appended'] else '已存在'}；"
+            f"個股角色更新 {compound_result['roles_updated']} 檔"
+        )
+    except Exception as e:
+        print(f"  ⚠️  本機知識複利更新失敗，略過：{e}")
 
     # ── Step 1：Podcast 腳本 ──────────────────────────
     nl_filepath = os.path.join(REPORTS_DIR, f"notebooklm_prompt_podcast_{date_str.replace('-', '')}.md")

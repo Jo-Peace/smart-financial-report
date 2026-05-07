@@ -37,6 +37,8 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
     analytics_summary = packaging_context.get("analytics_summary", "")
     channel_story = packaging_context.get("channel_story", "")
     title_packaging_rules = packaging_context.get("title_packaging_rules", "")
+    local_market_memory = packaging_context.get("local_market_memory", "")
+    stock_role_taxonomy = packaging_context.get("stock_role_taxonomy", "")
     audience_profile = packaging_context.get("audience_profile", "")
 
     prompt = f"""你是一位專業的 YouTube 頻道成長策略師，深度熟悉台灣股市投資者的行為心理與 YouTube 演算法。
@@ -63,6 +65,11 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 {audience_profile if audience_profile else '觀眾偏好：具體點名個股、外資買賣金額、驗收結果、情境推演；避免只有抽象族群。'}
 
 {title_packaging_rules if title_packaging_rules else ''}
+
+===本機市場記憶與個股角色分類（用來判斷誰適合當標題主角）===
+{local_market_memory if local_market_memory else '（無本機市場記憶）'}
+
+{stock_role_taxonomy if stock_role_taxonomy else '（無個股角色分類規則）'}
 
 ===今日報告開場段落（用來抓取核心鉤子）===
 {report_content[:1000]}

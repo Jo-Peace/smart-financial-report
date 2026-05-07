@@ -15,7 +15,15 @@
       "窯業",
       "玻璃"
     ],
-    "history_notes": "2024年起T布報價隨AI伺服器需求上漲，為族群補漲潛力股"
+    "history_notes": "2024年起T布報價隨AI伺服器需求上漲，為族群補漲潛力股",
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；mentioned；AI伺服器高速PCB基板核心輔材"
+    }
   },
   "1303": {
     "name": "南亞",
@@ -49,6 +57,14 @@
           "result": "實際 -0.21% → ❌ 失準"
         }
       ]
+    },
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-05-06",
+      "reason": "題材確認股；validated_previous_target；歷史驗收 1 次，命中率 0.0%；AI伺服器電路板核心材料供應商"
     }
   },
   "2383": {
@@ -125,7 +141,15 @@
       "傳產",
       "舊光電"
     ],
-    "history_notes": "常與SpaceX與蘋果產品週期連動"
+    "history_notes": "常與SpaceX與蘋果產品週期連動",
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "foreign_sell_risk",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；foreign_sell_risk；低軌衛星星系與蘋果供應鏈主機板"
+    }
   },
   "2330": {
     "name": "台積電",
@@ -152,7 +176,15 @@
     "not_classify_as": [
       "傳統共同基金",
       "綜合類 ETF"
-    ]
+    ],
+    "market_role": {
+      "base_role": "capital_vehicle",
+      "label": "資金載體",
+      "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
+      "latest_flow_state": "foreign_sell_risk",
+      "last_observed": "2026-05-06",
+      "reason": "資金載體；foreign_sell_risk；AI 供應鏈系統性流動性供應者與市值型代表"
+    }
   },
   "2327": {
     "name": "國巨",
@@ -211,6 +243,14 @@
           "result": "實際 +9.94% → ✅ 命中"
         }
       ]
+    },
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 3 次，命中率 66.7%；AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商"
     }
   },
   "2382": {
@@ -225,7 +265,15 @@
     "not_classify_as": [
       "筆記型電腦代工",
       "電腦組裝廠"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "formal_prediction_target",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；formal_prediction_target；AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠"
+    }
   },
   "2344": {
     "name": "華邦電",
@@ -270,7 +318,15 @@
     "not_classify_as": [
       "二線晶圓代工",
       "成熟製程代工"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "foreign_buy_focus",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；foreign_buy_focus；AI 伺服器周邊電源管理 IC (PMIC) 與高速傳輸介面晶片代工"
+    }
   },
   "3231": {
     "name": "緯創",
@@ -284,7 +340,15 @@
     "not_classify_as": [
       "筆記型電腦代工",
       "代工廠"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "foreign_buy_focus",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；foreign_buy_focus；NVIDIA GPU 運算基板 (Baseboard) 全球主要供應商"
+    }
   },
   "6770": {
     "name": "力積電",
@@ -298,7 +362,15 @@
     "not_classify_as": [
       "傳統記憶體代工",
       "黃崇仁的公司"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "foreign_sell_risk",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；foreign_sell_risk；提供 3D 堆疊晶片 (3D AI Foundry) 與 AI 相關驅動 IC 代工"
+    }
   },
   "0052": {
     "name": "富邦科技",
@@ -325,7 +397,15 @@
     "not_classify_as": [
       "面板廠",
       "液晶顯示器業"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "foreign_buy_focus",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；foreign_buy_focus；AI 晶片面板級扇出型封裝 (FOPLP) 生產載板提供者"
+    }
   },
   "4958": {
     "name": "臻鼎-KY",
@@ -367,7 +447,15 @@
     "not_classify_as": [
       "面板廠",
       "傳統顯示業"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；mentioned；AI 智慧座艙與 AI 終端顯控介面系統整合商"
+    }
   },
   "2337": {
     "name": "旺宏",
@@ -405,6 +493,14 @@
           "result": "實際 +0.32% → ✅ 命中"
         }
       ]
+    },
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-05-06",
+      "reason": "題材確認股；mentioned；歷史驗收 2 次，命中率 100.0%；AI 伺服器基礎輸入輸出系統 (BIOS) 高階 Nor Flash 供應商"
     }
   },
   "2891": {
@@ -551,6 +647,14 @@
           "result": "實際 +5.22% → ✅ 命中"
         }
       ]
+    },
+    "market_role": {
+      "base_role": "direction_indicator",
+      "label": "方向指標股",
+      "title_guidance": "適合用來確認資金方向，不宜包裝成最大彈性飆股。",
+      "latest_flow_state": "foreign_buy_focus",
+      "last_observed": "2026-05-06",
+      "reason": "方向指標股；foreign_buy_focus；歷史驗收 3 次，命中率 100.0%；AI 伺服器整機代工與系統集成 (Tier 1 整合商)；權值與營收體量大，較適合作為資金方向確認"
     }
   },
   "2402": {
@@ -627,6 +731,14 @@
           "result": "實際 -6.53% → ❌ 失準"
         }
       ]
+    },
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "foreign_buy_focus",
+      "last_observed": "2026-05-06",
+      "reason": "彈性攻擊股；foreign_buy_focus；歷史驗收 3 次，命中率 33.3%；AI 伺服器高功率電源供應器與液冷解決方案供應商"
     }
   },
   "00919": {
@@ -641,7 +753,15 @@
       "高股息存股",
       "傳產配置型基金",
       "傳統金融型 ETF"
-    ]
+    ],
+    "market_role": {
+      "base_role": "capital_vehicle",
+      "label": "資金載體",
+      "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-05-06",
+      "reason": "資金載體；mentioned；台股 AI 科技產業鏈高息資本聚合平台"
+    }
   },
   "009816": {
     "name": "凱基台灣TOP50",
@@ -655,7 +775,15 @@
       "藍籌股基金",
       "傳產組合",
       "一般指數基金"
-    ]
+    ],
+    "market_role": {
+      "base_role": "capital_vehicle",
+      "label": "資金載體",
+      "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-05-06",
+      "reason": "資金載體；mentioned；台股 AI 半導體與伺服器龍頭股權資本載體"
+    }
   },
   "6239": {
     "name": "力成",
@@ -1540,6 +1668,14 @@
     "not_classify_as": [
       "傳統消費電子測試",
       "低階封測業"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "foreign_sell_risk",
+      "last_observed": "2026-05-06",
+      "reason": "題材確認股；foreign_sell_risk；AI 伺服器核心處理器成品測試 (Final Test)"
+    }
   }
 }
