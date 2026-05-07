@@ -303,15 +303,33 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "formal_prediction_target",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-05-07",
       "evidence": [
         "sector=AI 伺服器系統整合族群",
         "supply_chain_role=AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠",
-        "latest_flow_state=formal_prediction_target",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 0 hits, hit_rate=0.0%",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；formal_prediction_target；AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠；佐證: sector=AI 伺服器系統整合族群"
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 1 次，命中率 0.0%；AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠；佐證: sector=AI 伺服器系統整合族群"
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-05-07",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-07",
+          "direction": "多",
+          "trigger": "外資買超金額全台第二，隱形吸籌完成，量增比2.16倍具備發動動能",
+          "stop_loss": "收盤跌破三百二十二元（MA20）",
+          "result": "實際 -0.72% → ❌ 失準"
+        }
+      ]
     }
   },
   "2344": {
@@ -1510,7 +1528,21 @@
     "not_classify_as": [
       "筆電代工廠",
       "傳統電子製造服務"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "formal_prediction_target",
+      "last_observed": "2026-05-07",
+      "evidence": [
+        "sector=AI伺服器ODM族群",
+        "supply_chain_role=AI伺服器與AI加速器模組設計製造商",
+        "latest_flow_state=formal_prediction_target",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；formal_prediction_target；AI伺服器與AI加速器模組設計製造商；佐證: sector=AI伺服器ODM族群"
+    }
   },
   "2485": {
     "name": "兆赫",
@@ -1788,5 +1820,50 @@
       ],
       "reason": "題材確認股；foreign_sell_risk；AI 伺服器核心處理器成品測試 (Final Test)；佐證: sector=AI 晶片測試族群"
     }
+  },
+  "5469": {
+    "name": "瀚宇博",
+    "sector": "AI PCB 族群",
+    "supply_chain_role": "AI伺服器高層數板與加速器卡PCB供應商",
+    "key_products": [
+      "高層數印刷電路板",
+      "伺服器專用板",
+      "通訊設備板"
+    ],
+    "ai_connection": "產品已切入AI伺服器供應鏈，提供高頻高速環境下運作的加速器模組(OAM)及通用基板(UBB)之高層數厚銅PCB。",
+    "not_classify_as": [
+      "傳統筆電PCB廠",
+      "一般消費電子PCB"
+    ]
+  },
+  "2498": {
+    "name": "宏達電",
+    "sector": "延展實境(XR)與空間運算族群",
+    "supply_chain_role": "AI邊緣端裝置及XR平台軟硬體整合商",
+    "key_products": [
+      "VR/AR/MR頭戴式裝置",
+      "5G行動路由器",
+      "虛擬實境應用平台"
+    ],
+    "ai_connection": "定位於AI終端應用裝置(Edge AI)，將生成式AI技術整合至XR穿戴設備及元宇宙平台，非AI伺服器硬體BOM表組件。",
+    "not_classify_as": [
+      "智慧型手機廠",
+      "傳統通訊設備商"
+    ]
+  },
+  "6176": {
+    "name": "瑞儀",
+    "sector": "高階光學導光技術族群",
+    "supply_chain_role": "AI PC高階顯示模組導光板供應商",
+    "key_products": [
+      "導光板",
+      "背光模組",
+      "光學膜片"
+    ],
+    "ai_connection": "鎖定AI PC升級潮，供應高效能筆電與平板所需的超薄、低功耗導光組件，屬於AI終端硬體進化之關鍵光學元件，非伺服器BOM表成員。",
+    "not_classify_as": [
+      "面板零組件廠",
+      "低階背光模組"
+    ]
   }
 }

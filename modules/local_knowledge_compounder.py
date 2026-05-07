@@ -91,7 +91,8 @@ class LocalKnowledgeCompounder:
             )
 
         with open(self.local_memory_path, "a", encoding="utf-8") as f:
-            f.write(entry)
+            separator = "\n\n" if existing.strip() else ""
+            f.write(separator + entry.strip() + "\n")
         return True
 
     def _build_memory_entry(self, structured_data, date_str):

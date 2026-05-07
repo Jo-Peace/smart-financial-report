@@ -426,7 +426,8 @@ def main():
     # 6. Save Report
     # ========================================
     os.makedirs(REPORTS_DIR, exist_ok=True)
-    filename = f"daily_report_V21_{datetime.datetime.now().strftime('%Y-%m-%d')}.md"
+    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+    filename = f"daily_report_V21_{date_str}.md"
     filepath = os.path.join(REPORTS_DIR, filename)
     
     with open(filepath, "w", encoding="utf-8") as f:
@@ -453,7 +454,7 @@ def main():
         return
     
     # Save the structured data json for debugging
-    json_filename = f"structured_data_{datetime.datetime.now().strftime('%Y%m%d')}.json"
+    json_filename = f"structured_data_{date_str.replace('-', '')}.json"
     json_filepath = os.path.join(REPORTS_DIR, json_filename)
     import json
     with open(json_filepath, "w", encoding="utf-8") as f:
