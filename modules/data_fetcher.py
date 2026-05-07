@@ -154,18 +154,19 @@ class DataFetcher:
                     stocks = []
                     for row in result["data"]:
                         try:
-                            # TWSE MI_INDEX20 field order: 排名, 代號, 名稱, 成交股數, 成交金額, 開盤, 最高, 最低, 收盤, 漲跌, 漲跌幅
+                            # TWSE MI_INDEX20 field order:
+                            # 排名, 代號, 名稱, 成交股數, 成交筆數, 開盤, 最高, 最低, 收盤, 漲跌(+/-), 漲跌價差, 買價, 賣價
                             stock_id = str(row[1]).strip()
                             stock_name = str(row[2]).strip()
                             volume = int(str(row[3]).replace(",", "").strip())
                             try:
-                                close_price = float(str(row[9]).replace(",", "").strip())
+                                close_price = float(str(row[8]).replace(",", "").strip())
                             except (ValueError, IndexError):
                                 close_price = 0.0
                             try:
-                                dir_str = str(row[10]).strip()
-                                change_dir = "+" if "+" in dir_str or "漲" in dir_str else ("-" if "-" in dir_str or "跌" in dir_str else "")
-                                change_val = float(str(row[11]).replace(",", "").strip())
+                                dir_str = str(row[9]).strip().lower()
+                                change_dir = "+" if "+" in dir_str or "red" in dir_str or "漲" in dir_str else ("-" if "-" in dir_str or "green" in dir_str or "跌" in dir_str else "")
+                                change_val = float(str(row[10]).replace(",", "").strip())
                                 signed_change = -change_val if change_dir == "-" else change_val
                                 
                                 prev_close = close_price - signed_change
@@ -714,4 +715,3 @@ class DataFetcher:
         result["summary_for_ai"] = "\n".join(lines)
         print(f"  ✅ 深度數據包組裝完成，共 {len(lines)} 行資訊")
         return result
-

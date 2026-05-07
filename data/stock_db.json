@@ -32,7 +32,24 @@
       "傳統塑化",
       "傳產"
     ],
-    "history_notes": "雖名為塑化，但電子材料比重高，常隨PCB與AI伺服器題材連動"
+    "history_notes": "雖名為塑化，但電子材料比重高，常隨PCB與AI伺服器題材連動",
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-05-06",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-06",
+          "direction": "多",
+          "trigger": "外資買超 52.1 億位居全台第三且剛站上 MA20",
+          "stop_loss": "收盤跌破 90 元",
+          "result": "實際 -0.21% → ❌ 失準"
+        }
+      ]
+    }
   },
   "2383": {
     "name": "台光電",
@@ -165,12 +182,12 @@
       "景氣循環股"
     ],
     "tracking": {
-      "prediction_count": 1,
-      "hit_count": 0,
-      "hit_rate": "0.0%",
-      "last_recommended": "2026-04-29",
+      "prediction_count": 3,
+      "hit_count": 2,
+      "hit_rate": "66.7%",
+      "last_recommended": "2026-05-06",
       "consecutive_foreign_buy_days": 0,
-      "last_foreign_buy_date": null,
+      "last_foreign_buy_date": "2026-05-05",
       "history": [
         {
           "date": "2026-04-29",
@@ -178,6 +195,20 @@
           "trigger": "外資買超金額與市場成交量強大共振，籌碼洗盤完成且量增比1.59倍",
           "stop_loss": "收盤跌破二百二十元或 MA5",
           "result": "實際 -1.05% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-05",
+          "direction": "多",
+          "trigger": "外資報復性回補 67 億且從底部突破 MA20，確認為記憶體族群領頭羊",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +8.23% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-06",
+          "direction": "多",
+          "trigger": "外資大買 64 億，量增比 1.34 倍且剛突破 MA20",
+          "stop_loss": "收盤跌破 230 元",
+          "result": "實際 +9.94% → ✅ 命中"
         }
       ]
     }
@@ -491,12 +522,12 @@
       "消費性電子代工"
     ],
     "tracking": {
-      "prediction_count": 2,
-      "hit_count": 2,
+      "prediction_count": 3,
+      "hit_count": 3,
       "hit_rate": "100.0%",
-      "last_recommended": "2026-04-23",
+      "last_recommended": "2026-05-06",
       "consecutive_foreign_buy_days": 1,
-      "last_foreign_buy_date": "2026-04-23",
+      "last_foreign_buy_date": "2026-05-06",
       "history": [
         {
           "date": "2026-04-23",
@@ -511,6 +542,13 @@
           "trigger": "營收年增 58.5% 進入訂單爆發期，外資買超第 1 名，放量突破",
           "stop_loss": "收盤跌破 210.5 元 (MA5)",
           "result": "實際 +1.81% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-06",
+          "direction": "多",
+          "trigger": "外資買超金額全市場第一，強勢站上 MA20 且漲幅逾 5%",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +5.22% → ✅ 命中"
         }
       ]
     }
@@ -1455,6 +1493,53 @@
     "not_classify_as": [
       "官股老牌行庫",
       "傳產"
+    ]
+  },
+  "1504": {
+    "name": "東元",
+    "sector": "AI 資料中心液冷散熱族群",
+    "supply_chain_role": "AI 伺服器機櫃級冷卻分佈單元 (CDU) 與電力管理系統",
+    "key_products": [
+      "冷卻分佈單元 (CDU)",
+      "機櫃式液冷散熱系統",
+      "高效率變頻配電系統"
+    ],
+    "ai_connection": "針對 AI 高算力產生的高熱能需求，開發出切入伺服器機櫃的液冷方案與冷卻分佈單元 (CDU)，並提供資料中心等級的穩定電力傳輸與節能架構。",
+    "not_classify_as": [
+      "傳統馬達廠",
+      "傳產",
+      "家電品牌"
+    ]
+  },
+  "00891": {
+    "name": "中信關鍵半導體",
+    "sector": "AI 半導體核心供應鏈族群",
+    "supply_chain_role": "AI 算力晶片製造、先進封裝與高速通訊解決方案整合標的",
+    "key_products": [
+      "台積電晶圓代工 (GPU/ASIC)",
+      "聯發科高速傳輸晶片",
+      "日月光投控先進封裝"
+    ],
+    "ai_connection": "其成分股高度集中於 AI 伺服器 BOM 表中價值量最高的邏輯運算核心、HBM 封裝及 networking 晶片，為 AI 算力發展的最上游基石。",
+    "not_classify_as": [
+      "一般科技基金",
+      "金融商品",
+      "被動式理財工具"
+    ]
+  },
+  "2449": {
+    "name": "京元電子",
+    "sector": "AI 晶片測試族群",
+    "supply_chain_role": "AI 伺服器核心處理器成品測試 (Final Test)",
+    "key_products": [
+      "晶圓測試 (CP)",
+      "成品測試 (FT)",
+      "系統級測試 (SLT)"
+    ],
+    "ai_connection": "主要承接 NVIDIA H100/H200 及新一代 Blackwell 架構 (B100/B200) GPU 的後段測試訂單。由於 AI 晶片測試時間比傳統晶片長且需精密溫控，京元電提供關鍵的產能支持與高階測試技術。",
+    "not_classify_as": [
+      "傳統消費電子測試",
+      "低階封測業"
     ]
   }
 }

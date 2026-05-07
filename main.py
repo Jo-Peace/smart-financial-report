@@ -8,15 +8,16 @@ from modules.data_fetcher import DataFetcher
 from modules.analyzer import MarketAnalyzer
 from modules.notebooklm_generator import generate_notebooklm_prompt
 from modules.market_signal_scorer import build_market_signal_pack, format_signal_pack_for_prompt, load_stock_db
+from modules.project_skill_registry import format_skill_summary, select_skills
 
 # Load environment variables from .env
 load_dotenv()
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 PROJECT_THEME = os.getenv("PROJECT_THEME", "") # e.g. "中東地緣政治危機" or "GTC 大會"
+DAILY_VISUAL_THEME = os.getenv("DAILY_VISUAL_THEME", os.getenv("THUMBNAIL_STYLE", ""))
 
 # BASE Tickers (永遠保留)
 BASE_SYMBOLS = ["^TWII", "2330.TW"]
@@ -48,10 +49,10 @@ def find_previous_report():
     return None
 
 
-def find_yesterday_structured_data():
+def find_previous_structured_data():
     """
-    [優化 B] 找出最近一份 structured_data_YYYYMMDD.json（昨日），
-    載入後回傳其中的 prediction_targets 列表。
+    [優化 B] 找出最近一份 structured_data_YYYYMMDD.json（前次執行），
+    載入後回傳其中的 prediction_targets 列表與日期。
     """
     all_jsons = sorted(glob.glob(os.path.join(REPORTS_DIR, "structured_data_????????.json")))
     # 也找 archive 目錄
@@ -69,10 +70,11 @@ def find_yesterday_structured_data():
         with open(latest, "r", encoding="utf-8") as f:
             data = json.load(f)
         targets = data.get("prediction_targets", [])
-        print(f"  [優化 B] 讀取昨日 structured_data: {os.path.basename(latest)}，預測標的: {len(targets)} 檔")
+        data_date = data.get("date") or os.path.basename(latest).replace("structured_data_", "").replace(".json", "")
+        print(f"  [優化 B] 讀取前次 structured_data: {os.path.basename(latest)} ({data_date})，預測標的: {len(targets)} 檔")
         return targets, data
     except Exception as e:
-        print(f"  [優化 B] 無法讀取昨日 structured_data: {e}")
+        print(f"  [優化 B] 無法讀取前次 structured_data: {e}")
         return [], None
 
 
@@ -125,13 +127,28 @@ def main():
         print("[Error] 請在 .env 檔案中設定 TAVILY_API_KEY 和 GEMINI_API_KEY")
         return
 
+    try:
+        active_skills = select_skills(
+            [
+                "market_analysis",
+                "prediction_validation",
+                "youtube_package",
+                "thumbnail_prompt",
+                "notebooklm_prompt",
+            ],
+            base_dir=os.path.dirname(os.path.abspath(__file__)),
+        )
+        print(f"\n🧩 Project skills loaded: {format_skill_summary(active_skills)}")
+    except Exception as e:
+        print(f"\n⚠️  Project skills registry unavailable: {e}")
+
     # ========================================
     # 0. Update yesterday's video performance stats
     # ========================================
     if YOUTUBE_API_KEY:
-        print("\n📺 正在更新昨日影片觀看數...")
+        print("\n📺 正在更新已記錄影片的最新公開觀看數...")
         from modules.youtube_analytics import update_log_with_stats
-        update_log_with_stats(CHANNEL_STORY_LOG, YOUTUBE_API_KEY)
+        update_log_with_stats(CHANNEL_STORY_LOG, YOUTUBE_API_KEY, update_all=True)
     else:
         print("\n⚠️  未設定 YOUTUBE_API_KEY，跳過影片觀看數更新。")
         print("   請在 .env 加入 YOUTUBE_API_KEY=... 以啟用自動觀看數追蹤。")
@@ -151,10 +168,10 @@ def main():
         return
 
     # ========================================
-    # [優化 B] 讀取昨日 structured_data，取得預測標的供後續驗收
+    # [優化 B] 讀取前次 structured_data，取得預測標的供後續驗收
     # ========================================
-    print("\n🔍 [優化 B] 讀取昨日預測標的...")
-    yesterday_predictions, yesterday_structured = find_yesterday_structured_data()
+    print("\n🔍 [優化 B] 讀取前次預測標的...")
+    yesterday_predictions, yesterday_structured = find_previous_structured_data()
 
     # 動態決定今日分析標的 (大盤 + 台積電 + 外資買賣超前三名)
     dynamic_symbols = BASE_SYMBOLS.copy()
@@ -174,7 +191,7 @@ def main():
                 dynamic_symbols.append(symbol_yf)
                 dynamic_topics.append(f"Taiwan stock {item['id']} {item['name']} 外資賣超 原因")
 
-    # [優化 B] 確保昨日預測標的也被抓取技術指標
+    # [優化 B] 確保前次預測標的也被抓取技術指標
     if yesterday_predictions:
         for pred in yesterday_predictions:
             pred_symbol = f"{pred.get('id', '')}.TW"
@@ -239,9 +256,9 @@ def main():
                 stocks_to_check.append({"id": s["id"], "name": s["name"]})
         updater.update_new_stocks(stocks_to_check)
 
-        # [優化 D] 用昨日 prediction_targets 更新今日驗收結果
+        # [優化 D] 用前次 prediction_targets 更新今日驗收結果
         if yesterday_predictions:
-            print("\n📊 [優化 D] 正在更新昨日預測標的的績效追蹤...")
+            print("\n📊 [優化 D] 正在更新前次預測標的的績效追蹤...")
             updater.update_tracking_stats(
                 yesterday_predictions=yesterday_predictions,
                 todays_market_data=market_data,
@@ -341,7 +358,8 @@ def main():
         tech_catalyst_events=tech_catalyst_events,
         volume_data=volume_data,
         deep_dive_data=deep_dive_data,
-        signal_summary=signal_summary
+        signal_summary=signal_summary,
+        previous_prediction_targets=yesterday_predictions,
     )
     if is_generation_error(report_content):
         print("\n❌ AI 報告生成失敗，停止流程以避免覆蓋正式報告。")
@@ -427,6 +445,7 @@ def main():
     print("\n🎧 正在基於結構化數據生成 NotebookLM Podcast 腳本指令...")
     date_str = datetime.datetime.now().strftime("%Y-%m-%d")
     print(f"  📌 目前專案主題標籤: {PROJECT_THEME if PROJECT_THEME else '無 (日常盤勢)'}")
+    print(f"  🎨 今日視覺設定: {DAILY_VISUAL_THEME if DAILY_VISUAL_THEME else '未指定 (預設風格)'}")
     notebooklm_prompt_content = generate_notebooklm_prompt(GEMINI_API_KEY, structured_data, date_str, current_theme=PROJECT_THEME)
     if is_generation_error(notebooklm_prompt_content):
         print("  ⚠️  NotebookLM prompt 生成失敗，跳過寫入。")
@@ -469,7 +488,7 @@ def main():
                 report_content=report_content,
                 youtube_package=yt_package,
                 date_str=date_str,
-                visual_theme=PROJECT_THEME,
+                visual_theme=DAILY_VISUAL_THEME,
             )
             append_youtube_package_addendum(yt_package_path, package_addendum)
             print("  ✅ YouTube 素材包已補入封面/NotebookLM/驗收計畫")
@@ -481,14 +500,14 @@ def main():
                     structured_data=structured_data,
                     youtube_package=yt_package,
                     date_str=date_str,
-                    visual_theme=PROJECT_THEME,
+                    visual_theme=DAILY_VISUAL_THEME,
                 )
                 AnalyticsStore().record_youtube_asset_plan(
                     run_date=date_str,
                     asset_record=asset_record,
                     youtube_package_path=yt_package_path,
                     video_plan_path=yt_package_path,
-                    visual_theme=PROJECT_THEME,
+                    visual_theme=DAILY_VISUAL_THEME,
                 )
                 print("  ✅ 標題/封面學習資料庫已記錄本日 A/B 方案")
             except Exception as e:
@@ -499,29 +518,26 @@ def main():
         print("  ⚠️  YouTube 素材生成失敗，跳過。")
 
     # ========================================
-    # 7.6 Generate Thumbnails with DALL-E 3 (requires OPENAI_API_KEY)
+    # 7.6 Generate thumbnail prompts for manual image generation
     # ========================================
-    if OPENAI_API_KEY:
-        from modules.thumbnail_generator import generate_ab_test_thumbnails, print_ab_test_summary
+    from modules.thumbnail_generator import generate_ab_test_thumbnails, print_ab_test_summary
 
-        print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 生成縮圖 Prompt...")
-        time.sleep(8)
-        print("\n🎨 正在用 DALL-E 3 生成 YouTube 縮圖背景...")
-        try:
-            ab_results = generate_ab_test_thumbnails(
-                gemini_api_key=GEMINI_API_KEY,
-                openai_api_key=OPENAI_API_KEY,
-                report_content=report_content,
-                reports_dir=YOUTUBE_ASSETS_DIR,
-                styles=["dc_comics", "cyberpunk"],
-                num_titles=2,
-            )
-            print_ab_test_summary(ab_results)
-        except Exception as e:
-            print(f"  ⚠️  縮圖生成失敗，跳過，不影響日報與文字素材: {e}")
-    else:
-        print("\n⚠️  未設定 OPENAI_API_KEY，跳過 DALL-E 3 縮圖生成。")
-        print("   請在 .env 加入 OPENAI_API_KEY=sk-... 以啟用自動縮圖。")
+    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 生成縮圖標題與 Prompt...")
+    time.sleep(8)
+    print("\n🎨 正在產生 YouTube 縮圖 Prompt（手動生圖用）...")
+    try:
+        thumbnail_styles = [DAILY_VISUAL_THEME] if DAILY_VISUAL_THEME else None
+        ab_results = generate_ab_test_thumbnails(
+            gemini_api_key=GEMINI_API_KEY,
+            openai_api_key=None,
+            report_content=report_content,
+            reports_dir=YOUTUBE_ASSETS_DIR,
+            styles=thumbnail_styles,
+            num_titles=2,
+        )
+        print_ab_test_summary(ab_results)
+    except Exception as e:
+        print(f"  ⚠️  縮圖 Prompt 生成失敗，跳過，不影響日報與文字素材: {e}")
 
     # ========================================
     # 8. Update Knowledge Wiki (The Second Brain) [優化 A]
@@ -539,7 +555,7 @@ def main():
     append_channel_story_log(
         date_str=date_str,
         structured_data=structured_data,
-        visual_theme=PROJECT_THEME,
+        visual_theme=DAILY_VISUAL_THEME,
         prediction_result_summary="待驗收"
     )
 

@@ -194,9 +194,9 @@ No watermark, no real company logos, no extra characters. Characters crisp; char
 
 | 項目 | 數值 | 判斷 |
 |------|------|------|
-| 觀看數 |  | 低於 900 不判斷 A/B |
+| 觀看數 | 317 (5/6 18:51 截圖) | 低於 900 不判斷 A/B |
 | CTR |  |  |
 | 平均觀看時長 |  |  |
 | 前 30 秒留存 |  |  |
 | 留言數 |  |  |
-| 是否更換 B 組 |  |  |
+| 是否更換 B 組 | 否 | 觀看數太低，不判斷 A/B 勝負 |

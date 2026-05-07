@@ -116,6 +116,14 @@ def _theme_phrase(visual_theme):
             "white glove, fedora silhouette, sparkling black jacket, spotlight dance floor, "
             "rhythmic pose, no real celebrity likeness."
         )
+    elif _is_ninja_turtle_theme(visual_theme):
+        visual_theme = (
+            "Teenage Mutant Ninja Turtles-inspired ORIGINAL sewer-ninja finance parody aesthetic: "
+            "green mutant-hero energy, underground sewer dojo, round manhole covers, brick tunnel walls, "
+            "neon green ooze glow, skateboard-graffiti textures, pizza-box shaped chart props, "
+            "colored mask accents, shell-like armor silhouettes, 90s comic action energy. "
+            "Do not depict the actual TMNT characters, names, logos, exact faces, or franchise likeness."
+        )
     visual_theme = visual_theme.rstrip(".。")
     if visual_theme:
         return f"Daily visual theme: {visual_theme}."
@@ -126,12 +134,33 @@ def _display_theme(visual_theme):
     visual_theme = _clean_text(visual_theme)
     if _is_michael_jackson_theme(visual_theme):
         return "麥克傑克森舞台風格（80s pop dance stage / 白手套 / 聚光燈 / 月球漫步感；避免真人肖像）"
+    if _is_ninja_turtle_theme(visual_theme):
+        return "忍者龜靈感的原創下水道武術英雄漫畫風（綠色黏液光、城市地下基地、眼罩色彩元素；避免直接複製 IP 角色）"
     return visual_theme if visual_theme else "待設定（可在 /2 指定，無需重跑 Gemini）"
+
+
+def _theme_scene_notes(visual_theme):
+    if _is_ninja_turtle_theme(visual_theme):
+        return """
+Daily theme integration requirements:
+- Transform the trading floor into an underground sewer-dojo financial command base.
+- Use round manhole covers as stock dashboards, green ooze light as market signal glow, and graffiti tags shaped like red/green candlestick arrows.
+- Give "博士" subtle green shell-like tactical shoulder armor over his trader jacket, a colored eye-mask accent, and a glowing tablet styled like a ninja-tech device.
+- Give "韭菜" a hoodie with green shell-pattern patches, elbow/knee pads, and an exaggerated rookie-ninja investor expression.
+- Add skateboard rails, pipe tunnels, comic impact lines, and pizza-box shaped chart props in the background.
+- The image must feel like a sewer martial-arts hero team finance parody while remaining original and not copying actual TMNT characters.
+"""
+    return ""
 
 
 def _is_michael_jackson_theme(visual_theme):
     visual_theme = _clean_text(visual_theme).lower()
     return any(keyword in visual_theme for keyword in ["麥克傑克森", "michael jackson", "mj"])
+
+
+def _is_ninja_turtle_theme(visual_theme):
+    visual_theme = _clean_text(visual_theme).lower()
+    return any(keyword in visual_theme for keyword in ["忍者龜", "ninja turtle", "tmnt"])
 
 
 def _date_index(date_label):
@@ -172,6 +201,8 @@ def _prompt_a(copy, date_label, visual_theme):
 
 Scene: a dramatic Taiwan stock-market moment using the daily visual theme. Use original designs only, no copied IP, no real company logos.
 
+{_theme_scene_notes(visual_theme)}
+
 {_composition_a(date_label)}
 
 Characters:
@@ -202,6 +233,8 @@ def _prompt_b(copy, date_label, visual_theme):
 {_theme_phrase(visual_theme)}
 
 Scene: a suspenseful Taiwan stock-market analysis moment using the daily visual theme. It must be a totally different camera angle, layout, character scale, and background from A.
+
+{_theme_scene_notes(visual_theme)}
 
 {_composition_b(date_label)}
 

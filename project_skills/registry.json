@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-04",
+  "description": "Machine-readable registry for local project skills. Inspired by Project Golem's skill registry concept, but scoped to this Python pipeline.",
+  "skills": [
+    {
+      "id": "market_analysis_memory",
+      "name": "Market Analysis Memory",
+      "path": "project_skills/market_analysis_memory.md",
+      "priority": 10,
+      "tags": ["market_analysis", "memory", "prediction_validation", "youtube_metrics"],
+      "applies_to": ["daily_report", "structured_data", "analytics_summary", "youtube_learning"],
+      "trigger": "Use before generating or evaluating daily market analysis.",
+      "output_contract": "Prior prediction context, concrete institutional behavior, valid/low-sample YouTube learning rules.",
+      "human_approval": false
+    },
+    {
+      "id": "youtube_title_packaging",
+      "name": "YouTube Title Packaging",
+      "path": "project_skills/youtube_title_packaging.md",
+      "priority": 20,
+      "tags": ["youtube", "title", "ab_test", "packaging"],
+      "applies_to": ["youtube_package", "title_generation", "analytics_summary"],
+      "trigger": "Use when generating two YouTube title candidates or evaluating title performance.",
+      "output_contract": "Exactly two title candidates, A/B evaluation threshold, high-weight formulas.",
+      "human_approval": false
+    },
+    {
+      "id": "thumbnail_ab_testing",
+      "name": "Thumbnail A/B Testing",
+      "path": "project_skills/thumbnail_ab_testing.md",
+      "priority": 30,
+      "tags": ["youtube", "thumbnail", "ab_test", "visual"],
+      "applies_to": ["youtube_package", "thumbnail_prompt", "video_asset_plan"],
+      "trigger": "Use when building thumbnail prompts or deciding whether to replace a thumbnail.",
+      "output_contract": "Two visually distinct thumbnail concepts with exact visible text and 900-view sample rule.",
+      "human_approval": false
+    },
+    {
+      "id": "notebooklm_cover_alignment",
+      "name": "NotebookLM Cover Alignment",
+      "path": "project_skills/notebooklm_cover_alignment.md",
+      "priority": 40,
+      "tags": ["notebooklm", "cover", "visual_alignment"],
+      "applies_to": ["notebooklm_prompt", "youtube_package", "video_overview"],
+      "trigger": "Use when preparing NotebookLM source material or aligning first-slide cover guidance.",
+      "output_contract": "Cover-first instruction with title lines, date label, and visual theme alignment.",
+      "human_approval": false
+    }
+  ]
+}

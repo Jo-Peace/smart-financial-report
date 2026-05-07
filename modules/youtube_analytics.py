@@ -39,19 +39,20 @@ def get_video_stats(video_id: str, api_key: str) -> dict | None:
         return None
 
 
-def update_log_with_stats(log_path: str, api_key: str) -> None:
+def update_log_with_stats(log_path: str, api_key: str, update_all: bool = True) -> list[dict]:
     """
-    Scan channel_story_log.md for rows with a video_id but no views yet,
-    fetch stats and write them back.
+    Scan channel_story_log.md for rows with a video_id, fetch public stats,
+    and write the latest view count back.
     """
     if not api_key or not os.path.exists(log_path):
-        return
+        return []
 
     with open(log_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     new_lines = []
     updated_count = 0
+    results = []
 
     for line in lines:
         # Skip header, separator, and non-table lines
@@ -68,13 +69,29 @@ def update_log_with_stats(log_path: str, api_key: str) -> None:
         video_id = parts[6].strip()
         views_field = parts[8].strip()
 
-        if video_id and video_id not in ("-", "") and views_field in ("-", "待更新"):
+        should_update = update_all or views_field in ("-", "待更新")
+        if video_id and video_id not in ("-", "") and should_update:
             stats = get_video_stats(video_id, api_key)
             if stats:
+                old_views = views_field
                 parts[8] = f"{stats['views']:,}"
                 new_line = "| " + " | ".join(parts) + " |\n"
                 new_lines.append(new_line)
-                print(f"  [YouTube Analytics] {parts[0]} 《{stats['title'][:20]}》: {stats['views']:,} 觀看")
+                results.append(
+                    {
+                        "date": parts[0],
+                        "video_id": video_id,
+                        "title": stats["title"],
+                        "old_views": old_views,
+                        "views": stats["views"],
+                        "likes": stats["likes"],
+                        "comments": stats["comments"],
+                    }
+                )
+                print(
+                    f"  [YouTube Analytics] {parts[0]} 《{stats['title'][:20]}》: "
+                    f"{old_views} → {stats['views']:,} 觀看"
+                )
                 updated_count += 1
                 continue
 
@@ -86,3 +103,4 @@ def update_log_with_stats(log_path: str, api_key: str) -> None:
         print(f"  [YouTube Analytics] 已更新 {updated_count} 筆影片觀看數")
     else:
         print("  [YouTube Analytics] 無需更新（無影片ID或已有觀看數）")
+    return results

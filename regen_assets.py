@@ -25,8 +25,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PROJECT_THEME = os.getenv("PROJECT_THEME", "")
+DAILY_VISUAL_THEME = os.getenv("DAILY_VISUAL_THEME", os.getenv("THUMBNAIL_STYLE", ""))
 
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
 YOUTUBE_ASSETS_DIR = os.path.join(REPORTS_DIR, "06_YouTube_Assets")
@@ -61,7 +61,7 @@ def main():
                         help="要補跑的日期，格式 YYYY-MM-DD（預設：今天）")
     parser.add_argument("--skip-podcast",   action="store_true", help="跳過 Podcast 腳本")
     parser.add_argument("--skip-youtube",   action="store_true", help="跳過 YouTube 素材")
-    parser.add_argument("--skip-thumbnail", action="store_true", help="跳過縮圖生成")
+    parser.add_argument("--skip-thumbnail", action="store_true", help="跳過縮圖 Prompt")
     parser.add_argument("--skip-wiki",      action="store_true", help="跳過 Knowledge Wiki 更新")
     args = parser.parse_args()
 
@@ -141,7 +141,7 @@ def main():
                         report_content=report_content,
                         youtube_package=yt_package,
                         date_str=date_str,
-                        visual_theme=PROJECT_THEME,
+                        visual_theme=DAILY_VISUAL_THEME,
                     )
                     append_youtube_package_addendum(yt_package_path, addendum)
 
@@ -151,14 +151,14 @@ def main():
                         structured_data=structured_data,
                         youtube_package=yt_package,
                         date_str=date_str,
-                        visual_theme=PROJECT_THEME,
+                        visual_theme=DAILY_VISUAL_THEME,
                     )
                     AnalyticsStore().record_youtube_asset_plan(
                         run_date=date_str,
                         asset_record=asset_record,
                         youtube_package_path=yt_package_path,
                         video_plan_path=yt_package_path,
-                        visual_theme=PROJECT_THEME,
+                        visual_theme=DAILY_VISUAL_THEME,
                     )
                     print("  ✅ YouTube 素材包已補入封面/NotebookLM/驗收計畫")
                 except Exception as e:
@@ -168,28 +168,27 @@ def main():
     else:
         print("\n⏭️  跳過 YouTube 素材（--skip-youtube）")
 
-    # ── Step 3：縮圖 ─────────────────────────────────
-    if not args.skip_thumbnail and OPENAI_API_KEY:
-        print(f"\n⏳ [速率限制保護] 等待 {SLEEP_BETWEEN_CALLS} 秒後呼叫 Gemini 生成縮圖 Prompt...")
+    # ── Step 3：縮圖 Prompt ──────────────────────────
+    if not args.skip_thumbnail:
+        print(f"\n⏳ [速率限制保護] 等待 {SLEEP_BETWEEN_CALLS} 秒後呼叫 Gemini 生成縮圖標題與 Prompt...")
         time.sleep(SLEEP_BETWEEN_CALLS)
-        print("🎨 正在用 DALL-E 3 生成 YouTube 縮圖背景...")
+        print("🎨 正在產生 YouTube 縮圖 Prompt（手動生圖用）...")
         from modules.thumbnail_generator import generate_ab_test_thumbnails, print_ab_test_summary
         try:
+            thumbnail_styles = [DAILY_VISUAL_THEME] if DAILY_VISUAL_THEME else None
             ab_results = generate_ab_test_thumbnails(
                 gemini_api_key=GEMINI_API_KEY,
-                openai_api_key=OPENAI_API_KEY,
+                openai_api_key=None,
                 report_content=report_content,
                 reports_dir=YOUTUBE_ASSETS_DIR,
-                styles=["dc_comics", "cyberpunk"],
+                styles=thumbnail_styles,
                 num_titles=2,
             )
             print_ab_test_summary(ab_results)
         except Exception as e:
-            print(f"  ⚠️  縮圖生成失敗，略過：{e}")
+            print(f"  ⚠️  縮圖 Prompt 生成失敗，略過：{e}")
     elif args.skip_thumbnail:
-        print("\n⏭️  跳過縮圖生成（--skip-thumbnail）")
-    else:
-        print("\n⚠️  未設定 OPENAI_API_KEY，跳過縮圖生成。")
+        print("\n⏭️  跳過縮圖 Prompt（--skip-thumbnail）")
 
     # ── Step 4：Knowledge Wiki ────────────────────────
     if not args.skip_wiki:

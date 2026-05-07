@@ -44,7 +44,7 @@ class MarketAnalyzer:
                 else:
                     return f"Error generating report: {e}"
 
-    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None):
+    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None, previous_prediction_targets=None):
         """
         Generates a Markdown report using Gemini with enhanced data.
         """
@@ -114,6 +114,17 @@ class MarketAnalyzer:
             volume_summary += "⚠️ 警示：這才是今日市場『最有共識』的實際行動。外資買超金額≠成交量。\n"
             for s in volume_data[:20]:
                 volume_summary += f"- 第{s['rank']}名: {s['id']} {s['name']} | 成交量 {s['volume']:,} 股 | 收盤 {s.get('close_price', 'N/A')} | 漲跌 {s.get('pct_change', 0):+.2f}%\n"
+
+        previous_predictions_summary = ""
+        if previous_prediction_targets:
+            previous_predictions_summary = "\n# 昨日正式 prediction_targets（必須逐一驗收，不得省略）\n"
+            for target in previous_prediction_targets:
+                previous_predictions_summary += (
+                    f"- {target.get('id', '')} {target.get('name', '')}: "
+                    f"方向={target.get('direction', '未指定')}；"
+                    f"觸發理由={target.get('trigger', '未指定')}；"
+                    f"停損={target.get('stop_loss_desc') or target.get('stop_loss_price') or '未指定'}\n"
+                )
 
         # === Deep Dive Data (今日焦點股深度押注資料) ===
         deep_dive_summary = ""
@@ -219,6 +230,9 @@ class MarketAnalyzer:
 ## 今日成交量前20名（市場真實行動，最重要的數據）
 {volume_summary if volume_summary else '（成交量數據未能取得，改以外資買超數據為輔）'}
 
+## 昨日正式預測標的（最高優先驗收清單）
+{previous_predictions_summary if previous_predictions_summary else '（無 structured_data prediction_targets，才可從前日報告文字補抓）'}
+
 ## 本地量化訊號包（由程式計算，非 AI 推論）
 {signal_summary if signal_summary else '（尚未建立本地量化訊號包）'}
 
@@ -260,10 +274,11 @@ class MarketAnalyzer:
 ================================================================
 STEP 0【昨日預測驗收】最高優先，必須第一個出現，不得省略
 ================================================================
-從前日報告的「AI 數據抓漏」段落提取預測標的，與今日實際表現誠實比對：
+優先逐一驗收「昨日正式 prediction_targets」清單中的每一檔；只有清單為空時，才從前日報告的「AI 數據抓漏」段落補抓預測標的，與今日實際表現誠實比對：
 - 命中：寫「✅ 昨日預測 XXX，今日實際 +X%，預測成立。」
 - 失準：寫「❌ 昨日預測 XXX，今日實際 -X%，預測失敗。原因推測：[具體分析]」
 - 無可驗收：寫「本日無昨日預測標的可驗收。」
+若另有 ETF 過熱、風險提醒或非正式觀察，請獨立標為「風險提醒驗證」，不得取代正式 prediction_targets。
 此段是頻道信譽的命脈。失準時不得省略或美化。
 
 ================================================================
