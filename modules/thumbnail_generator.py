@@ -5,6 +5,8 @@ generation. The actual image is produced manually outside this script.
 """
 import os
 import datetime
+import json
+import re
 from google import genai
 
 
@@ -117,7 +119,196 @@ def generate_titles(client, report_content, num_titles=2, date_label=None):
     return titles[:num_titles]
 
 
-def _build_image_prompt(style_key_or_custom, title):
+def generate_local_titles(structured_data=None, num_titles=2, date_label=None):
+    structured_data = structured_data or {}
+    date_label = date_label or datetime.datetime.now().strftime("%m/%d")
+    targets = _extract_stock_text(structured_data.get("prediction_targets"), limit=2)
+    buys = _extract_stock_text(structured_data.get("safe_havens_bought"), limit=2)
+    sells = _extract_stock_text(structured_data.get("heavyweights_dumped"), limit=1)
+    validations = _extract_stock_text(structured_data.get("prev_day_picks_result"), limit=2)
+
+    titles = []
+    if targets:
+        titles.append(f"{date_label} 台股｜{targets[0]}被外資偷點火？")
+    if validations:
+        titles.append(f"{date_label} 驗收上集點名：{validations[0]}真的動了？")
+    if buys and sells:
+        titles.append(f"{date_label} 外資換手：買{buys[0]}、砍{sells[0]}")
+    if buys:
+        titles.append(f"{date_label} 台股資金轉向：{buys[0]}先亮燈")
+
+    fallback = f"{date_label} 台股盤後｜外資資金正在換手"
+    titles.append(fallback)
+
+    deduped = []
+    for title in titles:
+        if title not in deduped:
+            deduped.append(title)
+    return deduped[:num_titles]
+
+
+def _read_tail(path, max_chars=3000):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        return content[-max_chars:]
+    except Exception:
+        return ""
+
+
+def _load_market_roles():
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    stock_db_path = os.path.join(base_dir, "data", "stock_db.json")
+    try:
+        with open(stock_db_path, "r", encoding="utf-8") as f:
+            stock_db = json.load(f)
+    except Exception:
+        return {}
+    return {
+        sid: (entry.get("market_role") or {}).get("base_role", "")
+        for sid, entry in stock_db.items()
+        if entry.get("market_role")
+    }
+
+
+def _extract_sid(text):
+    match = re.search(r"\b(\d{4,6})\b", str(text))
+    return match.group(1) if match else ""
+
+
+def _extract_stock_text(items, limit=2):
+    values = []
+    for item in items or []:
+        if isinstance(item, dict):
+            sid = item.get("id", "")
+            name = item.get("name", "")
+            text = f"{sid} {name}".strip()
+        else:
+            text = str(item).split("(")[0].strip()
+        if text and text not in values:
+            values.append(text)
+    return values[:limit]
+
+
+def _prefer_thumbnail_main_stocks(items, market_roles, limit=2):
+    stocks = _extract_stock_text(items, limit=8)
+    if not stocks:
+        return []
+    elastic = []
+    others = []
+    for stock in stocks:
+        sid = _extract_sid(stock)
+        role = market_roles.get(sid, "")
+        if role == "elastic_attack":
+            elastic.append(stock)
+        else:
+            others.append(stock)
+    return (elastic + others)[:limit]
+
+
+def generate_scenario_briefs(report_content, titles, visual_style, structured_data=None, count=2, date_label=None):
+    """
+    Generate thumbnail scenario briefs locally.
+
+    This intentionally does not call Gemini/OpenAI. It encodes the channel's thumbnail
+    strategy in deterministic rules so the prompt is controlled by the local pipeline.
+    """
+    structured_data = structured_data or {}
+    titles = titles or ["台股今日分析"]
+    market_roles = _load_market_roles()
+    formal_targets = _extract_stock_text(structured_data.get("prediction_targets"), limit=2)
+    buy_focus = _prefer_thumbnail_main_stocks(structured_data.get("safe_havens_bought"), market_roles, limit=2)
+    sell_risk = _extract_stock_text(structured_data.get("heavyweights_dumped"), limit=2)
+    validations = _extract_stock_text(structured_data.get("prev_day_picks_result"), limit=2)
+    divergences = structured_data.get("price_volume_divergence") or []
+
+    scenarios = []
+
+    if formal_targets or buy_focus:
+        main = formal_targets or buy_focus
+        scenarios.append({
+            "scenario_name": "暗流點火",
+            "paired_title": titles[0],
+            "main_stocks": main,
+            "scene": (
+                "市場像一間忙碌但壓低聲音的交易廚房，資金沒有公開敲鑼打鼓，"
+                f"而是悄悄把火力集中到 {', '.join(main)}，像一道即將出餐的主菜正在升溫。"
+            ),
+            "emotion": "爆發前、偷買、壓抑後的轉強",
+            "visual_metaphor": "外資資金像金色醬汁或光流，從陰影處流向少數被點亮的交易票據",
+            "avoid": ["不要把方向指標股畫成最大飆股", "不要公司 Logo", "不要圖中文字", "不要固定左右分割"],
+        })
+
+    if validations:
+        scenarios.append({
+            "scenario_name": "驗收現場",
+            "paired_title": titles[min(1, len(titles) - 1)],
+            "main_stocks": validations,
+            "scene": (
+                "昨日被點名的股票像站上驗收台，市場數據正在被逐項核對；"
+                "命中的標的被聚光燈照亮，未成立的標的留在較暗的背景裡。"
+            ),
+            "emotion": "驗收、反差、可信度建立",
+            "visual_metaphor": "交易票據、成交量柱、檢核印章與聚光燈構成一個財經驗收現場",
+            "avoid": ["不要像考卷版型", "不要在圖中生成中文字", "不要塞超過兩檔主角"],
+        })
+
+    if sell_risk and (buy_focus or formal_targets):
+        main = (buy_focus or formal_targets)[:1] + sell_risk[:1]
+        scenarios.append({
+            "scenario_name": "資金換手",
+            "paired_title": titles[0],
+            "main_stocks": main,
+            "scene": (
+                "同一個市場裡，一邊是被外資撤出的過熱票據正在降溫，"
+                "另一邊是新資金流入的標的開始發亮，形成清楚的換手反轉。"
+            ),
+            "emotion": "反轉、警戒、資金轉向",
+            "visual_metaphor": "冷色退潮與暖色聚焦同時出現，但構圖保持自然像電影劇照",
+            "avoid": ["不要做成固定紅綠對半", "不要真實公司 Logo", "不要過度恐嚇"],
+        })
+
+    if divergences:
+        scenarios.append({
+            "scenario_name": "量價異常",
+            "paired_title": titles[min(1, len(titles) - 1)],
+            "main_stocks": formal_targets or buy_focus,
+            "scene": (
+                "交易現場表面看似平靜，但桌面下方有巨大的資金機械正在運轉，"
+                "暗示買超與成交量之間的不尋常落差。"
+            ),
+            "emotion": "懸疑、暗藏訊號、即將揭露",
+            "visual_metaphor": "安靜檯面與地下發光管線形成對比，象徵隱形吸籌",
+            "avoid": ["不要畫成制式技術分析圖", "不要滿版數字", "不要固定版型"],
+        })
+
+    fallback_title = titles[0] if titles else "台股今日分析"
+    if not scenarios:
+        scenarios.append({
+            "scenario_name": "資金轉向",
+            "paired_title": fallback_title,
+            "main_stocks": [],
+            "scene": "台股交易室像一場正在改變方向的資金戰情，一邊是退場的過熱標的，一邊是剛被點亮的核心觀察股。",
+            "emotion": "緊張、反轉、爆發前",
+            "visual_metaphor": "資金像光流從暗處流向新的交易票據",
+            "avoid": ["不要固定版型", "不要真實 Logo", "不要在圖中放文字"],
+        })
+
+    while len(scenarios) < count:
+        scenarios.append({
+            "scenario_name": "危機反轉",
+            "paired_title": titles[len(scenarios) % len(titles)],
+            "main_stocks": formal_targets or buy_focus or validations,
+            "scene": "市場原本被不確定性壓住，但某個清楚訊號讓資金開始重新定價，畫面像危機解除前一秒。",
+            "emotion": "不確定性、反轉、等待確認",
+            "visual_metaphor": "陰影中的市場地圖逐步亮起少數關鍵節點",
+            "avoid": ["不要固定構圖", "不要簡體字", "不要公司 Logo"],
+        })
+
+    return scenarios[:count]
+
+
+def _build_image_prompt(style_key_or_custom, title, scenario_brief=None):
     """
     Returns the final image prompt string.
     - If style_key_or_custom matches a STYLE_PRESETS key → use that preset.
@@ -125,27 +316,51 @@ def _build_image_prompt(style_key_or_custom, title):
     """
     preset = STYLE_PRESETS.get(style_key_or_custom)
     visual_desc = preset["prompt"] if preset else _normalize_custom_style(style_key_or_custom)
+    scenario_brief = scenario_brief or {}
+    scene = scenario_brief.get("scene") or f"Create a dramatic financial scene for the theme: {title}."
+    emotion = scenario_brief.get("emotion") or "dramatic, high tension, clear market reversal energy"
+    visual_metaphor = scenario_brief.get("visual_metaphor") or "capital flow and stock market uncertainty shown through cinematic visual symbols"
+    main_stocks = scenario_brief.get("main_stocks") or []
+    avoid = scenario_brief.get("avoid") or []
+    stock_focus = ", ".join(main_stocks) if main_stocks else "the key stock ideas from the paired title"
 
     return (
         "YouTube thumbnail background image, landscape 16:9 format. "
-        f"{visual_desc} "
-        "Leave a bold clear area at the bottom 25% of the image for text overlay. "
-        f"The composition should visually suggest the theme: '{title}'. "
-        "No text, no letters, no characters in the image — pure visual only. "
-        "Ultra high quality, dramatic, eye-catching at small sizes."
+        "Create a flexible cinematic scene, not a fixed template and not a repeated layout. "
+        f"Visual world: {visual_desc} "
+        f"Paired title idea: '{title}'. "
+        f"Main stock focus for the human editor: {stock_focus}. "
+        f"Core situation: {scene} "
+        f"Emotional tone: {emotion}. "
+        f"Visual metaphor: {visual_metaphor}. "
+        "Leave natural negative space somewhere in the image for later human-added Chinese text, "
+        "but do not force a bottom banner or a fixed left-right composition. "
+        "No text, no letters, no numbers, no company logos, no real person likenesses in the image. "
+        f"Avoid: {', '.join(avoid)}. "
+        "Ultra high quality, dramatic, readable at small sizes, YouTube finance thumbnail energy."
     )
 
 
-def save_thumbnail_prompt(style_key_or_custom, title, date_str, output_path):
+def save_thumbnail_prompt(style_key_or_custom, title, date_str, output_path, scenario_brief=None):
     """
     Save a single YouTube thumbnail prompt for manual image generation.
     style_key_or_custom: a STYLE_PRESETS key (e.g. "dc_comics") OR a free-form style description.
     """
-    image_prompt = _build_image_prompt(style_key_or_custom, title)
+    image_prompt = _build_image_prompt(style_key_or_custom, title, scenario_brief=scenario_brief)
+    scenario_brief = scenario_brief or {}
     content = f"""# YouTube Thumbnail Prompt
 
 Date: {date_str}
 Title pairing: {title}
+Scenario: {scenario_brief.get("scenario_name", "未命名情境")}
+
+## Scenario Brief
+
+- Main stocks: {", ".join(scenario_brief.get("main_stocks", [])) or "依標題與報告主角"}
+- Scene: {scenario_brief.get("scene", "")}
+- Emotion: {scenario_brief.get("emotion", "")}
+- Visual metaphor: {scenario_brief.get("visual_metaphor", "")}
+- Avoid: {", ".join(scenario_brief.get("avoid", [])) or "固定版型、真實 Logo、圖中文字"}
 
 ## Image Prompt
 
@@ -157,9 +372,10 @@ Title pairing: {title}
 
 
 def generate_ab_test_thumbnails(gemini_api_key, openai_api_key, report_content, reports_dir,
-                                 styles=None, num_titles=2):
+                                 styles=None, num_titles=2, structured_data=None, run_date=None):
     """
-    Generate thumbnail prompts + titles (Gemini) for A/B testing.
+    Generate thumbnail prompts + title pairings for A/B testing.
+    With structured_data, this is fully local and does not call Gemini.
 
     styles 可以是：
       - None              → 讀 THUMBNAIL_STYLE 環境變數；若沒設定則用預設兩種 preset
@@ -169,10 +385,12 @@ def generate_ab_test_thumbnails(gemini_api_key, openai_api_key, report_content, 
     Returns:
         dict with 'titles' and 'thumbnails' lists
     """
-    gemini_client = genai.Client(api_key=gemini_api_key)
-
-    date_str = datetime.datetime.now().strftime("%m/%d")
-    date_full = datetime.datetime.now().strftime("%Y-%m-%d")
+    if run_date:
+        parsed_date = datetime.datetime.strptime(run_date, "%Y-%m-%d")
+    else:
+        parsed_date = datetime.datetime.now()
+    date_str = parsed_date.strftime("%m/%d")
+    date_full = parsed_date.strftime("%Y-%m-%d")
 
     # 優先順序：函數參數 → THUMBNAIL_STYLE 環境變數 → 預設兩種 preset
     if styles is None:
@@ -185,34 +403,53 @@ def generate_ab_test_thumbnails(gemini_api_key, openai_api_key, report_content, 
 
     results = {"titles": [], "thumbnails": []}
 
-    # === Step 1: Generate title variations with Gemini ===
-    print("\n🎯 正在生成 YouTube 標題變體（A/B Test）...")
-    titles = generate_titles(gemini_client, report_content, num_titles, date_label=date_str)
+    # === Step 1: Generate title pairings ===
+    if structured_data:
+        print("\n🎯 正在用本機 structured_data 生成封面標題配對（不呼叫 Gemini）...")
+        titles = generate_local_titles(structured_data, num_titles=num_titles, date_label=date_str)
+    else:
+        print("\n🎯 無 structured_data，回退 Gemini 生成 YouTube 標題變體...")
+        gemini_client = genai.Client(api_key=gemini_api_key)
+        titles = generate_titles(gemini_client, report_content, num_titles, date_label=date_str)
     results["titles"] = titles
     for i, title in enumerate(titles):
         print(f"  📝 標題 {i+1}: {title}")
 
-    # === Step 2: Save thumbnail prompts for manual image generation ===
-    print(f"\n🎨 正在產生 {len(styles)} 份縮圖 Prompt（手動生圖用）...")
+    # === Step 2: Generate scenario briefs, then save prompts for manual image generation ===
+    prompt_count = max(num_titles, len(styles), 2)
+    primary_style = styles[0] if styles else "dc_comics"
+    print(f"\n🎬 正在生成 {prompt_count} 個情境式封面 brief（避免固定版型）...")
+    scenario_briefs = generate_scenario_briefs(
+        report_content,
+        titles,
+        primary_style,
+        structured_data=structured_data,
+        count=prompt_count,
+        date_label=date_str,
+    )
 
-    for i, style in enumerate(styles):
+    print(f"\n🎨 正在產生 {len(scenario_briefs)} 份情境式縮圖 Prompt（手動生圖用）...")
+
+    for i, scenario in enumerate(scenario_briefs):
+        style = styles[i % len(styles)]
         # 判斷是 preset key 還是自訂描述
         preset = STYLE_PRESETS.get(style)
         style_label = preset["name"] if preset else f"自訂風格 {i+1}"
 
-        title = titles[i % len(titles)] if titles else "台股今日分析"
+        title = scenario.get("paired_title") or (titles[i % len(titles)] if titles else "台股今日分析")
         short_title = title[:20] + "..." if len(title) > 20 else title
 
         filename = f"yt_thumbnail_prompt_{date_full}_{i+1}.md"
         output_path = os.path.join(reports_dir, filename)
 
-        print(f"\n  🖼️  縮圖 Prompt {i+1}/{len(styles)}: {style_label}")
+        print(f"\n  🖼️  縮圖 Prompt {i+1}/{len(scenario_briefs)}: {style_label} / {scenario.get('scenario_name', '情境')}")
         print(f"     主題方向: {short_title}")
 
-        prompt = save_thumbnail_prompt(style, title, date_str, output_path)
+        prompt = save_thumbnail_prompt(style, title, date_str, output_path, scenario_brief=scenario)
         print(f"     ✅ Prompt 已儲存: {filename}")
         results["thumbnails"].append({
             "style": style_label,
+            "scenario": scenario.get("scenario_name", ""),
             "title": title,
             "path": output_path,
             "prompt": prompt,
@@ -233,7 +470,7 @@ def print_ab_test_summary(results):
 
     print(f"\n  🖼️  縮圖 Prompt 選項：")
     for i, thumb in enumerate(results["thumbnails"]):
-        print(f"     {chr(65+i)}. [{thumb['style']}] {os.path.basename(thumb['path'])}")
+        print(f"     {chr(65+i)}. [{thumb['style']} / {thumb.get('scenario', '情境')}] {os.path.basename(thumb['path'])}")
         print(f"        搭配標題: {thumb['title'][:30]}...")
 
     print(f"\n  💡 建議：選擇 1 個標題 + 1 份 Prompt 手動生圖後上傳，")

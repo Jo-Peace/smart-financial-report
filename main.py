@@ -604,9 +604,7 @@ def main():
     # ========================================
     from modules.thumbnail_generator import generate_ab_test_thumbnails, print_ab_test_summary
 
-    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 生成縮圖標題與 Prompt...")
-    time.sleep(8)
-    print("\n🎨 正在產生 YouTube 縮圖 Prompt（手動生圖用）...")
+    print("\n🎨 正在用本機規則產生 YouTube 情境式縮圖 Prompt（手動生圖用，不呼叫 Gemini）...")
     try:
         thumbnail_styles = [DAILY_VISUAL_THEME] if DAILY_VISUAL_THEME else None
         ab_results = generate_ab_test_thumbnails(
@@ -616,6 +614,8 @@ def main():
             reports_dir=YOUTUBE_ASSETS_DIR,
             styles=thumbnail_styles,
             num_titles=2,
+            structured_data=structured_data,
+            run_date=date_str,
         )
         print_ab_test_summary(ab_results)
     except Exception as e:
