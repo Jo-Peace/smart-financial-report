@@ -73,6 +73,17 @@ def _normalize_custom_style(style_key_or_custom):
             "red and green candlestick arrows exploding like comic action effects. "
             "No actual TMNT characters, no names, no franchise logos, no direct likenesses."
         )
+    if any(keyword in normalized for keyword in ["甄嬛傳", "甄嬛传", "後宮", "后宫", "宮鬥", "宫斗"]):
+        return (
+            "Original imperial palace intrigue drama aesthetic inspired by Qing dynasty court politics: "
+            "ornate palace corridors, silk curtains, lacquered red columns, golden throne-room lighting, "
+            "jade hairpin and embroidered robe textures, secret memorial scrolls, candlelit strategy tables, "
+            "subtle power struggle atmosphere, elegant but dangerous court tension. "
+            "Translate stock-market capital flows into palace-faction power shifts: glowing trade slips, "
+            "court edict scrolls as market signals, red and green candlestick patterns reflected on polished jade. "
+            "No actual Zhen Huan characters, no actor likenesses, no drama title, no franchise logos, "
+            "no direct costume copying; create an original historical palace-finance visual world."
+        )
     if style:
         return (
             f"Daily user-selected visual theme: {style}. Interpret it as an original, non-infringing, "
