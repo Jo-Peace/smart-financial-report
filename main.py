@@ -9,6 +9,11 @@ from modules.analyzer import MarketAnalyzer
 from modules.notebooklm_generator import generate_notebooklm_prompt
 from modules.market_signal_scorer import build_market_signal_pack, format_signal_pack_for_prompt, load_stock_db
 from modules.project_skill_registry import format_skill_summary, select_skills
+from modules.prediction_validator import (
+    format_validation_results_for_prompt,
+    format_validation_results_for_structured_data,
+    validate_prediction_targets,
+)
 
 # Load environment variables from .env
 load_dotenv()
@@ -235,6 +240,21 @@ def main():
     macro_events = fetcher.get_macro_events()
 
     # ========================================
+    # 2.6.5 Deterministic previous prediction validation
+    # ========================================
+    validation_results = validate_prediction_targets(
+        previous_targets=yesterday_predictions,
+        market_data=market_data,
+        institutional_data=institutional_data,
+        volume_data=volume_data,
+    )
+    validation_summary = format_validation_results_for_prompt(validation_results)
+    if validation_results:
+        print("\n✅ 本機正式驗收結果：")
+        for line in validation_summary.splitlines()[1:]:
+            print(f"  {line}")
+
+    # ========================================
     # 2.7 Fetch Tech Catalyst Events (NVIDIA GTC / Fed / 財報 等)
     # ========================================
     tech_catalyst_events = fetcher.get_tech_catalyst_events()
@@ -360,6 +380,7 @@ def main():
         deep_dive_data=deep_dive_data,
         signal_summary=signal_summary,
         previous_prediction_targets=yesterday_predictions,
+        previous_validation_summary=validation_summary,
     )
     if is_generation_error(report_content):
         print("\n❌ AI 報告生成失敗，停止流程以避免覆蓋正式報告。")
@@ -402,6 +423,10 @@ def main():
     json_filepath = os.path.join(REPORTS_DIR, json_filename)
     import json
     with open(json_filepath, "w", encoding="utf-8") as f:
+        deterministic_prev_results = format_validation_results_for_structured_data(validation_results)
+        if deterministic_prev_results:
+            structured_data["prev_day_picks_result"] = deterministic_prev_results
+            structured_data["validation_results"] = validation_results
         json.dump(structured_data, f, ensure_ascii=False, indent=2)
     print(f"  ✅ 結構化數據已儲存: {json_filename}")
 

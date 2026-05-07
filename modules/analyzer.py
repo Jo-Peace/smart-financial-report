@@ -44,7 +44,7 @@ class MarketAnalyzer:
                 else:
                     return f"Error generating report: {e}"
 
-    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None, previous_prediction_targets=None):
+    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None, previous_prediction_targets=None, previous_validation_summary=None):
         """
         Generates a Markdown report using Gemini with enhanced data.
         """
@@ -233,6 +233,9 @@ class MarketAnalyzer:
 ## 昨日正式預測標的（最高優先驗收清單）
 {previous_predictions_summary if previous_predictions_summary else '（無 structured_data prediction_targets，才可從前日報告文字補抓）'}
 
+## 本機正式驗收結果（最高優先，必須照此逐一寫入昨日預測驗收）
+{previous_validation_summary if previous_validation_summary else '（尚無本機驗收結果）'}
+
 ## 本地量化訊號包（由程式計算，非 AI 推論）
 {signal_summary if signal_summary else '（尚未建立本地量化訊號包）'}
 
@@ -274,7 +277,7 @@ class MarketAnalyzer:
 ================================================================
 STEP 0【昨日預測驗收】最高優先，必須第一個出現，不得省略
 ================================================================
-優先逐一驗收「昨日正式 prediction_targets」清單中的每一檔；只有清單為空時，才從前日報告的「AI 數據抓漏」段落補抓預測標的，與今日實際表現誠實比對：
+優先使用「本機正式驗收結果」逐一寫入每一檔，不得自行刪減、替換或把非正式提醒混成正式標的；只有本機驗收結果為空時，才從「昨日正式 prediction_targets」或前日報告的「AI 數據抓漏」段落補抓預測標的，與今日實際表現誠實比對：
 - 命中：寫「✅ 昨日預測 XXX，今日實際 +X%，預測成立。」
 - 失準：寫「❌ 昨日預測 XXX，今日實際 -X%，預測失敗。原因推測：[具體分析]」
 - 無可驗收：寫「本日無昨日預測標的可驗收。」
