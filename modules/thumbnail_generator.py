@@ -73,14 +73,11 @@ def _normalize_custom_style(style_key_or_custom):
             "red and green candlestick arrows exploding like comic action effects. "
             "No actual TMNT characters, no names, no franchise logos, no direct likenesses."
         )
-    if any(keyword in normalized for keyword in ["料理鼠王", "ratatouille"]):
+    if style:
         return (
-            "Original whimsical Parisian gourmet kitchen finance parody aesthetic inspired by cozy 3D animated "
-            "culinary adventure films: tiny chef viewpoint, copper pots, flour dust, warm oven light, "
-            "market ingredients arranged like red and green candlestick charts, stock dashboards on recipe cards, "
-            "institutional money flow shown as streams of golden sauce and moving kitchen tickets, "
-            "high-energy professional kitchen chaos, charming cinematic lighting. "
-            "No actual Ratatouille characters, no names, no franchise logos, no direct likenesses."
+            f"Daily user-selected visual theme: {style}. Interpret it as an original, non-infringing, "
+            "cinematic finance-thumbnail visual world. Do not copy protected characters, names, logos, "
+            "or direct likenesses from any franchise."
         )
     return style
 
@@ -231,11 +228,11 @@ def generate_scenario_briefs(report_content, titles, visual_style, structured_da
             "paired_title": titles[0],
             "main_stocks": main,
             "scene": (
-                "市場像一間忙碌但壓低聲音的交易廚房，資金沒有公開敲鑼打鼓，"
-                f"而是悄悄把火力集中到 {', '.join(main)}，像一道即將出餐的主菜正在升溫。"
+                "市場像一個壓低聲音的資金現場，表面沒有全面爆量，"
+                f"但資金正在悄悄集中到 {', '.join(main)}，像一個即將被市場發現的訊號正在升溫。"
             ),
             "emotion": "爆發前、偷買、壓抑後的轉強",
-            "visual_metaphor": "外資資金像金色醬汁或光流，從陰影處流向少數被點亮的交易票據",
+            "visual_metaphor": "外資資金像光流或電流，從陰影處流向少數被點亮的交易票據",
             "avoid": ["不要把方向指標股畫成最大飆股", "不要公司 Logo", "不要圖中文字", "不要固定左右分割"],
         })
 

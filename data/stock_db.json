@@ -22,7 +22,13 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "mentioned",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；mentioned；AI伺服器高速PCB基板核心輔材"
+      "evidence": [
+        "sector=AI PCB基板材料族群",
+        "supply_chain_role=AI伺服器高速PCB基板核心輔材",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI伺服器高速PCB基板核心輔材；佐證: sector=AI PCB基板材料族群"
     }
   },
   "1303": {
@@ -64,7 +70,14 @@
       "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
       "latest_flow_state": "validated_previous_target",
       "last_observed": "2026-05-06",
-      "reason": "題材確認股；validated_previous_target；歷史驗收 1 次，命中率 0.0%；AI伺服器電路板核心材料供應商"
+      "evidence": [
+        "sector=AI PCB材料族群",
+        "supply_chain_role=AI伺服器電路板核心材料供應商",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 0 hits, hit_rate=0.0%",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；validated_previous_target；歷史驗收 1 次，命中率 0.0%；AI伺服器電路板核心材料供應商；佐證: sector=AI PCB材料族群"
     }
   },
   "2383": {
@@ -148,7 +161,13 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "foreign_sell_risk",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；foreign_sell_risk；低軌衛星星系與蘋果供應鏈主機板"
+      "evidence": [
+        "sector=低軌衛星與高密度PCB族群",
+        "supply_chain_role=低軌衛星星系與蘋果供應鏈主機板",
+        "latest_flow_state=foreign_sell_risk",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；foreign_sell_risk；低軌衛星星系與蘋果供應鏈主機板；佐證: sector=低軌衛星與高密度PCB族群"
     }
   },
   "2330": {
@@ -183,7 +202,13 @@
       "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
       "latest_flow_state": "foreign_sell_risk",
       "last_observed": "2026-05-06",
-      "reason": "資金載體；foreign_sell_risk；AI 供應鏈系統性流動性供應者與市值型代表"
+      "evidence": [
+        "sector=AI 高權重權值族群",
+        "supply_chain_role=AI 供應鏈系統性流動性供應者與市值型代表",
+        "latest_flow_state=foreign_sell_risk",
+        "role_rule=ETF/capital vehicle stock id or sector marker"
+      ],
+      "reason": "資金載體；foreign_sell_risk；AI 供應鏈系統性流動性供應者與市值型代表；佐證: sector=AI 高權重權值族群"
     }
   },
   "2327": {
@@ -250,7 +275,15 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "validated_previous_target",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 3 次，命中率 66.7%；AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商"
+      "evidence": [
+        "sector=AI 記憶體關鍵材料族群",
+        "supply_chain_role=AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商",
+        "latest_flow_state=validated_previous_target",
+        "tracking=3 predictions, 2 hits, hit_rate=66.7%",
+        "last_foreign_buy_date=2026-05-05",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 3 次，命中率 66.7%；AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商；佐證: sector=AI 記憶體關鍵材料族群"
     }
   },
   "2382": {
@@ -272,7 +305,13 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "formal_prediction_target",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；formal_prediction_target；AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠"
+      "evidence": [
+        "sector=AI 伺服器系統整合族群",
+        "supply_chain_role=AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠",
+        "latest_flow_state=formal_prediction_target",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；formal_prediction_target；AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠；佐證: sector=AI 伺服器系統整合族群"
     }
   },
   "2344": {
@@ -325,7 +364,13 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "foreign_buy_focus",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；foreign_buy_focus；AI 伺服器周邊電源管理 IC (PMIC) 與高速傳輸介面晶片代工"
+      "evidence": [
+        "sector=AI 伺服器輔助晶片族群",
+        "supply_chain_role=AI 伺服器周邊電源管理 IC (PMIC) 與高速傳輸介面晶片代工",
+        "latest_flow_state=foreign_buy_focus",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；foreign_buy_focus；AI 伺服器周邊電源管理 IC (PMIC) 與高速傳輸介面晶片代工；佐證: sector=AI 伺服器輔助晶片族群"
     }
   },
   "3231": {
@@ -347,7 +392,13 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "foreign_buy_focus",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；foreign_buy_focus；NVIDIA GPU 運算基板 (Baseboard) 全球主要供應商"
+      "evidence": [
+        "sector=AI 運算模組核心族群",
+        "supply_chain_role=NVIDIA GPU 運算基板 (Baseboard) 全球主要供應商",
+        "latest_flow_state=foreign_buy_focus",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；foreign_buy_focus；NVIDIA GPU 運算基板 (Baseboard) 全球主要供應商；佐證: sector=AI 運算模組核心族群"
     }
   },
   "6770": {
@@ -369,7 +420,13 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "foreign_sell_risk",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；foreign_sell_risk；提供 3D 堆疊晶片 (3D AI Foundry) 與 AI 相關驅動 IC 代工"
+      "evidence": [
+        "sector=AI 記憶體整合技術族群",
+        "supply_chain_role=提供 3D 堆疊晶片 (3D AI Foundry) 與 AI 相關驅動 IC 代工",
+        "latest_flow_state=foreign_sell_risk",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；foreign_sell_risk；提供 3D 堆疊晶片 (3D AI Foundry) 與 AI 相關驅動 IC 代工；佐證: sector=AI 記憶體整合技術族群"
     }
   },
   "0052": {
@@ -404,7 +461,13 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "foreign_buy_focus",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；foreign_buy_focus；AI 晶片面板級扇出型封裝 (FOPLP) 生產載板提供者"
+      "evidence": [
+        "sector=AI 先進封裝材料族群",
+        "supply_chain_role=AI 晶片面板級扇出型封裝 (FOPLP) 生產載板提供者",
+        "latest_flow_state=foreign_buy_focus",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；foreign_buy_focus；AI 晶片面板級扇出型封裝 (FOPLP) 生產載板提供者；佐證: sector=AI 先進封裝材料族群"
     }
   },
   "4958": {
@@ -454,7 +517,13 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "mentioned",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；mentioned；AI 智慧座艙與 AI 終端顯控介面系統整合商"
+      "evidence": [
+        "sector=AI 邊緣人機介面族群",
+        "supply_chain_role=AI 智慧座艙與 AI 終端顯控介面系統整合商",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI 智慧座艙與 AI 終端顯控介面系統整合商；佐證: sector=AI 邊緣人機介面族群"
     }
   },
   "2337": {
@@ -500,7 +569,15 @@
       "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
       "latest_flow_state": "mentioned",
       "last_observed": "2026-05-06",
-      "reason": "題材確認股；mentioned；歷史驗收 2 次，命中率 100.0%；AI 伺服器基礎輸入輸出系統 (BIOS) 高階 Nor Flash 供應商"
+      "evidence": [
+        "sector=AI 儲存基礎設施族群",
+        "supply_chain_role=AI 伺服器基礎輸入輸出系統 (BIOS) 高階 Nor Flash 供應商",
+        "latest_flow_state=mentioned",
+        "tracking=2 predictions, 2 hits, hit_rate=100.0%",
+        "last_foreign_buy_date=2026-04-29",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；歷史驗收 2 次，命中率 100.0%；AI 伺服器基礎輸入輸出系統 (BIOS) 高階 Nor Flash 供應商；佐證: sector=AI 儲存基礎設施族群"
     }
   },
   "2891": {
@@ -654,7 +731,15 @@
       "title_guidance": "適合用來確認資金方向，不宜包裝成最大彈性飆股。",
       "latest_flow_state": "foreign_buy_focus",
       "last_observed": "2026-05-06",
-      "reason": "方向指標股；foreign_buy_focus；歷史驗收 3 次，命中率 100.0%；AI 伺服器整機代工與系統集成 (Tier 1 整合商)；權值與營收體量大，較適合作為資金方向確認"
+      "evidence": [
+        "sector=AI 伺服器垂直整合龍頭",
+        "supply_chain_role=AI 伺服器整機代工與系統集成 (Tier 1 整合商)",
+        "latest_flow_state=foreign_buy_focus",
+        "tracking=3 predictions, 3 hits, hit_rate=100.0%",
+        "last_foreign_buy_date=2026-05-06",
+        "role_rule=large-cap/core-or-vertical-integration marker in local DB"
+      ],
+      "reason": "方向指標股；foreign_buy_focus；歷史驗收 3 次，命中率 100.0%；AI 伺服器整機代工與系統集成 (Tier 1 整合商)；佐證: sector=AI 伺服器垂直整合龍頭"
     }
   },
   "2402": {
@@ -738,7 +823,15 @@
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "foreign_buy_focus",
       "last_observed": "2026-05-06",
-      "reason": "彈性攻擊股；foreign_buy_focus；歷史驗收 3 次，命中率 33.3%；AI 伺服器高功率電源供應器與液冷解決方案供應商"
+      "evidence": [
+        "sector=AI 伺服器電源管理族群",
+        "supply_chain_role=AI 伺服器高功率電源供應器與液冷解決方案供應商",
+        "latest_flow_state=foreign_buy_focus",
+        "tracking=3 predictions, 1 hits, hit_rate=33.3%",
+        "last_foreign_buy_date=2026-04-22",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；foreign_buy_focus；歷史驗收 3 次，命中率 33.3%；AI 伺服器高功率電源供應器與液冷解決方案供應商；佐證: sector=AI 伺服器電源管理族群"
     }
   },
   "00919": {
@@ -760,7 +853,13 @@
       "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
       "latest_flow_state": "mentioned",
       "last_observed": "2026-05-06",
-      "reason": "資金載體；mentioned；台股 AI 科技產業鏈高息資本聚合平台"
+      "evidence": [
+        "sector=科技權重資本組合族群",
+        "supply_chain_role=台股 AI 科技產業鏈高息資本聚合平台",
+        "latest_flow_state=mentioned",
+        "role_rule=ETF/capital vehicle stock id or sector marker"
+      ],
+      "reason": "資金載體；mentioned；台股 AI 科技產業鏈高息資本聚合平台；佐證: sector=科技權重資本組合族群"
     }
   },
   "009816": {
@@ -782,7 +881,13 @@
       "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
       "latest_flow_state": "mentioned",
       "last_observed": "2026-05-06",
-      "reason": "資金載體；mentioned；台股 AI 半導體與伺服器龍頭股權資本載體"
+      "evidence": [
+        "sector=核心科技龍頭權重族群",
+        "supply_chain_role=台股 AI 半導體與伺服器龍頭股權資本載體",
+        "latest_flow_state=mentioned",
+        "role_rule=ETF/capital vehicle stock id or sector marker"
+      ],
+      "reason": "資金載體；mentioned；台股 AI 半導體與伺服器龍頭股權資本載體；佐證: sector=核心科技龍頭權重族群"
     }
   },
   "6239": {
@@ -1675,7 +1780,13 @@
       "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
       "latest_flow_state": "foreign_sell_risk",
       "last_observed": "2026-05-06",
-      "reason": "題材確認股；foreign_sell_risk；AI 伺服器核心處理器成品測試 (Final Test)"
+      "evidence": [
+        "sector=AI 晶片測試族群",
+        "supply_chain_role=AI 伺服器核心處理器成品測試 (Final Test)",
+        "latest_flow_state=foreign_sell_risk",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；foreign_sell_risk；AI 伺服器核心處理器成品測試 (Final Test)；佐證: sector=AI 晶片測試族群"
     }
   }
 }

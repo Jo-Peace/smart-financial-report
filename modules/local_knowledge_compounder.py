@@ -153,13 +153,15 @@ class LocalKnowledgeCompounder:
             entry = stock_db[sid]
             base_role = self._classify_base_role(sid, entry)
             latest_state = daily_flow.get(sid, "mentioned")
-            reason = self._build_role_reason(sid, entry, base_role, latest_state)
+            evidence = self._build_role_evidence(sid, entry, base_role, latest_state)
+            reason = self._build_role_reason(sid, entry, base_role, latest_state, evidence)
             market_role = {
                 "base_role": base_role,
                 "label": ROLE_LABELS[base_role],
                 "title_guidance": ROLE_TITLE_GUIDANCE[base_role],
                 "latest_flow_state": latest_state,
                 "last_observed": date_str,
+                "evidence": evidence,
                 "reason": reason,
             }
             if entry.get("market_role") != market_role:
@@ -193,7 +195,31 @@ class LocalKnowledgeCompounder:
             return "theme_confirmation"
         return "theme_confirmation"
 
-    def _build_role_reason(self, sid, entry, base_role, latest_state):
+    def _build_role_evidence(self, sid, entry, base_role, latest_state):
+        tracking = entry.get("tracking") or {}
+        evidence = [
+            f"sector={entry.get('sector', 'unknown')}",
+            f"supply_chain_role={entry.get('supply_chain_role', 'unknown')}",
+            f"latest_flow_state={latest_state}",
+        ]
+        if tracking.get("prediction_count"):
+            evidence.append(
+                f"tracking={tracking.get('prediction_count')} predictions, "
+                f"{tracking.get('hit_count', 0)} hits, hit_rate={tracking.get('hit_rate')}"
+            )
+        if tracking.get("last_foreign_buy_date"):
+            evidence.append(f"last_foreign_buy_date={tracking.get('last_foreign_buy_date')}")
+        if base_role == "direction_indicator":
+            evidence.append("role_rule=large-cap/core-or-vertical-integration marker in local DB")
+        elif base_role == "elastic_attack":
+            evidence.append("role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB")
+        elif base_role == "capital_vehicle":
+            evidence.append("role_rule=ETF/capital vehicle stock id or sector marker")
+        elif base_role == "theme_confirmation":
+            evidence.append("role_rule=theme validation/material/test/BOM marker in local DB")
+        return evidence
+
+    def _build_role_reason(self, sid, entry, base_role, latest_state, evidence):
         tracking = entry.get("tracking") or {}
         hit_rate = tracking.get("hit_rate")
         prediction_count = tracking.get("prediction_count")
@@ -203,8 +229,8 @@ class LocalKnowledgeCompounder:
         supply_chain_role = entry.get("supply_chain_role")
         if supply_chain_role:
             parts.append(supply_chain_role)
-        if sid == "2317":
-            parts.append("權值與營收體量大，較適合作為資金方向確認")
+        if evidence:
+            parts.append(f"佐證: {evidence[0]}")
         return "；".join(parts)
 
     def _build_daily_flow_lookup(self, structured_data):
