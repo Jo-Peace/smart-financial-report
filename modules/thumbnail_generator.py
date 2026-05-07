@@ -78,7 +78,9 @@ def _normalize_custom_style(style_key_or_custom):
             "Original imperial palace intrigue drama aesthetic inspired by Qing dynasty court politics: "
             "ornate palace corridors, silk curtains, lacquered red columns, golden throne-room lighting, "
             "jade hairpin and embroidered robe textures, secret memorial scrolls, candlelit strategy tables, "
-            "subtle power struggle atmosphere, elegant but dangerous court tension. "
+            "subtle power struggle atmosphere, elegant but dangerous court tension. Include original fictional "
+            "palace-court figures such as a powerful empress strategist silhouette, cautious ministers, "
+            "and shadowy faction messengers watching the capital-flow signal table. "
             "Translate stock-market capital flows into palace-faction power shifts: glowing trade slips, "
             "court edict scrolls as market signals, red and green candlestick patterns reflected on polished jade. "
             "No actual Zhen Huan characters, no actor likenesses, no drama title, no franchise logos, "
@@ -238,6 +240,8 @@ def generate_scenario_briefs(report_content, titles, visual_style, structured_da
             "scenario_name": "暗流點火",
             "paired_title": titles[0],
             "main_stocks": main,
+            "overlay_primary": f"{main[0]} 偷點火？",
+            "overlay_secondary": "外資暗流",
             "scene": (
                 "市場像一個壓低聲音的資金現場，表面沒有全面爆量，"
                 f"但資金正在悄悄集中到 {', '.join(main)}，像一個即將被市場發現的訊號正在升溫。"
@@ -252,6 +256,8 @@ def generate_scenario_briefs(report_content, titles, visual_style, structured_da
             "scenario_name": "驗收現場",
             "paired_title": titles[min(1, len(titles) - 1)],
             "main_stocks": validations,
+            "overlay_primary": "上集驗收",
+            "overlay_secondary": validations[0] if validations else "昨日點名",
             "scene": (
                 "昨日被點名的股票像站上驗收台，市場數據正在被逐項核對；"
                 "命中的標的被聚光燈照亮，未成立的標的留在較暗的背景裡。"
@@ -267,6 +273,8 @@ def generate_scenario_briefs(report_content, titles, visual_style, structured_da
             "scenario_name": "資金換手",
             "paired_title": titles[0],
             "main_stocks": main,
+            "overlay_primary": "資金換手",
+            "overlay_secondary": "誰被砍？誰接棒？",
             "scene": (
                 "同一個市場裡，一邊是被外資撤出的過熱票據正在降溫，"
                 "另一邊是新資金流入的標的開始發亮，形成清楚的換手反轉。"
@@ -281,6 +289,8 @@ def generate_scenario_briefs(report_content, titles, visual_style, structured_da
             "scenario_name": "量價異常",
             "paired_title": titles[min(1, len(titles) - 1)],
             "main_stocks": formal_targets or buy_focus,
+            "overlay_primary": "量價異常",
+            "overlay_secondary": "誰在撐盤？",
             "scene": (
                 "交易現場表面看似平靜，但桌面下方有巨大的資金機械正在運轉，"
                 "暗示買超與成交量之間的不尋常落差。"
@@ -296,6 +306,8 @@ def generate_scenario_briefs(report_content, titles, visual_style, structured_da
             "scenario_name": "資金轉向",
             "paired_title": fallback_title,
             "main_stocks": [],
+            "overlay_primary": "資金轉向",
+            "overlay_secondary": "外資在換手",
             "scene": "台股交易室像一場正在改變方向的資金戰情，一邊是退場的過熱標的，一邊是剛被點亮的核心觀察股。",
             "emotion": "緊張、反轉、爆發前",
             "visual_metaphor": "資金像光流從暗處流向新的交易票據",
@@ -307,6 +319,8 @@ def generate_scenario_briefs(report_content, titles, visual_style, structured_da
             "scenario_name": "危機反轉",
             "paired_title": titles[len(scenarios) % len(titles)],
             "main_stocks": formal_targets or buy_focus or validations,
+            "overlay_primary": "危機反轉",
+            "overlay_secondary": "誰先亮燈？",
             "scene": "市場原本被不確定性壓住，但某個清楚訊號讓資金開始重新定價，畫面像危機解除前一秒。",
             "emotion": "不確定性、反轉、等待確認",
             "visual_metaphor": "陰影中的市場地圖逐步亮起少數關鍵節點",
@@ -341,9 +355,11 @@ def _build_image_prompt(style_key_or_custom, title, scenario_brief=None):
         f"Core situation: {scene} "
         f"Emotional tone: {emotion}. "
         f"Visual metaphor: {visual_metaphor}. "
-        "Leave natural negative space somewhere in the image for later human-added Chinese text, "
-        "but do not force a bottom banner or a fixed left-right composition. "
-        "No text, no letters, no numbers, no company logos, no real person likenesses in the image. "
+        "Include original fictional human figures when the visual world benefits from character tension; "
+        "use expressive silhouettes, gestures, and staged power dynamics, but no real person likenesses. "
+        "Leave a dramatic empty plaque, scroll, palace wall, shadow area, or clean negative space for later "
+        "human-added Chinese headline text, but do not force a bottom banner or a fixed left-right composition. "
+        "No generated text, no random letters, no random numbers, no company logos, no real person likenesses in the image. "
         f"Avoid: {', '.join(avoid)}. "
         "Ultra high quality, dramatic, readable at small sizes, YouTube finance thumbnail energy."
     )
@@ -361,6 +377,11 @@ def save_thumbnail_prompt(style_key_or_custom, title, date_str, output_path, sce
 Date: {date_str}
 Title pairing: {title}
 Scenario: {scenario_brief.get("scenario_name", "未命名情境")}
+
+## Manual Overlay Text Suggestions
+
+- Primary: {scenario_brief.get("overlay_primary", title)}
+- Secondary: {scenario_brief.get("overlay_secondary", "外資暗流 / 影子主力")}
 
 ## Scenario Brief
 
