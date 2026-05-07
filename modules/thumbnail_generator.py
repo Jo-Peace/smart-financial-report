@@ -347,6 +347,9 @@ def _build_image_prompt(style_key_or_custom, title, scenario_brief=None):
     main_stocks = scenario_brief.get("main_stocks") or []
     avoid = scenario_brief.get("avoid") or []
     stock_focus = ", ".join(main_stocks) if main_stocks else "the key stock ideas from the paired title"
+    overlay_primary = scenario_brief.get("overlay_primary", title)
+    overlay_secondary = scenario_brief.get("overlay_secondary", "")
+    overlay_text = overlay_primary if not overlay_secondary else f"{overlay_primary} / {overlay_secondary}"
 
     return (
         "YouTube thumbnail background image, landscape 16:9 format. "
@@ -360,9 +363,13 @@ def _build_image_prompt(style_key_or_custom, title, scenario_brief=None):
         "Prioritize the channel's original recurring characters when characters are useful: a wise professor "
         "strategist and a small leek-investor character, both redesigned to match today's visual world. "
         "Use expressive silhouettes, gestures, and staged power dynamics, but no real person likenesses. "
-        "Leave a dramatic empty plaque, scroll, palace wall, shadow area, or clean negative space for later "
-        "human-added Chinese headline text, but do not force a bottom banner or a fixed left-right composition. "
-        "No generated text, no random letters, no random numbers, no company logos, no real person likenesses in the image. "
+        "Include a large, highly readable Traditional Chinese thumbnail headline in the image. "
+        f"Render exactly this headline text and no other text: '{overlay_text}'. "
+        "Use bold Traditional Chinese display typography with strong contrast and clean spacing, integrated on a "
+        "palace plaque, scroll, shadow area, or dramatic negative space. "
+        "Do not force a bottom banner or a fixed left-right composition. "
+        "No extra generated text, no random letters, no random numbers, no Simplified Chinese, no company logos, "
+        "no real person likenesses in the image. "
         f"Avoid: {', '.join(avoid)}. "
         "Ultra high quality, dramatic, readable at small sizes, YouTube finance thumbnail energy."
     )
@@ -381,10 +388,11 @@ Date: {date_str}
 Title pairing: {title}
 Scenario: {scenario_brief.get("scenario_name", "未命名情境")}
 
-## Manual Overlay Text Suggestions
+## Thumbnail Headline Text
 
 - Primary: {scenario_brief.get("overlay_primary", title)}
 - Secondary: {scenario_brief.get("overlay_secondary", "外資暗流 / 影子主力")}
+- Text mode: Ask ChatGPT image generation to render the exact Traditional Chinese text above. If the text is imperfect, regenerate or add it manually.
 
 ## Scenario Brief
 
