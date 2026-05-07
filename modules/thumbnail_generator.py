@@ -266,7 +266,7 @@ def generate_scenario_briefs(report_content, titles, visual_style, structured_da
             ),
             "emotion": "驗收、反差、可信度建立",
             "visual_metaphor": "交易票據、成交量柱、檢核印章與聚光燈構成一個財經驗收現場",
-            "avoid": ["不要像考卷版型", "不要在圖中生成中文字", "不要塞超過兩檔主角"],
+            "avoid": ["不要像考卷版型", "不要生成指定標題以外的文字", "不要塞超過兩檔主角"],
         })
 
     if sell_risk and (buy_focus or formal_targets):
