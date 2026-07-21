@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
 
 from modules.data_fetcher import DataFetcher
+from modules.fetch_result import unwrap_fetch_result
 from modules.analyzer import MarketAnalyzer
 from app.database import init_db, get_cached_report, save_report, get_remaining_quota, use_quota, get_cache_stats, check_global_limit, get_global_usage_today, get_recent_reports, get_top_hot_stocks, increment_views, DAILY_FREE_QUOTA, DAILY_GLOBAL_LIMIT
 
@@ -84,13 +85,13 @@ def generate_stock_research(ticker: str) -> str:
         def fetch_stock(ticker_symbol):
             if ticker_symbol.isdigit():
                 symbol = f"{ticker_symbol}.TW"
-                data = fetcher.get_stock_data(symbol)
+                data = unwrap_fetch_result(fetcher.get_stock_data(symbol))
                 if not data:
                     symbol = f"{ticker_symbol}.TWO"
-                    data = fetcher.get_stock_data(symbol)
+                    data = unwrap_fetch_result(fetcher.get_stock_data(symbol))
                 return symbol, data
             else:
-                return ticker_symbol, fetcher.get_stock_data(ticker_symbol)
+                return ticker_symbol, unwrap_fetch_result(fetcher.get_stock_data(ticker_symbol))
 
         future_stock = executor.submit(fetch_stock, ticker)
         
@@ -103,11 +104,18 @@ def generate_stock_research(ticker: str) -> str:
 
         # Wait for all futures
         yf_symbol, stock_data = future_stock.result()
-        news_data = future_news.result()
-        institutional_data = future_inst.result()
+        news_data = unwrap_fetch_result(future_news.result(), default=[])
+        institutional_data = unwrap_fetch_result(
+            future_inst.result(),
+            default={"foreign_net": 0, "trust_net": 0, "total_net": 0},
+        )
 
     if not stock_data:
-        return f"Error generating report: 無法取得 {ticker} 的股價資料。請確認股票代號是否正確，且擁有足夠的近期交易數據。"
+        return (
+            f"Error generating report: 無法取得 {ticker} 的股價資料。"
+            f"可能原因：(1) 代號錯誤 (2) Yahoo 雲端被擋 (3) 休市尚無足夠日線。"
+            f"系統已嘗試 yfinance 與證交所備援仍失敗，請稍後再試。"
+        )
 
     # 4. Build market data dict
     market_data = {yf_symbol: stock_data}
