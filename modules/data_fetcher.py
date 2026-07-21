@@ -29,52 +29,208 @@ class DataFetcher:
         rs = avg_gain / avg_loss
         return round(100 - (100 / (1 + rs)), 2)
 
+    def _taiwan_stock_id(self, symbol):
+        """Extract bare Taiwan ticker id from 2330 / 2330.TW / 2330.TWO."""
+        text = str(symbol or "").strip().upper()
+        if not text:
+            return None
+        for suffix in (".TW", ".TWO"):
+            if text.endswith(suffix):
+                text = text[: -len(suffix)]
+                break
+        return text if text.isdigit() else None
+
+    def _twse_http_get_json(self, url, timeout=30):
+        """TWSE GET with UA + SSL fallback."""
+        import time
+
+        last_err = None
+        for attempt in range(3):
+            try:
+                try:
+                    resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=timeout)
+                except requests.exceptions.SSLError:
+                    resp = requests.get(
+                        url, headers={"User-Agent": "Mozilla/5.0"}, timeout=timeout, verify=False
+                    )
+                resp.raise_for_status()
+                return resp.json()
+            except Exception as e:
+                last_err = e
+                if attempt < 2:
+                    time.sleep(1.2)
+        if last_err:
+            raise last_err
+        return None
+
+    def _fetch_twse_daily_closes(self, stock_id, months_back=4):
+        """
+        Fetch listed-stock daily OHLCV from TWSE STOCK_DAY.
+        Returns list of dicts sorted by date ascending: {date, close, volume, change}.
+        """
+        stock_id = str(stock_id).strip()
+        rows = []
+        seen_dates = set()
+        today = datetime.datetime.now()
+
+        for m in range(months_back):
+            year = today.year
+            month = today.month - m
+            while month <= 0:
+                month += 12
+                year -= 1
+            date_str = f"{year}{month:02d}01"
+            url = (
+                "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY"
+                f"?date={date_str}&stockNo={stock_id}&response=json"
+            )
+            try:
+                result = self._twse_http_get_json(url)
+            except Exception as e:
+                print(f"[Warning] TWSE STOCK_DAY failed for {stock_id} {date_str}: {e}")
+                continue
+            if not result or result.get("stat") != "OK":
+                continue
+            for row in result.get("data") or []:
+                try:
+                    # 日期, 成交股數, 成交金額, 開盤, 最高, 最低, 收盤, 漲跌價差, ...
+                    roc_date = str(row[0]).strip()
+                    parts = roc_date.replace("-", "/").split("/")
+                    if len(parts) != 3:
+                        continue
+                    y = int(parts[0]) + 1911
+                    dkey = f"{y:04d}-{int(parts[1]):02d}-{int(parts[2]):02d}"
+                    if dkey in seen_dates:
+                        continue
+                    close = float(str(row[6]).replace(",", "").strip())
+                    volume = int(str(row[1]).replace(",", "").strip())
+                    change_raw = str(row[7]).replace(",", "").strip()
+                    change = 0.0
+                    if change_raw and change_raw[0] in "+-" and change_raw[1:].replace(".", "", 1).isdigit():
+                        change = float(change_raw)
+                    elif change_raw.replace(".", "", 1).isdigit():
+                        change = float(change_raw)
+                    seen_dates.add(dkey)
+                    rows.append({"date": dkey, "close": close, "volume": volume, "change": change})
+                except (ValueError, IndexError, TypeError):
+                    continue
+
+        rows.sort(key=lambda r: r["date"])
+        return rows
+
+    def _payload_from_close_series(self, symbol, closes, volumes, prev_close=None):
+        """Build standard stock payload from close/volume arrays (oldest→newest)."""
+        closes = np.asarray(closes, dtype=float)
+        volumes = np.asarray(volumes, dtype=float)
+        if len(closes) < 2:
+            return None
+        current_close = float(closes[-1])
+        if prev_close is None or prev_close <= 0:
+            prev_close = float(closes[-2])
+        change = current_close - float(prev_close)
+        pct_change = (change / float(prev_close)) * 100 if prev_close else 0.0
+        ma5 = round(float(np.mean(closes[-5:])), 2) if len(closes) >= 5 else None
+        ma20 = round(float(np.mean(closes[-20:])), 2) if len(closes) >= 20 else None
+        rsi = self._calc_rsi(closes) if len(closes) >= 15 else None
+        if rsi is not None:
+            rsi = float(rsi)
+        avg_vol_5d = int(np.mean(volumes[-5:])) if len(volumes) >= 5 else int(volumes[-1])
+        vol_ratio = round(float(volumes[-1] / avg_vol_5d), 2) if avg_vol_5d > 0 else 1.0
+        formatted_pct = round(float(pct_change), 3) if abs(pct_change) < 0.01 else round(float(pct_change), 2)
+        return {
+            "symbol": symbol,
+            "price": round(float(current_close), 2),
+            "change": round(float(change), 2),
+            "pct_change": formatted_pct,
+            "volume": int(volumes[-1]),
+            "avg_vol_5d": avg_vol_5d,
+            "vol_ratio": vol_ratio,
+            "ma5": ma5,
+            "ma20": ma20,
+            "rsi": rsi,
+        }
+
+    def _get_stock_data_twse_fallback(self, symbol):
+        """TWSE listed-stock fallback when Yahoo/yfinance returns empty (common on cloud IPs)."""
+        stock_id = self._taiwan_stock_id(symbol)
+        if not stock_id:
+            return None
+        # OTC (.TWO) is not on TWSE STOCK_DAY
+        if str(symbol).upper().endswith(".TWO"):
+            return None
+        rows = self._fetch_twse_daily_closes(stock_id, months_back=4)
+        if len(rows) < 2:
+            print(f"[Warning] TWSE 備援也無法取得 {stock_id} 日線")
+            return None
+        closes = [r["close"] for r in rows]
+        volumes = [r["volume"] for r in rows]
+        last_change = rows[-1].get("change")
+        prev_close = None
+        if last_change is not None and rows[-1]["close"]:
+            prev_close = rows[-1]["close"] - float(last_change)
+            if prev_close <= 0:
+                prev_close = None
+        payload = self._payload_from_close_series(
+            symbol if "." in str(symbol) else f"{stock_id}.TW",
+            closes,
+            volumes,
+            prev_close=prev_close,
+        )
+        if payload:
+            print(f"  ✅ TWSE 備援成功: {stock_id} 收 {payload['price']} ({payload['pct_change']:+.2f}%)")
+        return payload
+
     def get_stock_data(self, symbol):
         """
-        Fetches stock data with technical indicators using yfinance.
-        Returns price, change, volume, MA5, MA20, RSI.
+        Fetches stock data with technical indicators.
+        Primary: yfinance. Fallback for Taiwan listed stocks: TWSE STOCK_DAY
+        (Yahoo often blocks Render / datacenter IPs → empty history).
+        Returns dict or None (compatible with web app).
         """
         try:
             ticker = yf.Ticker(symbol)
             hist = ticker.history(period="60d")
-            
-            if hist.empty or len(hist) < 2:
-                print(f"[Warning] 無法取得 {symbol} 的數據")
-                return None
-                
-            closes = hist['Close'].values
-            current_close = closes[-1]
-            prev_close = closes[-2]
-            change = current_close - prev_close
-            pct_change = (change / prev_close) * 100
-            
-            # Technical Indicators
-            ma5 = round(float(np.mean(closes[-5:])), 2) if len(closes) >= 5 else None
-            ma20 = round(float(np.mean(closes[-20:])), 2) if len(closes) >= 20 else None
-            rsi = self._calc_rsi(closes) if len(closes) >= 15 else None
-            
-            # Volume Profile Analysis
-            volumes = hist['Volume'].values
-            avg_vol_5d = int(np.mean(volumes[-5:])) if len(volumes) >= 5 else int(volumes[-1])
-            vol_ratio = round(float(volumes[-1] / avg_vol_5d), 2) if avg_vol_5d > 0 else 1.0
-            
-            # 若為大盤或極小變動，保留較高精確度避免出現 0.00%
-            formatted_pct = round(float(pct_change), 3) if abs(pct_change) < 0.01 else round(float(pct_change), 2)
-            
-            return {
-                "symbol": symbol,
-                "price": round(float(current_close), 2),
-                "change": round(float(change), 2),
-                "pct_change": formatted_pct,
-                "volume": int(hist['Volume'].iloc[-1]),
-                "avg_vol_5d": avg_vol_5d,
-                "vol_ratio": vol_ratio,
-                "ma5": ma5,
-                "ma20": ma20,
-                "rsi": rsi,
-            }
+
+            # Secondary Yahoo path: download() sometimes works when history() is empty
+            if hist is None or hist.empty or len(hist) < 2:
+                try:
+                    dl = yf.download(
+                        symbol,
+                        period="60d",
+                        progress=False,
+                        auto_adjust=True,
+                        threads=False,
+                    )
+                    if dl is not None and not dl.empty:
+                        hist = dl
+                        if getattr(hist.columns, "nlevels", 1) > 1:
+                            hist.columns = hist.columns.get_level_values(0)
+                except Exception as dl_err:
+                    print(f"[Warning] yfinance download fallback failed for {symbol}: {dl_err}")
+
+            if hist is not None and not hist.empty and len(hist) >= 2:
+                closes = hist["Close"].values
+                prev_close = float(closes[-2])
+                volumes = hist["Volume"].values
+                payload = self._payload_from_close_series(symbol, closes, volumes, prev_close=prev_close)
+                if payload:
+                    return payload
+
+            print(f"[Warning] yfinance 無資料，嘗試 TWSE 備援: {symbol}")
+            twse_payload = self._get_stock_data_twse_fallback(symbol)
+            if twse_payload:
+                return twse_payload
+
+            print(f"[Warning] 無法取得 {symbol} 的數據")
+            return None
         except Exception as e:
             print(f"[Error] 取得 {symbol} 數據失敗: {e}")
+            try:
+                twse_payload = self._get_stock_data_twse_fallback(symbol)
+                if twse_payload:
+                    return twse_payload
+            except Exception:
+                pass
             return None
 
     def get_commodity_data(self):

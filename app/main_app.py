@@ -107,7 +107,11 @@ def generate_stock_research(ticker: str) -> str:
         institutional_data = future_inst.result()
 
     if not stock_data:
-        return f"Error generating report: 無法取得 {ticker} 的股價資料。請確認股票代號是否正確，且擁有足夠的近期交易數據。"
+        return (
+            f"Error generating report: 無法取得 {ticker} 的股價資料。"
+            f"可能原因：(1) 代號錯誤 (2) Yahoo 雲端被擋 (3) 休市尚無足夠日線。"
+            f"系統已嘗試 yfinance 與證交所備援仍失敗，請稍後再試。"
+        )
 
     # 4. Build market data dict
     market_data = {yf_symbol: stock_data}
