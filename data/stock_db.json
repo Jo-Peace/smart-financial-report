@@ -21,7 +21,7 @@
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "mentioned",
-      "last_observed": "2026-05-06",
+      "last_observed": "2026-06-30",
       "evidence": [
         "sector=AI PCB基板材料族群",
         "supply_chain_role=AI伺服器高速PCB基板核心輔材",
@@ -68,16 +68,42 @@
       "base_role": "theme_confirmation",
       "label": "題材確認股",
       "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
-      "latest_flow_state": "validated_previous_target",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-10",
       "evidence": [
         "sector=AI PCB材料族群",
         "supply_chain_role=AI伺服器電路板核心材料供應商",
-        "latest_flow_state=validated_previous_target",
+        "latest_flow_state=mentioned",
         "tracking=1 predictions, 0 hits, hit_rate=0.0%",
         "role_rule=theme validation/material/test/BOM marker in local DB"
       ],
-      "reason": "題材確認股；validated_previous_target；歷史驗收 1 次，命中率 0.0%；AI伺服器電路板核心材料供應商；佐證: sector=AI PCB材料族群"
+      "reason": "題材確認股；mentioned；歷史驗收 1 次，命中率 0.0%；AI伺服器電路板核心材料供應商；佐證: sector=AI PCB材料族群；title_priority=33 (E66/F0/V25/C40)",
+      "scores": {
+        "elasticity": 66,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 33,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=1",
+          "sell_amount=-42.0億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=0%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=33.3"
+        ]
+      }
     }
   },
   "2383": {
@@ -106,7 +132,48 @@
     "not_classify_as": [
       "傳統零組件"
     ],
-    "history_notes": ""
+    "history_notes": "",
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-24",
+      "evidence": [
+        "sector=AI 高頻高速 PCB 族群",
+        "supply_chain_role=AI伺服器CCL供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI伺服器CCL供應商；佐證: sector=AI 高頻高速 PCB 族群；title_priority=45 (E86/F0/V25/C40)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 45,
+        "as_of": "2026-07-24"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=5",
+          "sell_amount=-19.2億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=40.3",
+          "elastic_title_boost"
+        ]
+      }
+    }
   },
   "3324": {
     "name": "雙鴻",
@@ -126,19 +193,18 @@
   },
   "3017": {
     "name": "奇鋐",
-    "sector": "AI 伺服器熱管理族群",
-    "sub_sector": "散熱模組",
-    "supply_chain_role": "AI 伺服器3D VC及液冷散熱主力供應商",
+    "sector": "AI 散熱族群",
+    "supply_chain_role": "AI 伺服器核心熱管理解決方案供應商",
     "key_products": [
-      "3D VC",
-      "水冷散熱模組",
-      "風扇"
+      "3D VC 散熱模組",
+      "水冷板 (Cold Plate)",
+      "伺服器風扇"
     ],
-    "ai_connection": "NVIDIA AI伺服器主力散熱供應商之一",
+    "ai_connection": "供應 NVIDIA Blackwell 架構 GPU 之核心散熱組件，包含高功耗 3D VC 及即將放量的液冷系統（Liquid Cooling），為 AI 伺服器 BOM 表中熱管理類別之領先者。",
     "not_classify_as": [
-      "傳統PC零組件"
-    ],
-    "history_notes": ""
+      "電腦風扇廠",
+      "傳統組裝五金"
+    ]
   },
   "2313": {
     "name": "華通",
@@ -159,15 +225,116 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "foreign_sell_risk",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-29",
       "evidence": [
         "sector=低軌衛星與高密度PCB族群",
         "supply_chain_role=低軌衛星星系與蘋果供應鏈主機板",
-        "latest_flow_state=foreign_sell_risk",
+        "latest_flow_state=mentioned",
+        "tracking=9 predictions, 0 hits, hit_rate=0.0%",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；foreign_sell_risk；低軌衛星星系與蘋果供應鏈主機板；佐證: sector=低軌衛星與高密度PCB族群"
+      "reason": "彈性攻擊股；mentioned；歷史驗收 9 次，命中率 0.0%；低軌衛星星系與蘋果供應鏈主機板；佐證: sector=低軌衛星與高密度PCB族群；title_priority=77 (E86/F84/V25/C0)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 84,
+        "volume_confirmation": 25,
+        "validation_credibility": 0,
+        "title_priority": 77,
+        "as_of": "2026-07-29"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=4",
+          "buy_amount=+12.5億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=9, hit_rate=0%, trust=1.00"
+        ],
+        "title_priority": [
+          "weighted=61.5",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 9,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-07-20",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-13",
+          "direction": "多",
+          "trigger": "外資暴買 77.9 億但市場尚未放量，具備影子建倉爆發潛力且營收年增強勢",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -8.85% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-15",
+          "direction": "多",
+          "trigger": "外資買超金額第一名，具備影子建倉特徵",
+          "stop_loss": "收盤跌破 230 元",
+          "result": "實際 -3.26% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-15",
+          "direction": "多",
+          "trigger": "外資買超金額第一名，具備影子建倉特徵",
+          "stop_loss": "收盤跌破 230 元",
+          "result": "實際 -4.07% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-19",
+          "direction": "多",
+          "trigger": "外資買超第一名(34.3億)，毛利率連續三季改善，強勢突破 MA20。",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -1.16% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-10",
+          "direction": "多",
+          "trigger": "外資買超全市場第 1 名，且收盤站上 MA20；若明日量能延續，可能轉成 PCB / 低軌衛星的主線標的。",
+          "stop_loss": "收盤跌破 MA20 或今日低點附近失守",
+          "result": "實際 -6.16% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-12",
+          "direction": "多",
+          "trigger": "技術面強勢修復，若連三日站穩 MA20 則確立補漲行情",
+          "stop_loss": "收盤跌破 265 元",
+          "result": "實際 -4.36% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-18",
+          "direction": "多",
+          "trigger": "外資買超 50.2 億全市場第一，且毛利率預計回升至 30%",
+          "stop_loss": "收盤跌破 250.0 元",
+          "result": "實際 -1.70% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-18",
+          "direction": "多",
+          "trigger": "外資買超 50.2 億全市場第一，且毛利率預計回升至 30%",
+          "stop_loss": "收盤跌破 250.0 元",
+          "result": "實際 -1.70% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-20",
+          "direction": "多",
+          "trigger": "外資買超第一但量能未爆，屬法人影子建倉，位階剛站上 MA20",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -6.13% → ❌ 失準"
+        }
+      ]
     }
   },
   "2330": {
@@ -182,7 +349,62 @@
     "not_classify_as": [
       "一般半導體代工",
       "晶圓廠"
-    ]
+    ],
+    "market_role": {
+      "base_role": "direction_indicator",
+      "label": "方向指標股",
+      "title_guidance": "適合用來確認資金方向，不宜包裝成最大彈性飆股。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-08-06",
+      "evidence": [
+        "sector=AI 核心晶圓代工族群",
+        "supply_chain_role=AI 加速器與高效能運算 (HPC) 獨家先進製程代工與先進封裝 (CoWoS) 提供者",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 0 hits, hit_rate=0.0%",
+        "role_rule=large-cap/core-or-vertical-integration marker in local DB"
+      ],
+      "reason": "方向指標股；validated_previous_target；歷史驗收 1 次，命中率 0.0%；AI 加速器與高效能運算 (HPC) 獨家先進製程代工與先進封裝 (CoWoS) 提供者；佐證: sector=AI 核心晶圓代工族群；title_priority=10 (E22/F15/V25/C40)",
+      "scores": {
+        "elasticity": 22,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 10,
+        "as_of": "2026-08-06"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=direction_indicator:22",
+          "mega_cap_direction_cap"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=0%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=22.4",
+          "direction_indicator_title_penalty"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-08-06",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-08-06",
+          "direction": "多",
+          "trigger": "外資買超金額全台第一且重回 MA20，受 AMD 2奈米 Venice 處理器利多推動",
+          "stop_loss": "收盤跌破 2345 元",
+          "result": "實際 -1.66% → ❌ 失準"
+        }
+      ]
+    }
   },
   "0050": {
     "name": "元大台灣50",
@@ -200,15 +422,42 @@
       "base_role": "capital_vehicle",
       "label": "資金載體",
       "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
-      "latest_flow_state": "foreign_sell_risk",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-07",
       "evidence": [
         "sector=AI 高權重權值族群",
         "supply_chain_role=AI 供應鏈系統性流動性供應者與市值型代表",
-        "latest_flow_state=foreign_sell_risk",
+        "latest_flow_state=mentioned",
         "role_rule=ETF/capital vehicle stock id or sector marker"
       ],
-      "reason": "資金載體；foreign_sell_risk；AI 供應鏈系統性流動性供應者與市值型代表；佐證: sector=AI 高權重權值族群"
+      "reason": "資金載體；mentioned；AI 供應鏈系統性流動性供應者與市值型代表；佐證: sector=AI 高權重權值族群；title_priority=7 (E18/F0/V25/C40)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 7,
+        "as_of": "2026-08-07"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=capital_vehicle:18",
+          "etf_or_vehicle_cap"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=5",
+          "sell_amount=-23.4億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=16.6",
+          "vehicle_title_penalty"
+        ]
+      }
     }
   },
   "2327": {
@@ -224,7 +473,47 @@
     "not_classify_as": [
       "傳統被動元件廠",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-07",
+      "evidence": [
+        "sector=AI 伺服器被動元件族群",
+        "supply_chain_role=AI 伺服器電源管理模組高階 MLCC/電感供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI 伺服器電源管理模組高階 MLCC/電感供應商；佐證: sector=AI 伺服器被動元件族群；title_priority=42 (E78/F0/V25/C40)",
+      "scores": {
+        "elasticity": 78,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 42,
+        "as_of": "2026-08-07"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=2",
+          "sell_amount=-50.5億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=37.5",
+          "elastic_title_boost"
+        ]
+      }
+    }
   },
   "2408": {
     "name": "南亞科",
@@ -239,12 +528,12 @@
       "景氣循環股"
     ],
     "tracking": {
-      "prediction_count": 3,
-      "hit_count": 2,
+      "prediction_count": 9,
+      "hit_count": 6,
       "hit_rate": "66.7%",
-      "last_recommended": "2026-05-06",
+      "last_recommended": "2026-08-07",
       "consecutive_foreign_buy_days": 0,
-      "last_foreign_buy_date": "2026-05-05",
+      "last_foreign_buy_date": "2026-06-02",
       "history": [
         {
           "date": "2026-04-29",
@@ -266,6 +555,48 @@
           "trigger": "外資大買 64 億，量增比 1.34 倍且剛突破 MA20",
           "stop_loss": "收盤跌破 230 元",
           "result": "實際 +9.94% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-12",
+          "direction": "多",
+          "trigger": "外資買超第一且營收年增噴發，籌碼高度集中並站上所有均線",
+          "stop_loss": "收盤跌破二百八十元",
+          "result": "實際 +6.64% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-02",
+          "direction": "多",
+          "trigger": "外資百億買超第一名，且毛利率轉正具備強大基本面修復動能",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +9.96% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-02",
+          "direction": "多",
+          "trigger": "外資百億買超第一名，且毛利率轉正具備強大基本面修復動能",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +9.96% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-17",
+          "direction": "多",
+          "trigger": "外資百億級掃貨，量增比健康，基本面強力翻轉",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 +2.82% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-23",
+          "direction": "多",
+          "trigger": "外資買超第 3 名且市場尚未放量，具備影子建倉特徵",
+          "stop_loss": "收盤跌破 MA20 元",
+          "result": "實際 -4.38% → ❌ 失準"
+        },
+        {
+          "date": "2026-08-07",
+          "direction": "多",
+          "trigger": "外資買超 42 億且成功站上 MA20，量價結構優於力積電",
+          "stop_loss": "收盤跌破 435 元",
+          "result": "實際 -0.44% → ❌ 失準"
         }
       ]
     },
@@ -273,17 +604,46 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "validated_previous_target",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "formal_prediction_target",
+      "last_observed": "2026-08-10",
       "evidence": [
         "sector=AI 記憶體關鍵材料族群",
         "supply_chain_role=AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商",
-        "latest_flow_state=validated_previous_target",
-        "tracking=3 predictions, 2 hits, hit_rate=66.7%",
-        "last_foreign_buy_date=2026-05-05",
+        "latest_flow_state=formal_prediction_target",
+        "tracking=9 predictions, 6 hits, hit_rate=66.7%",
+        "last_foreign_buy_date=2026-06-02",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 3 次，命中率 66.7%；AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商；佐證: sector=AI 記憶體關鍵材料族群"
+      "reason": "彈性攻擊股；formal_prediction_target；歷史驗收 9 次，命中率 66.7%；AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商；佐證: sector=AI 記憶體關鍵材料族群；title_priority=100 (E86/F100/V72/C67)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 100,
+        "volume_confirmation": 72,
+        "validation_credibility": 67,
+        "title_priority": 100,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=1",
+          "buy_amount=+153.2億"
+        ],
+        "volume_confirmation": [
+          "divergence_shadow_or_offboard"
+        ],
+        "validation_credibility": [
+          "predictions=9, hit_rate=67%, trust=1.00"
+        ],
+        "title_priority": [
+          "weighted=84.8",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
     }
   },
   "2382": {
@@ -303,16 +663,43 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "validated_previous_target",
-      "last_observed": "2026-05-07",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-30",
       "evidence": [
         "sector=AI 伺服器系統整合族群",
         "supply_chain_role=AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠",
-        "latest_flow_state=validated_previous_target",
+        "latest_flow_state=mentioned",
         "tracking=1 predictions, 0 hits, hit_rate=0.0%",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 1 次，命中率 0.0%；AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠；佐證: sector=AI 伺服器系統整合族群"
+      "reason": "彈性攻擊股；mentioned；歷史驗收 1 次，命中率 0.0%；AI 伺服器 L10/L11 全球最領先之 ODM 整機組裝廠；佐證: sector=AI 伺服器系統整合族群；title_priority=45 (E86/F0/V25/C40)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 45,
+        "as_of": "2026-07-30"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=2",
+          "sell_amount=-76.2億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=0%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=40.3",
+          "elastic_title_boost"
+        ]
+      }
     },
     "tracking": {
       "prediction_count": 1,
@@ -346,12 +733,12 @@
       "利基型記憶體"
     ],
     "tracking": {
-      "prediction_count": 1,
-      "hit_count": 1,
-      "hit_rate": "100.0%",
-      "last_recommended": "2026-04-21",
-      "consecutive_foreign_buy_days": 1,
-      "last_foreign_buy_date": "2026-04-21",
+      "prediction_count": 16,
+      "hit_count": 12,
+      "hit_rate": "75.0%",
+      "last_recommended": "2026-07-31",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": "2026-06-16",
       "history": [
         {
           "date": "2026-04-21",
@@ -359,8 +746,156 @@
           "trigger": "外資買超金額第一但股價逆勢下跌，呈現吸籌特徵，明日量縮止跌為反轉點",
           "stop_loss": "跌破今日低點 85.0 元",
           "result": "實際 +6.30% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-15",
+          "direction": "多",
+          "trigger": "外資大買 32.2 億元且漲停突破",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 -3.36% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-15",
+          "direction": "多",
+          "trigger": "外資大買 32.2 億元且漲停突破",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 -3.36% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-25",
+          "direction": "多",
+          "trigger": "外資買超第 2 名且放量漲停，屬於強勢突破",
+          "stop_loss": "今日漲停低點",
+          "result": "實際 +2.80% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-26",
+          "direction": "多",
+          "trigger": "AI 邊緣運算記憶體缺口顯現，量增比 1.64 倍且法人重金鎖籌",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +9.73% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-27",
+          "direction": "多",
+          "trigger": "外資連續回補，成交量熱度與籌碼一致，開啟主升段",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 +9.93% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-01",
+          "direction": "多",
+          "trigger": "外資買超第3名，股價底部站上MA20，具備補漲空間",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 +6.33% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-09",
+          "direction": "多",
+          "trigger": "外資買超全台第一、毛利率顯著改善且受惠 AMD 投資案連動",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +1.62% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-11",
+          "direction": "多",
+          "trigger": "外資於大跌中買超第一名且技術面勉強守住 MA20，呈現血色護盤跡象",
+          "stop_loss": "收盤跌破 146 元",
+          "result": "實際 +5.03% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-15",
+          "direction": "多",
+          "trigger": "外資買超第2名且突破MA20，具備低位階補漲與法人共振優勢",
+          "stop_loss": "收盤跌破今日低點",
+          "result": "實際 +9.88% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-16",
+          "direction": "多",
+          "trigger": "外資連買、進入成交量前10名，且AMD百億投資利多發酵，收復MA20",
+          "stop_loss": "收盤跌破今日低點",
+          "result": "實際 +4.23% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-01",
+          "direction": "多",
+          "trigger": "外資大倒貨但股價逆勢收紅站穩MA20，內資強勢接手",
+          "stop_loss": "跌破今日低點或爆量收黑跌破MA20",
+          "result": "實際 -8.43% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-03",
+          "direction": "多",
+          "trigger": "外資買超第一名且基本面毛利大幅改善，今日重挫視為內外資換手訊號",
+          "stop_loss": "收盤跌破 178 元",
+          "result": "實際 +0.54% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-24",
+          "direction": "空",
+          "trigger": "法人接刀且內資大戶倒貨，股價重挫 5.85% 形成數據矛盾點",
+          "stop_loss": "跌破今日低點則確立換手失敗",
+          "result": "實際 -4.04% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-28",
+          "direction": "多",
+          "trigger": "外資賣超第 1 名但股價逆勢走強，且成交量進入前 10 名，具備強大博弈與換手動能",
+          "stop_loss": "收盤跌破 154 元",
+          "result": "實際 -10.00% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-31",
+          "direction": "多",
+          "trigger": "外資買超第一名且毛利率顯著改善(53.4%)，基本面強勁",
+          "stop_loss": "收盤跌破 110 元",
+          "result": "實際 +9.70% → ✅ 命中"
         }
       ]
+    },
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "formal_prediction_target",
+      "last_observed": "2026-08-10",
+      "evidence": [
+        "sector=AI 邊緣運算記憶體族群",
+        "supply_chain_role=AI 伺服器 BIOS 啟動與邊緣 AI 終端 Nor Flash 供應商",
+        "latest_flow_state=formal_prediction_target",
+        "tracking=16 predictions, 12 hits, hit_rate=75.0%",
+        "last_foreign_buy_date=2026-06-16",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；formal_prediction_target；歷史驗收 16 次，命中率 75.0%；AI 伺服器 BIOS 啟動與邊緣 AI 終端 Nor Flash 供應商；佐證: sector=AI 邊緣運算記憶體族群；title_priority=91 (E86/F100/V25/C75)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 100,
+        "volume_confirmation": 25,
+        "validation_credibility": 75,
+        "title_priority": 91,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=2",
+          "buy_amount=+34.2億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=16, hit_rate=75%, trust=1.00"
+        ],
+        "title_priority": [
+          "weighted=73.8",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
     }
   },
   "2303": {
@@ -380,15 +915,102 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "foreign_buy_focus",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-10",
       "evidence": [
         "sector=AI 伺服器輔助晶片族群",
         "supply_chain_role=AI 伺服器周邊電源管理 IC (PMIC) 與高速傳輸介面晶片代工",
-        "latest_flow_state=foreign_buy_focus",
+        "latest_flow_state=mentioned",
+        "tracking=7 predictions, 4 hits, hit_rate=57.1%",
+        "last_foreign_buy_date=2026-06-12",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；foreign_buy_focus；AI 伺服器周邊電源管理 IC (PMIC) 與高速傳輸介面晶片代工；佐證: sector=AI 伺服器輔助晶片族群"
+      "reason": "彈性攻擊股；mentioned；歷史驗收 7 次，命中率 57.1%；AI 伺服器周邊電源管理 IC (PMIC) 與高速傳輸介面晶片代工；佐證: sector=AI 伺服器輔助晶片族群；title_priority=86 (E78/F100/V25/C57)",
+      "scores": {
+        "elasticity": 78,
+        "foreign_buy_strength": 100,
+        "volume_confirmation": 25,
+        "validation_credibility": 57,
+        "title_priority": 86,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=3",
+          "buy_amount=+33.2億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=7, hit_rate=57%, trust=1.00"
+        ],
+        "title_priority": [
+          "weighted=69.2",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 7,
+      "hit_count": 4,
+      "hit_rate": "57.1%",
+      "last_recommended": "2026-07-02",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": "2026-06-12",
+      "history": [
+        {
+          "date": "2026-06-04",
+          "direction": "空",
+          "trigger": "內資瘋狂拋售導致外資百億買盤淪為炮灰，隔日反彈無量則延續弱勢",
+          "stop_loss": "收盤跌破今日低點 130 元代表外資防線失守",
+          "result": "實際 -4.21% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-08",
+          "direction": "多",
+          "trigger": "外資買超第 1 名，AMD 利多發酵，站穩 MA20",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -7.98% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-12",
+          "direction": "多",
+          "trigger": "外資連續護盤轉發動總攻，觀察是否站穩 125 元",
+          "stop_loss": "收盤跌破 120 元",
+          "result": "實際 +6.80% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-22",
+          "direction": "多",
+          "trigger": "外資買超 95.7 億為今日第一，股價 +3.93%，站上 MA5/MA20，成交量溫和確認",
+          "stop_loss": "收盤跌回 140 元以下或外資隔日反手大賣",
+          "result": "實際 +9.97% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-24",
+          "direction": "多",
+          "trigger": "量增比 2.1 倍且法人市場共振",
+          "stop_loss": "收盤跌破 160 元",
+          "result": "實際 +4.71% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-02",
+          "direction": "多",
+          "trigger": "外資單日買超百億且股價強勢站上 MA20，底部結構初步確認",
+          "stop_loss": "收盤跌破 160 元",
+          "result": "實際 -2.07% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-02",
+          "direction": "多",
+          "trigger": "外資單日買超百億且股價強勢站上 MA20，底部結構初步確認",
+          "stop_loss": "收盤跌破 160 元",
+          "result": "實際 -2.07% → ❌ 失準"
+        }
+      ]
     }
   },
   "3231": {
@@ -408,15 +1030,91 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "foreign_buy_focus",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-08-10",
       "evidence": [
         "sector=AI 運算模組核心族群",
         "supply_chain_role=NVIDIA GPU 運算基板 (Baseboard) 全球主要供應商",
-        "latest_flow_state=foreign_buy_focus",
+        "latest_flow_state=validated_previous_target",
+        "tracking=6 predictions, 5 hits, hit_rate=83.3%",
+        "last_foreign_buy_date=2026-08-10",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；foreign_buy_focus；NVIDIA GPU 運算基板 (Baseboard) 全球主要供應商；佐證: sector=AI 運算模組核心族群"
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 6 次，命中率 83.3%；NVIDIA GPU 運算基板 (Baseboard) 全球主要供應商；佐證: sector=AI 運算模組核心族群；title_priority=52 (E78/F15/V25/C83)",
+      "scores": {
+        "elasticity": 78,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 83,
+        "title_priority": 52,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=6, hit_rate=83%, trust=1.00"
+        ],
+        "title_priority": [
+          "weighted=46.3",
+          "elastic_title_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 6,
+      "hit_count": 5,
+      "hit_rate": "83.3%",
+      "last_recommended": "2026-08-10",
+      "consecutive_foreign_buy_days": 1,
+      "last_foreign_buy_date": "2026-08-10",
+      "history": [
+        {
+          "date": "2026-06-03",
+          "direction": "多",
+          "trigger": "AMD 百億投資利多，量增比 2.5 倍，外資買超金額第一，籌碼與技術位共振",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 +1.57% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-03",
+          "direction": "多",
+          "trigger": "AMD 百億投資利多，量增比 2.5 倍，外資買超金額第一，籌碼與技術位共振",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 +1.57% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-23",
+          "direction": "多",
+          "trigger": "量增比 1.89 倍，站上關鍵均線 MA20，外資買超第 2 名",
+          "stop_loss": "收盤跌破 155 元",
+          "result": "實際 +5.79% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-24",
+          "direction": "多",
+          "trigger": "爆量突破 MA20 且外資單日掃貨 7.9 萬張，量價共振極強",
+          "stop_loss": "收盤跌破 155 元",
+          "result": "實際 +3.17% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-27",
+          "direction": "多",
+          "trigger": "逆勢爆量站上MA20，AI營收佔比達70%，為市場目前唯一資金共識",
+          "stop_loss": "收盤跌破 161 元",
+          "result": "實際 -1.12% → ❌ 失準"
+        },
+        {
+          "date": "2026-08-10",
+          "direction": "多",
+          "trigger": "外資今日買超全市場第1名且站穩MA20，屬AMD百億投資核心供應鏈",
+          "stop_loss": "收盤跌破今日低點 180 元",
+          "result": "實際 +5.18% → ✅ 命中"
+        }
+      ]
     }
   },
   "6770": {
@@ -436,15 +1134,98 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "foreign_sell_risk",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-06",
       "evidence": [
         "sector=AI 記憶體整合技術族群",
         "supply_chain_role=提供 3D 堆疊晶片 (3D AI Foundry) 與 AI 相關驅動 IC 代工",
-        "latest_flow_state=foreign_sell_risk",
+        "latest_flow_state=mentioned",
+        "tracking=6 predictions, 3 hits, hit_rate=50.0%",
+        "last_foreign_buy_date=2026-05-28",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；foreign_sell_risk；提供 3D 堆疊晶片 (3D AI Foundry) 與 AI 相關驅動 IC 代工；佐證: sector=AI 記憶體整合技術族群"
+      "reason": "彈性攻擊股；mentioned；歷史驗收 6 次，命中率 50.0%；提供 3D 堆疊晶片 (3D AI Foundry) 與 AI 相關驅動 IC 代工；佐證: sector=AI 記憶體整合技術族群；title_priority=100 (E86/F99/V72/C50)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 99,
+        "volume_confirmation": 72,
+        "validation_credibility": 50,
+        "title_priority": 100,
+        "as_of": "2026-08-06"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=3",
+          "buy_amount=+25.7億"
+        ],
+        "volume_confirmation": [
+          "divergence_shadow_or_offboard"
+        ],
+        "validation_credibility": [
+          "predictions=6, hit_rate=50%, trust=1.00"
+        ],
+        "title_priority": [
+          "weighted=82.8",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 6,
+      "hit_count": 3,
+      "hit_rate": "50.0%",
+      "last_recommended": "2026-07-20",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": "2026-05-28",
+      "history": [
+        {
+          "date": "2026-05-11",
+          "direction": "空",
+          "trigger": "成交量第三名但外資大賣，若反彈無量且站不回 MA5 則偏空",
+          "stop_loss": "爆量收復今日跌幅一半",
+          "result": "實際 +1.79% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-25",
+          "direction": "多",
+          "trigger": "外資大買且價格站上所有均線，量增比 1.63 倍",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +5.96% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-28",
+          "direction": "多",
+          "trigger": "外資單日買超冠軍且毛利率改善，成交量與買超金額共振，底部突破",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 +7.89% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-29",
+          "direction": "多",
+          "trigger": "成交量全台第3名，量增比 1.81 倍，外資/量/價三位一體共振，站穩所有均線",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 +9.91% → ✅ 命中"
+        },
+        {
+          "date": "2026-06-25",
+          "direction": "多",
+          "trigger": "外資買超冠軍且量增突破 MA20，博弈 3D AI Foundry 補漲",
+          "stop_loss": "收盤跌破 78 元",
+          "result": "實際 -2.92% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-20",
+          "direction": "多",
+          "trigger": "外資買超41億量價共振，看好3D堆疊晶片在AI記憶體整合的技術優勢",
+          "stop_loss": "明日守住 MA5",
+          "result": "實際 -8.56% → ❌ 失準"
+        }
+      ]
     }
   },
   "0052": {
@@ -477,15 +1258,67 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "foreign_buy_focus",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-10",
       "evidence": [
         "sector=AI 先進封裝材料族群",
         "supply_chain_role=AI 晶片面板級扇出型封裝 (FOPLP) 生產載板提供者",
-        "latest_flow_state=foreign_buy_focus",
+        "latest_flow_state=mentioned",
+        "tracking=2 predictions, 0 hits, hit_rate=0.0%",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；foreign_buy_focus；AI 晶片面板級扇出型封裝 (FOPLP) 生產載板提供者；佐證: sector=AI 先進封裝材料族群"
+      "reason": "彈性攻擊股；mentioned；歷史驗收 2 次，命中率 0.0%；AI 晶片面板級扇出型封裝 (FOPLP) 生產載板提供者；佐證: sector=AI 先進封裝材料族群；title_priority=83 (E86/F91/V25/C30)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 91,
+        "volume_confirmation": 25,
+        "validation_credibility": 30,
+        "title_priority": 83,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=4",
+          "buy_amount=+25.2億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=2, hit_rate=0%, trust=0.40"
+        ],
+        "title_priority": [
+          "weighted=66.7",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-07-13",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-06-04",
+          "direction": "多",
+          "trigger": "成交量第 1 名，在 9.3 億股天量下守住漲幅，主力有延續意圖",
+          "stop_loss": "收盤跌破 MA5 (五日均線)",
+          "result": "實際 -6.06% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-13",
+          "direction": "多",
+          "trigger": "成交量全台第2，外資買超同步，且帶量站上MA20，符合「低位階+籌碼共振」特徵。",
+          "stop_loss": "收盤跌破今日低點 64元",
+          "result": "實際 -6.58% → ❌ 失準"
+        }
+      ]
     }
   },
   "4958": {
@@ -500,7 +1333,80 @@
     "not_classify_as": [
       "軟板廠",
       "蘋果供應鏈"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-10",
+      "evidence": [
+        "sector=AI 伺服器高階載板族群",
+        "supply_chain_role=AI 伺服器主機板與 GPU 專用高階 IC 載板供應商",
+        "latest_flow_state=mentioned",
+        "tracking=3 predictions, 1 hits, hit_rate=33.3%",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；歷史驗收 3 次，命中率 33.3%；AI 伺服器主機板與 GPU 專用高階 IC 載板供應商；佐證: sector=AI 伺服器高階載板族群；title_priority=45 (E86/F0/V25/C40)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 45,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=2",
+          "sell_amount=-28.1億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=3, hit_rate=33%, trust=0.60"
+        ],
+        "title_priority": [
+          "weighted=40.3",
+          "elastic_title_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 3,
+      "hit_count": 1,
+      "hit_rate": "33.3%",
+      "last_recommended": "2026-07-21",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-14",
+          "direction": "多",
+          "trigger": "外資買超金額第一且成交量未過熱，毛利顯著回升且放量突破 MA20",
+          "stop_loss": "收盤跌破 420 元",
+          "result": "實際 -1.36% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-14",
+          "direction": "多",
+          "trigger": "外資買超金額全台第一，影子建倉且收盤站上月線",
+          "stop_loss": "收盤跌破 600 元",
+          "result": "實際 -2.63% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-21",
+          "direction": "多",
+          "trigger": "外資買超冠軍 + 營收年增 41% + 隱匿建倉特徵",
+          "stop_loss": "收盤跌破 460 元",
+          "result": "實際 +6.37% → ✅ 命中"
+        }
+      ]
+    }
   },
   "2367": {
     "name": "燿華",
@@ -514,7 +1420,21 @@
     "not_classify_as": [
       "手機電路板廠",
       "PCB 廠"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-27",
+      "evidence": [
+        "sector=AI 伺服器傳輸材料族群",
+        "supply_chain_role=AI 伺服器內部與交換器端高階 HDI 電路板供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI 伺服器內部與交換器端高階 HDI 電路板供應商；佐證: sector=AI 伺服器傳輸材料族群"
+    }
   },
   "2409": {
     "name": "友達",
@@ -534,14 +1454,61 @@
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
       "latest_flow_state": "mentioned",
-      "last_observed": "2026-05-06",
+      "last_observed": "2026-07-28",
       "evidence": [
         "sector=AI 邊緣人機介面族群",
         "supply_chain_role=AI 智慧座艙與 AI 終端顯控介面系統整合商",
         "latest_flow_state=mentioned",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%",
+        "last_foreign_buy_date=2026-06-30",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；mentioned；AI 智慧座艙與 AI 終端顯控介面系統整合商；佐證: sector=AI 邊緣人機介面族群"
+      "reason": "彈性攻擊股；mentioned；歷史驗收 1 次，命中率 100.0%；AI 智慧座艙與 AI 終端顯控介面系統整合商；佐證: sector=AI 邊緣人機介面族群；title_priority=93 (E78/F82/V72/C60)",
+      "scores": {
+        "elasticity": 78,
+        "foreign_buy_strength": 82,
+        "volume_confirmation": 72,
+        "validation_credibility": 60,
+        "title_priority": 93,
+        "as_of": "2026-07-28"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=4",
+          "buy_amount=+9.5億"
+        ],
+        "volume_confirmation": [
+          "divergence_shadow_or_offboard"
+        ],
+        "validation_credibility": [
+          "predictions=1, hit_rate=100%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=75.9",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-06-30",
+      "consecutive_foreign_buy_days": 1,
+      "last_foreign_buy_date": "2026-06-30",
+      "history": [
+        {
+          "date": "2026-06-30",
+          "direction": "多",
+          "trigger": "收盤站上 MA20，成交量第 1 名，外資重金押注",
+          "stop_loss": "收盤跌破 26.74 元 (MA20 位置)",
+          "result": "實際 +6.86% → ✅ 命中"
+        }
+      ]
     }
   },
   "2337": {
@@ -558,12 +1525,12 @@
       "唯讀記憶體業"
     ],
     "tracking": {
-      "prediction_count": 2,
-      "hit_count": 2,
-      "hit_rate": "100.0%",
-      "last_recommended": "2026-05-04",
+      "prediction_count": 6,
+      "hit_count": 3,
+      "hit_rate": "50.0%",
+      "last_recommended": "2026-06-29",
       "consecutive_foreign_buy_days": 0,
-      "last_foreign_buy_date": "2026-04-29",
+      "last_foreign_buy_date": "2026-05-28",
       "history": [
         {
           "date": "2026-04-29",
@@ -578,6 +1545,34 @@
           "trigger": "成交量與外資買超雙料第一，毛利改善且營收年增強勁",
           "stop_loss": "收盤跌破一百四十五元",
           "result": "實際 +0.32% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-14",
+          "direction": "多",
+          "trigger": "外資買超 67.6 億與漲停共振，主力攻擊意圖強烈",
+          "stop_loss": "收盤跌破 MA5 或成交量低於一億股",
+          "result": "實際 +0.60% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-28",
+          "direction": "空",
+          "trigger": "外資狂賣 71 億且高位放量不漲，主力撤出傳統儲存標的",
+          "stop_loss": "外資反手回補超過 20 億元",
+          "result": "實際 +2.89% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-29",
+          "direction": "多",
+          "trigger": "大屠殺中唯一的紅燈，外資買超第 1 名且毛利率改善",
+          "stop_loss": "收盤跌破 159.9 元 (MA20 位置)",
+          "result": "實際 -2.46% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-29",
+          "direction": "多",
+          "trigger": "大屠殺中唯一的紅燈，外資買超第 1 名且毛利率改善",
+          "stop_loss": "收盤跌破 159.9 元 (MA20 位置)",
+          "result": "實際 -2.46% → ❌ 失準"
         }
       ]
     },
@@ -586,16 +1581,41 @@
       "label": "題材確認股",
       "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
       "latest_flow_state": "mentioned",
-      "last_observed": "2026-05-06",
+      "last_observed": "2026-08-05",
       "evidence": [
         "sector=AI 儲存基礎設施族群",
         "supply_chain_role=AI 伺服器基礎輸入輸出系統 (BIOS) 高階 Nor Flash 供應商",
         "latest_flow_state=mentioned",
-        "tracking=2 predictions, 2 hits, hit_rate=100.0%",
-        "last_foreign_buy_date=2026-04-29",
+        "tracking=6 predictions, 3 hits, hit_rate=50.0%",
+        "last_foreign_buy_date=2026-05-28",
         "role_rule=theme validation/material/test/BOM marker in local DB"
       ],
-      "reason": "題材確認股；mentioned；歷史驗收 2 次，命中率 100.0%；AI 伺服器基礎輸入輸出系統 (BIOS) 高階 Nor Flash 供應商；佐證: sector=AI 儲存基礎設施族群"
+      "reason": "題材確認股；mentioned；歷史驗收 6 次，命中率 50.0%；AI 伺服器基礎輸入輸出系統 (BIOS) 高階 Nor Flash 供應商；佐證: sector=AI 儲存基礎設施族群；title_priority=32 (E58/F0/V25/C50)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 50,
+        "title_priority": 32,
+        "as_of": "2026-08-05"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=2",
+          "sell_amount=-41.5億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=6, hit_rate=50%, trust=1.00"
+        ],
+        "title_priority": [
+          "weighted=31.5"
+        ]
+      }
     }
   },
   "2891": {
@@ -610,7 +1630,66 @@
     "not_classify_as": [
       "傳統銀行",
       "壽險公司"
-    ]
+    ],
+    "market_role": {
+      "base_role": "defensive_income",
+      "label": "防守收息股",
+      "title_guidance": "適合做風控或防守配置，不宜包裝成攻擊主軸。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-27",
+      "evidence": [
+        "sector=AI 產業資本供應族群",
+        "supply_chain_role=AI 供應鏈擴廠融資、外匯避險與供應鏈金融服務商",
+        "latest_flow_state=mentioned",
+        "tracking=1 predictions, 0 hits, hit_rate=0.0%",
+        "last_foreign_buy_date=2026-05-21"
+      ],
+      "reason": "防守收息股；mentioned；歷史驗收 1 次，命中率 0.0%；AI 供應鏈擴廠融資、外匯避險與供應鏈金融服務商；佐證: sector=AI 產業資本供應族群；title_priority=12 (E18/F0/V25/C40)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 12,
+        "as_of": "2026-07-27"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=defensive_income:28",
+          "defensive_sector_penalty"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=5",
+          "sell_amount=-3.9億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=0%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=16.6",
+          "defensive_title_penalty"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-05-21",
+      "consecutive_foreign_buy_days": 1,
+      "last_foreign_buy_date": "2026-05-21",
+      "history": [
+        {
+          "date": "2026-05-21",
+          "direction": "多",
+          "trigger": "外資買超第二名，量增比 2.06x 且突破 MA20，資金防禦色彩濃厚",
+          "stop_loss": "收盤跌破 54.2 元",
+          "result": "實際 -0.52% → ❌ 失準"
+        }
+      ]
+    }
   },
   "2881": {
     "name": "富邦金",
@@ -624,7 +1703,45 @@
     "not_classify_as": [
       "傳統金融",
       "保險業"
-    ]
+    ],
+    "market_role": {
+      "base_role": "defensive_income",
+      "label": "防守收息股",
+      "title_guidance": "適合做風控或防守配置，不宜包裝成攻擊主軸。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-06-05",
+      "evidence": [
+        "sector=AI 產業資本供應族群",
+        "supply_chain_role=AI 產業股權投資與高科技廠房保險規劃商",
+        "latest_flow_state=mentioned",
+        "tracking=2 predictions, 0 hits, hit_rate=0.0%"
+      ],
+      "reason": "防守收息股；mentioned；歷史驗收 2 次，命中率 0.0%；AI 產業股權投資與高科技廠房保險規劃商；佐證: sector=AI 產業資本供應族群"
+    },
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-05-18",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-11",
+          "direction": "多",
+          "trigger": "外資買超第三名且站穩 MA20，確認條件為明日成交量進前二十且突破 98 元",
+          "stop_loss": "無量跌破 94 元",
+          "result": "實際 -1.24% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-18",
+          "direction": "多",
+          "trigger": "量增比2.56x，外資買超58億，機構級吸籌",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -0.94% → ❌ 失準"
+        }
+      ]
+    }
   },
   "00918": {
     "name": "凱基台灣TOP50",
@@ -651,7 +1768,21 @@
     "not_classify_as": [
       "電視代工廠",
       "顯示器業"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-10",
+      "evidence": [
+        "sector=AI 邊緣終端設備族群",
+        "supply_chain_role=AI 賦能智慧視訊會議系統與邊緣運算顯示裝置代工",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI 賦能智慧視訊會議系統與邊緣運算顯示裝置代工；佐證: sector=AI 邊緣終端設備族群"
+    }
   },
   "1717": {
     "name": "長興",
@@ -665,7 +1796,39 @@
     "not_classify_as": [
       "傳產",
       "合成樹脂業"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-07-07",
+      "evidence": [
+        "sector=AI PCB 材料族群",
+        "supply_chain_role=AI 伺服器高階 PCB 用乾膜光阻與封裝用真空壓膜機供應商",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 0 hits, hit_rate=0.0%",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 1 次，命中率 0.0%；AI 伺服器高階 PCB 用乾膜光阻與封裝用真空壓膜機供應商；佐證: sector=AI PCB 材料族群"
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-07-07",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-07-07",
+          "direction": "多",
+          "trigger": "外資買超第 3 名，量增比 3.09 倍，帶量突破 MA20",
+          "stop_loss": "收盤跌破 75 元",
+          "result": "實際 -9.72% → ❌ 失準"
+        }
+      ]
+    }
   },
   "1301": {
     "name": "台塑",
@@ -680,7 +1843,73 @@
       "傳統塑化業",
       "傳產",
       "建築材料商"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-31",
+      "evidence": [
+        "sector=AI 伺服器基礎材料族群",
+        "supply_chain_role=AI 伺服器用高階 PCB/CCL 電子級環氧樹脂供應商",
+        "latest_flow_state=mentioned",
+        "tracking=2 predictions, 2 hits, hit_rate=100.0%",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；歷史驗收 2 次，命中率 100.0%；AI 伺服器用高階 PCB/CCL 電子級環氧樹脂供應商；佐證: sector=AI 伺服器基礎材料族群；title_priority=49 (E86/F0/V25/C70)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 70,
+        "title_priority": 49,
+        "as_of": "2026-07-31"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=2",
+          "sell_amount=-8.0億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=2, hit_rate=100%, trust=0.40"
+        ],
+        "title_priority": [
+          "weighted=43.3",
+          "elastic_title_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 2,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-07-15",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-06-22",
+          "direction": "多",
+          "trigger": "外資買超 73.6 億且股價 +7.82%，低位權值重估",
+          "stop_loss": "跌回 50 元下方並放量收黑",
+          "result": "實際 +1.35% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-15",
+          "direction": "多",
+          "trigger": "AMD投資案帶動基礎材料實質需求，毛利率上行且外資買超第一，爆量突破MA20完成底部形態",
+          "stop_loss": "收盤跌破今日 MA5",
+          "result": "實際 +3.30% → ✅ 命中"
+        }
+      ]
+    }
   },
   "1326": {
     "name": "台化",
@@ -695,7 +1924,60 @@
       "紡織纖維業",
       "化學工業",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-13",
+      "evidence": [
+        "sector=AI 伺服器高階工程塑料族群",
+        "supply_chain_role=AI 伺服器連接器與內部機構件特種工程塑料供應商",
+        "latest_flow_state=mentioned",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；歷史驗收 1 次，命中率 100.0%；AI 伺服器連接器與內部機構件特種工程塑料供應商；佐證: sector=AI 伺服器高階工程塑料族群；title_priority=37 (E58/F15/V25/C60)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 60,
+        "title_priority": 37,
+        "as_of": "2026-07-13"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=100%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=37.0"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-06-25",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-06-25",
+          "direction": "多",
+          "trigger": "外資默默吸貨，底部型態初現，具備防禦轉攻潛力",
+          "stop_loss": null,
+          "result": "實際 +3.12% → ✅ 命中"
+        }
+      ]
+    }
   },
   "2317": {
     "name": "鴻海",
@@ -713,12 +1995,12 @@
       "消費性電子代工"
     ],
     "tracking": {
-      "prediction_count": 3,
-      "hit_count": 3,
-      "hit_rate": "100.0%",
-      "last_recommended": "2026-05-06",
-      "consecutive_foreign_buy_days": 1,
-      "last_foreign_buy_date": "2026-05-06",
+      "prediction_count": 9,
+      "hit_count": 5,
+      "hit_rate": "55.6%",
+      "last_recommended": "2026-08-07",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": "2026-07-23",
       "history": [
         {
           "date": "2026-04-23",
@@ -740,6 +2022,48 @@
           "trigger": "外資買超金額全市場第一，強勢站上 MA20 且漲幅逾 5%",
           "stop_loss": "收盤跌破 MA20",
           "result": "實際 +5.22% → ✅ 命中"
+        },
+        {
+          "date": "2026-05-12",
+          "direction": "多",
+          "trigger": "外資連續暗室建倉，買超金額巨大但成交量尚未失控",
+          "stop_loss": "回跌破 MA20",
+          "result": "實際 -0.79% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-26",
+          "direction": "多",
+          "trigger": "外資重金護盤站穩 MA20，預期 2 週內挑戰 280 元壓力區",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 -0.77% → ❌ 失準"
+        },
+        {
+          "date": "2026-05-28",
+          "direction": "多",
+          "trigger": "影子建倉 51.8 億，佈局下一波 AI 伺服器整機出貨潮",
+          "stop_loss": "跌破 MA20",
+          "result": "實際 -0.38% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-22",
+          "direction": "多",
+          "trigger": "外資買超 55.7 億全市場第一，AI 伺服器營收增長強勁且市場尚未過熱",
+          "stop_loss": "收盤跌破 MA20 (240 元)",
+          "result": "實際 +2.24% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-23",
+          "direction": "多",
+          "trigger": "外資連續兩日影子建倉，金額全台之冠卻不驚動成交榜，高品質吃貨",
+          "stop_loss": "收盤跌破 MA20 元",
+          "result": "實際 +2.39% → ✅ 命中"
+        },
+        {
+          "date": "2026-08-07",
+          "direction": "多",
+          "trigger": "外資買超全市場第一，受惠 AI 伺服器整機代工訂單展望，且量平守住 MA20",
+          "stop_loss": "收盤跌破 245 元",
+          "result": "實際 -1.70% → ❌ 失準"
         }
       ]
     },
@@ -747,17 +2071,43 @@
       "base_role": "direction_indicator",
       "label": "方向指標股",
       "title_guidance": "適合用來確認資金方向，不宜包裝成最大彈性飆股。",
-      "latest_flow_state": "foreign_buy_focus",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-10",
       "evidence": [
         "sector=AI 伺服器垂直整合龍頭",
         "supply_chain_role=AI 伺服器整機代工與系統集成 (Tier 1 整合商)",
-        "latest_flow_state=foreign_buy_focus",
-        "tracking=3 predictions, 3 hits, hit_rate=100.0%",
-        "last_foreign_buy_date=2026-05-06",
+        "latest_flow_state=mentioned",
+        "tracking=9 predictions, 5 hits, hit_rate=55.6%",
+        "last_foreign_buy_date=2026-07-23",
         "role_rule=large-cap/core-or-vertical-integration marker in local DB"
       ],
-      "reason": "方向指標股；foreign_buy_focus；歷史驗收 3 次，命中率 100.0%；AI 伺服器整機代工與系統集成 (Tier 1 整合商)；佐證: sector=AI 伺服器垂直整合龍頭"
+      "reason": "方向指標股；mentioned；歷史驗收 9 次，命中率 55.6%；AI 伺服器整機代工與系統集成 (Tier 1 整合商)；佐證: sector=AI 伺服器垂直整合龍頭；title_priority=20 (E22/F81/V25/C56)",
+      "scores": {
+        "elasticity": 22,
+        "foreign_buy_strength": 81,
+        "volume_confirmation": 25,
+        "validation_credibility": 56,
+        "title_priority": 20,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=direction_indicator:22",
+          "mega_cap_direction_cap"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=5",
+          "buy_amount=+20.9億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=9, hit_rate=56%, trust=1.00"
+        ],
+        "title_priority": [
+          "weighted=43.9",
+          "direction_indicator_title_penalty"
+        ]
+      }
     }
   },
   "2402": {
@@ -773,7 +2123,21 @@
       "按鍵廠",
       "傳產",
       "傳統電子零件廠"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-16",
+      "evidence": [
+        "sector=車載與通訊軟板族群",
+        "supply_chain_role=高階車用電子與 AIoT 通訊設備軟板供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；高階車用電子與 AIoT 通訊設備軟板供應商；佐證: sector=車載與通訊軟板族群"
+    }
   },
   "3037": {
     "name": "欣興",
@@ -788,68 +2152,125 @@
       "PCB 印刷電路板",
       "電路板廠",
       "傳產"
-    ]
-  },
-  "2301": {
-    "name": "光寶科",
-    "sector": "AI 伺服器電源管理族群",
-    "supply_chain_role": "AI 伺服器高功率電源供應器與液冷解決方案供應商",
-    "key_products": [
-      "AI 伺服器專用 5.5kW 以上高階電源系統",
-      "浸沒式液冷散熱系統"
     ],
-    "ai_connection": "直供 AI 伺服器機櫃所需的高功率電源模組，並整合液冷散熱技術，解決 AI 運算過程中的極端功耗與散熱痛點。",
-    "not_classify_as": [
-      "筆電電源廠",
-      "LED 代工廠",
-      "傳產"
-    ],
-    "tracking": {
-      "prediction_count": 3,
-      "hit_count": 1,
-      "hit_rate": "33.3%",
-      "last_recommended": "2026-04-23",
-      "consecutive_foreign_buy_days": 0,
-      "last_foreign_buy_date": "2026-04-22",
-      "history": [
-        {
-          "date": "2026-04-22",
-          "direction": "多",
-          "trigger": "量增 1.66 倍且外資買 31.8 億，突破 MA20 位階切換",
-          "stop_loss": "收盤跌破 163.7 元 (MA5)",
-          "result": "實際 +2.62% → ✅ 命中"
-        },
-        {
-          "date": "2026-04-23",
-          "direction": "多",
-          "trigger": "外資單日大買 26.5 億，帶量突破 MA20 關鍵壓力，RSI 進入攻擊區",
-          "stop_loss": "收盤跌破 163.7 元",
-          "result": "實際 -6.53% → ❌ 失準"
-        },
-        {
-          "date": "2026-04-23",
-          "direction": "多",
-          "trigger": "外資單日大買 26.5 億，帶量突破 MA20 關鍵壓力，RSI 進入攻擊區",
-          "stop_loss": "收盤跌破 163.7 元",
-          "result": "實際 -6.53% → ❌ 失準"
-        }
-      ]
-    },
     "market_role": {
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "foreign_buy_focus",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-05",
       "evidence": [
-        "sector=AI 伺服器電源管理族群",
-        "supply_chain_role=AI 伺服器高功率電源供應器與液冷解決方案供應商",
-        "latest_flow_state=foreign_buy_focus",
-        "tracking=3 predictions, 1 hits, hit_rate=33.3%",
-        "last_foreign_buy_date=2026-04-22",
+        "sector=AI 高階封裝載板族群",
+        "supply_chain_role=AI 處理器 (GPU/ASIC) 核心 ABF 載板關鍵供應商",
+        "latest_flow_state=mentioned",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；foreign_buy_focus；歷史驗收 3 次，命中率 33.3%；AI 伺服器高功率電源供應器與液冷解決方案供應商；佐證: sector=AI 伺服器電源管理族群"
+      "reason": "彈性攻擊股；mentioned；AI 處理器 (GPU/ASIC) 核心 ABF 載板關鍵供應商；佐證: sector=AI 高階封裝載板族群；title_priority=87 (E86/F100/V25/C40)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 100,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 87,
+        "as_of": "2026-08-05"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=4",
+          "buy_amount=+84.4億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=70.3",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
+    }
+  },
+  "2301": {
+    "name": "光寶科",
+    "sector": "AI 伺服器電力系統與冷卻族群",
+    "supply_chain_role": "AI 伺服器高階電源轉換與機櫃級解決方案商",
+    "key_products": [
+      "5.5KW 高階電源供應器",
+      "液冷系統（Sidecar）",
+      "電源分配單元 (PDU)"
+    ],
+    "ai_connection": "主要提供 AI 伺服器機櫃（Rack）級之電力轉換系統，並切入液冷系統測試與整合，成功由傳統 PC 電源廠轉型為 AI 數據中心核心基礎設施供應商。",
+    "not_classify_as": [
+      "LED 封裝廠",
+      "電腦鍵盤滑鼠供應商",
+      "傳統電子零件"
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-08-06",
+      "evidence": [
+        "sector=AI 伺服器電力系統與冷卻族群",
+        "supply_chain_role=AI 伺服器高階電源轉換與機櫃級解決方案商",
+        "latest_flow_state=validated_previous_target",
+        "tracking=2 predictions, 1 hits, hit_rate=50.0%",
+        "last_foreign_buy_date=2026-08-05",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 2 次，命中率 50.0%；AI 伺服器高階電源轉換與機櫃級解決方案商；佐證: sector=AI 伺服器電力系統與冷卻族群；title_priority=48 (E78/F15/V25/C50)",
+      "scores": {
+        "elasticity": 78,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 50,
+        "title_priority": 48,
+        "as_of": "2026-08-06"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=2, hit_rate=50%, trust=0.40"
+        ],
+        "title_priority": [
+          "weighted=43.0",
+          "elastic_title_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 1,
+      "hit_rate": "50.0%",
+      "last_recommended": "2026-08-06",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": "2026-08-05",
+      "history": [
+        {
+          "date": "2026-08-05",
+          "direction": "多",
+          "trigger": "外資買超第 2 名但市場熱度尚未過熱，法人吸籌跡象明顯，配合 AI 伺服器高階電源需求具補漲潛力",
+          "stop_loss": "收盤跌破 MA5",
+          "result": "實際 -1.19% → ❌ 失準"
+        },
+        {
+          "date": "2026-08-06",
+          "direction": "多",
+          "trigger": "量增比達 2.07 倍且外資連兩日建倉 74 億元，站穩 MA20 強勢整理",
+          "stop_loss": "收盤跌破 225 元",
+          "result": "實際 +1.41% → ✅ 命中"
+        }
+      ]
     }
   },
   "00919": {
@@ -870,14 +2291,40 @@
       "label": "資金載體",
       "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
       "latest_flow_state": "mentioned",
-      "last_observed": "2026-05-06",
+      "last_observed": "2026-07-31",
       "evidence": [
         "sector=科技權重資本組合族群",
         "supply_chain_role=台股 AI 科技產業鏈高息資本聚合平台",
         "latest_flow_state=mentioned",
         "role_rule=ETF/capital vehicle stock id or sector marker"
       ],
-      "reason": "資金載體；mentioned；台股 AI 科技產業鏈高息資本聚合平台；佐證: sector=科技權重資本組合族群"
+      "reason": "資金載體；mentioned；台股 AI 科技產業鏈高息資本聚合平台；佐證: sector=科技權重資本組合族群；title_priority=7 (E18/F0/V25/C40)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 7,
+        "as_of": "2026-07-31"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=capital_vehicle:18",
+          "etf_or_vehicle_cap"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=4",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=16.6",
+          "vehicle_title_penalty"
+        ]
+      }
     }
   },
   "009816": {
@@ -898,7 +2345,7 @@
       "label": "資金載體",
       "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
       "latest_flow_state": "mentioned",
-      "last_observed": "2026-05-06",
+      "last_observed": "2026-06-15",
       "evidence": [
         "sector=核心科技龍頭權重族群",
         "supply_chain_role=台股 AI 半導體與伺服器龍頭股權資本載體",
@@ -922,7 +2369,66 @@
       "傳統記憶體封測",
       "封裝測試代工",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-30",
+      "evidence": [
+        "sector=AI 先進封裝族群",
+        "supply_chain_role=AI 伺服器 HBM 高頻寬記憶體封裝與測試",
+        "latest_flow_state=mentioned",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；歷史驗收 1 次，命中率 100.0%；AI 伺服器 HBM 高頻寬記憶體封裝與測試；佐證: sector=AI 先進封裝族群；title_priority=47 (E86/F0/V25/C60)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 60,
+        "title_priority": 47,
+        "as_of": "2026-07-30"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=5",
+          "sell_amount=-14.1億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=100%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=42.3",
+          "elastic_title_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-05-18",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-18",
+          "direction": "多",
+          "trigger": "量增比2.32x，外資買超38億，逆勢大漲獲法人認可",
+          "stop_loss": "收盤跌破二百三十元",
+          "result": "實際 +0.81% → ✅ 命中"
+        }
+      ]
+    }
   },
   "1711": {
     "name": "永光",
@@ -938,7 +2444,21 @@
       "染料化工業",
       "塗料供應商",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-14",
+      "evidence": [
+        "sector=AI 半導體關鍵化學材料族群",
+        "supply_chain_role=AI 晶片先進封裝光阻劑供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI 晶片先進封裝光阻劑供應商；佐證: sector=AI 半導體關鍵化學材料族群"
+    }
   },
   "2883": {
     "name": "凱基金",
@@ -953,7 +2473,61 @@
     "not_classify_as": [
       "AI 供應鏈",
       "科技股"
-    ]
+    ],
+    "market_role": {
+      "base_role": "defensive_income",
+      "label": "防守收息股",
+      "title_guidance": "適合做風控或防守配置，不宜包裝成攻擊主軸。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-07-08",
+      "evidence": [
+        "sector=金融服務族群",
+        "supply_chain_role=金融中介與資產管理",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%"
+      ],
+      "reason": "防守收息股；validated_previous_target；歷史驗收 1 次，命中率 100.0%；金融中介與資產管理；佐證: sector=金融服務族群；title_priority=17 (E18/F15/V25/C60)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 60,
+        "title_priority": 17,
+        "as_of": "2026-07-08"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=defensive_income:28",
+          "defensive_sector_penalty"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=100%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=23.1",
+          "defensive_title_penalty"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-07-08",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-07-08",
+          "direction": "多",
+          "trigger": "避險資金流向明確，且今日長紅棒具備指標意義",
+          "stop_loss": "收盤跌破 28.5 元",
+          "result": "實際 +1.99% → ✅ 命中"
+        }
+      ]
+    }
   },
   "6005": {
     "name": "群益證",
@@ -998,7 +2572,47 @@
       "傳統二極體廠",
       "消費電子零組件",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-23",
+      "evidence": [
+        "sector=AI 伺服器電源關鍵元件族群",
+        "supply_chain_role=伺服器電源供應器 (PSU) 之高壓功率半導體封測",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；伺服器電源供應器 (PSU) 之高壓功率半導體封測；佐證: sector=AI 伺服器電源關鍵元件族群；title_priority=42 (E78/F0/V25/C40)",
+      "scores": {
+        "elasticity": 78,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 42,
+        "as_of": "2026-07-23"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=5",
+          "sell_amount=-11.6億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=37.5",
+          "elastic_title_boost"
+        ]
+      }
+    }
   },
   "00878": {
     "name": "國泰永續高股息",
@@ -1013,7 +2627,21 @@
       "一般共同基金",
       "防禦型定存股",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "capital_vehicle",
+      "label": "資金載體",
+      "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
+      "latest_flow_state": "foreign_buy_focus",
+      "last_observed": "2026-04-17",
+      "evidence": [
+        "sector=AI 權值股資金配置族群",
+        "supply_chain_role=AI 供應鏈核心企業之二級市場資本提供者",
+        "latest_flow_state=foreign_buy_focus",
+        "role_rule=ETF/capital vehicle stock id or sector marker"
+      ],
+      "reason": "資金載體；foreign_buy_focus；AI 供應鏈核心企業之二級市場資本提供者；佐證: sector=AI 權值股資金配置族群"
+    }
   },
   "1528": {
     "name": "恩德",
@@ -1042,7 +2670,21 @@
     "not_classify_as": [
       "傳統價值投資工具",
       "傳產資金池"
-    ]
+    ],
+    "market_role": {
+      "base_role": "capital_vehicle",
+      "label": "資金載體",
+      "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
+      "latest_flow_state": "foreign_buy_focus",
+      "last_observed": "2026-05-08",
+      "evidence": [
+        "sector=AI 高殖利率龍頭資金族群",
+        "supply_chain_role=AI 關鍵零組件與系統整合廠之資本賦能者",
+        "latest_flow_state=foreign_buy_focus",
+        "role_rule=ETF/capital vehicle stock id or sector marker"
+      ],
+      "reason": "資金載體；foreign_buy_focus；AI 關鍵零組件與系統整合廠之資本賦能者；佐證: sector=AI 高殖利率龍頭資金族群"
+    }
   },
   "3714": {
     "name": "富采",
@@ -1058,7 +2700,21 @@
       "傳統 LED 照明",
       "面板背光廠",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-16",
+      "evidence": [
+        "sector=AI 高速光通訊元件族群",
+        "supply_chain_role=AI 數據中心光連結 (Optical Interconnect) 之光源封裝",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI 數據中心光連結 (Optical Interconnect) 之光源封裝；佐證: sector=AI 高速光通訊元件族群"
+    }
   },
   "00929": {
     "name": "復華台灣科技優息",
@@ -1072,7 +2728,21 @@
     "not_classify_as": [
       "平衡型基金",
       "綜合型 ETF"
-    ]
+    ],
+    "market_role": {
+      "base_role": "capital_vehicle",
+      "label": "資金載體",
+      "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-27",
+      "evidence": [
+        "sector=純科技 AI 產業鏈資金族群",
+        "supply_chain_role=AI 中下游電子零組件供應商之資本加速器",
+        "latest_flow_state=mentioned",
+        "role_rule=ETF/capital vehicle stock id or sector marker"
+      ],
+      "reason": "資金載體；mentioned；AI 中下游電子零組件供應商之資本加速器；佐證: sector=純科技 AI 產業鏈資金族群"
+    }
   },
   "2834": {
     "name": "臺企銀",
@@ -1103,7 +2773,21 @@
       "筆電代工業",
       "傳統 PC 製造",
       "消費性電子組裝"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-05-21",
+      "evidence": [
+        "sector=AI 伺服器系統組裝族群",
+        "supply_chain_role=AI 伺服器 L10/L11 系統整合與散熱模組開發商",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI 伺服器 L10/L11 系統整合與散熱模組開發商；佐證: sector=AI 伺服器系統組裝族群"
+    }
   },
   "3045": {
     "name": "台灣大",
@@ -1119,7 +2803,45 @@
       "傳統電信服務",
       "手機門號商",
       "傳產零售"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-24",
+      "evidence": [
+        "sector=AI 數位基礎設施與雲端服務族群",
+        "supply_chain_role=AI 雲端運算算力與資料中心基礎設施服務商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI 雲端運算算力與資料中心基礎設施服務商；佐證: sector=AI 數位基礎設施與雲端服務族群；title_priority=55 (E58/F82/V25/C40)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 82,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 55,
+        "as_of": "2026-07-24"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=4",
+          "buy_amount=+10.2億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=55.1"
+        ]
+      }
+    }
   },
   "4938": {
     "name": "和碩",
@@ -1151,7 +2873,46 @@
       "傳統銀行",
       "保險公司",
       "傳產金融"
-    ]
+    ],
+    "market_role": {
+      "base_role": "defensive_income",
+      "label": "防守收息股",
+      "title_guidance": "適合做風控或防守配置，不宜包裝成攻擊主軸。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-07",
+      "evidence": [
+        "sector=金融服務與數位轉型資產族群",
+        "supply_chain_role=高科技產業發展與 AI 供應鏈投融資平台",
+        "latest_flow_state=mentioned"
+      ],
+      "reason": "防守收息股；mentioned；高科技產業發展與 AI 供應鏈投融資平台；佐證: sector=金融服務與數位轉型資產族群；title_priority=28 (E18/F71/V25/C40)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 71,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 28,
+        "as_of": "2026-08-07"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=defensive_income:28",
+          "defensive_sector_penalty"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=5",
+          "buy_amount=+5.0億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=37.9",
+          "defensive_title_penalty"
+        ]
+      }
+    }
   },
   "3715": {
     "name": "定穎投控",
@@ -1167,7 +2928,21 @@
       "傳統車用電子",
       "低階 PCB 廠",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "foreign_sell_risk",
+      "last_observed": "2026-04-20",
+      "evidence": [
+        "sector=AI PCB 高階材料族群",
+        "supply_chain_role=AI 伺服器加速器與高階控制板 HDI 供應商",
+        "latest_flow_state=foreign_sell_risk",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；foreign_sell_risk；AI 伺服器加速器與高階控制板 HDI 供應商；佐證: sector=AI PCB 高階材料族群"
+    }
   },
   "2371": {
     "name": "大同",
@@ -1260,7 +3035,21 @@
       "電線電纜業",
       "鋼鐵廠",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "foreign_sell_risk",
+      "last_observed": "2026-05-08",
+      "evidence": [
+        "sector=綠能電力基礎建設族群",
+        "supply_chain_role=AI 數據中心電力傳輸系統與儲能用特殊合金供應商",
+        "latest_flow_state=foreign_sell_risk",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；foreign_sell_risk；AI 數據中心電力傳輸系統與儲能用特殊合金供應商；佐證: sector=綠能電力基礎建設族群"
+    }
   },
   "4906": {
     "name": "正文",
@@ -1275,7 +3064,21 @@
     "not_classify_as": [
       "無線路由器代工",
       "低階網通"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-05-08",
+      "evidence": [
+        "sector=AI 高速網絡通訊族群",
+        "supply_chain_role=AI 數據中心高速光傳輸交換器與網路接取設備 OEM/RD 供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI 數據中心高速光傳輸交換器與網路接取設備 OEM/RD 供應商；佐證: sector=AI 高速網絡通訊族群"
+    }
   },
   "1402": {
     "name": "遠東新",
@@ -1306,7 +3109,21 @@
     "not_classify_as": [
       "租賃業",
       "銀行業"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "foreign_sell_risk",
+      "last_observed": "2026-06-16",
+      "evidence": [
+        "sector=綠能與數位轉型設備融資族群",
+        "supply_chain_role=AI算力中心與綠能基建之資產開發與融資供應服務",
+        "latest_flow_state=foreign_sell_risk",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；foreign_sell_risk；AI算力中心與綠能基建之資產開發與融資供應服務；佐證: sector=綠能與數位轉型設備融資族群"
+    }
   },
   "2884": {
     "name": "玉山金",
@@ -1321,7 +3138,46 @@
     "not_classify_as": [
       "傳統金融業",
       "存放款機構"
-    ]
+    ],
+    "market_role": {
+      "base_role": "defensive_income",
+      "label": "防守收息股",
+      "title_guidance": "適合做風控或防守配置，不宜包裝成攻擊主軸。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-20",
+      "evidence": [
+        "sector=Fintech 算力金融族群",
+        "supply_chain_role=AI 數據模型演算與金融科技應用架構",
+        "latest_flow_state=mentioned"
+      ],
+      "reason": "防守收息股；mentioned；AI 數據模型演算與金融科技應用架構；佐證: sector=Fintech 算力金融族群；title_priority=29 (E18/F73/V25/C40)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 73,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 29,
+        "as_of": "2026-07-20"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=defensive_income:28",
+          "defensive_sector_penalty"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=5",
+          "buy_amount=+8.6億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=38.5",
+          "defensive_title_penalty"
+        ]
+      }
+    }
   },
   "2105": {
     "name": "正新",
@@ -1363,7 +3219,84 @@
     "not_classify_as": [
       "航空觀光",
       "交通運輸"
-    ]
+    ],
+    "market_role": {
+      "base_role": "indirect_infrastructure",
+      "label": "間接受惠基建股",
+      "title_guidance": "適合放在專題延伸，不宜說成 AI 伺服器核心 BOM 個股。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-07",
+      "evidence": [
+        "sector=AI 供應鏈高價值物流族群",
+        "supply_chain_role=AI 高階晶片與伺服器整機全球限時物流載體",
+        "latest_flow_state=mentioned",
+        "tracking=4 predictions, 1 hits, hit_rate=25.0%",
+        "last_foreign_buy_date=2026-07-29"
+      ],
+      "reason": "間接受惠基建股；mentioned；歷史驗收 4 次，命中率 25.0%；AI 高階晶片與伺服器整機全球限時物流載體；佐證: sector=AI 供應鏈高價值物流族群；title_priority=52 (E45/F90/V25/C30)",
+      "scores": {
+        "elasticity": 45,
+        "foreign_buy_strength": 90,
+        "volume_confirmation": 25,
+        "validation_credibility": 30,
+        "title_priority": 52,
+        "as_of": "2026-08-07"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=indirect_infrastructure:45"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=3",
+          "buy_amount=+9.8億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=4, hit_rate=25%, trust=0.80"
+        ],
+        "title_priority": [
+          "weighted=52.0"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 4,
+      "hit_count": 1,
+      "hit_rate": "25.0%",
+      "last_recommended": "2026-07-29",
+      "consecutive_foreign_buy_days": 1,
+      "last_foreign_buy_date": "2026-07-29",
+      "history": [
+        {
+          "date": "2026-06-18",
+          "direction": "多",
+          "trigger": "爆量突破 MA20 第一天，外資買超第 2 名且籌碼極度集中",
+          "stop_loss": "收盤跌破 MA20 出場",
+          "result": "實際 -0.00% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-18",
+          "direction": "多",
+          "trigger": "爆量突破 MA20 第一天，外資買超第 2 名且籌碼極度集中",
+          "stop_loss": "收盤跌破 MA20 出場",
+          "result": "實際 -0.00% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-14",
+          "direction": "多",
+          "trigger": "外資買超 23.6 億元，屬穩定資金避風港且逆勢抗跌",
+          "stop_loss": "收盤跌破 39.5 元",
+          "result": "實際 +0.12% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-29",
+          "direction": "多",
+          "trigger": "外資買超第 1 名，逆勢量增收紅且守住 MA20，具基本面改善與避險屬性",
+          "stop_loss": "收盤跌破 41.25 元",
+          "result": "實際 -3.04% → ❌ 失準"
+        }
+      ]
+    }
   },
   "2312": {
     "name": "金寶",
@@ -1378,7 +3311,21 @@
     "not_classify_as": [
       "消費性電子代工",
       "印表機廠商"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-05-22",
+      "evidence": [
+        "sector=AI 伺服器基礎設施族群",
+        "supply_chain_role=AI 伺服器電源分配單元 (PDU) 與液冷機殼組裝",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI 伺服器電源分配單元 (PDU) 與液冷機殼組裝；佐證: sector=AI 伺服器基礎設施族群"
+    }
   },
   "8150": {
     "name": "南茂",
@@ -1392,7 +3339,73 @@
     "not_classify_as": [
       "面板驅動 IC 封測",
       "傳統封測廠"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-22",
+      "evidence": [
+        "sector=AI 半導體封測族群",
+        "supply_chain_role=HBM 高頻寬記憶體與 DDR5 高速介面封裝測試",
+        "latest_flow_state=mentioned",
+        "tracking=2 predictions, 0 hits, hit_rate=0.0%",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；歷史驗收 2 次，命中率 0.0%；HBM 高頻寬記憶體與 DDR5 高速介面封裝測試；佐證: sector=AI 半導體封測族群；title_priority=44 (E86/F0/V25/C30)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 30,
+        "title_priority": 44,
+        "as_of": "2026-07-22"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=2",
+          "sell_amount=-15.1億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=2, hit_rate=0%, trust=0.40"
+        ],
+        "title_priority": [
+          "weighted=39.3",
+          "elastic_title_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-06-29",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-06-29",
+          "direction": "多",
+          "trigger": "外資買超第 2 名，具備 AI 半導體封測轉機，量能尚未失控",
+          "stop_loss": "收盤跌破 97 元",
+          "result": "實際 -7.18% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-29",
+          "direction": "多",
+          "trigger": "外資買超第 2 名，具備 AI 半導體封測轉機，量能尚未失控",
+          "stop_loss": "收盤跌破 97 元",
+          "result": "實際 -7.18% → ❌ 失準"
+        }
+      ]
+    }
   },
   "00830": {
     "name": "國泰費城半導體",
@@ -1453,7 +3466,47 @@
     "not_classify_as": [
       "AI 族群",
       "科技業"
-    ]
+    ],
+    "market_role": {
+      "base_role": "defensive_income",
+      "label": "防守收息股",
+      "title_guidance": "適合做風控或防守配置，不宜包裝成攻擊主軸。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-10",
+      "evidence": [
+        "sector=金融服務族群",
+        "supply_chain_role=外匯與大型企業融資特許金融機構",
+        "latest_flow_state=mentioned"
+      ],
+      "reason": "防守收息股；mentioned；外匯與大型企業融資特許金融機構；佐證: sector=金融服務族群；title_priority=12 (E18/F0/V25/C40)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 12,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=defensive_income:28",
+          "defensive_sector_penalty"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=5",
+          "sell_amount=-5.4億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=16.6",
+          "defensive_title_penalty"
+        ]
+      }
+    }
   },
   "1102": {
     "name": "亞泥",
@@ -1497,7 +3550,61 @@
     "not_classify_as": [
       "傳統軟板基板",
       "消費性電子零組件"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-07-27",
+      "evidence": [
+        "sector=AI 伺服器高頻傳輸軟板材料族群",
+        "supply_chain_role=AI 伺服器內部高速傳輸用極低損耗軟板基板 (FCCL)",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 0 hits, hit_rate=0.0%",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 1 次，命中率 0.0%；AI 伺服器內部高速傳輸用極低損耗軟板基板 (FCCL)；佐證: sector=AI 伺服器高頻傳輸軟板材料族群；title_priority=47 (E78/F15/V25/C40)",
+      "scores": {
+        "elasticity": 78,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 47,
+        "as_of": "2026-07-27"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=0%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=42.0",
+          "elastic_title_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-07-27",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-07-27",
+          "direction": "多",
+          "trigger": "外資買超全台亞軍但成交量未過度放大，屬影子建倉，具爆發潛力",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -10.00% → ❌ 失準"
+        }
+      ]
+    }
   },
   "009820": {
     "name": "元大納斯達克精選",
@@ -1533,15 +3640,60 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "formal_prediction_target",
-      "last_observed": "2026-05-07",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-13",
       "evidence": [
         "sector=AI伺服器ODM族群",
         "supply_chain_role=AI伺服器與AI加速器模組設計製造商",
-        "latest_flow_state=formal_prediction_target",
+        "latest_flow_state=mentioned",
+        "tracking=1 predictions, 0 hits, hit_rate=0.0%",
         "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
       ],
-      "reason": "彈性攻擊股；formal_prediction_target；AI伺服器與AI加速器模組設計製造商；佐證: sector=AI伺服器ODM族群"
+      "reason": "彈性攻擊股；mentioned；歷史驗收 1 次，命中率 0.0%；AI伺服器與AI加速器模組設計製造商；佐證: sector=AI伺服器ODM族群；title_priority=45 (E86/F0/V25/C40)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 45,
+        "as_of": "2026-07-13"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=5",
+          "sell_amount=-17.2億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=0%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=40.3",
+          "elastic_title_boost"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-05-08",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-08",
+          "direction": "多",
+          "trigger": "外資買超第二且剛站上MA20，法人買超具備隱蔽性",
+          "stop_loss": "收盤跌破MA20",
+          "result": "實際 -0.80% → ❌ 失準"
+        }
+      ]
     }
   },
   "2485": {
@@ -1558,7 +3710,21 @@
     "not_classify_as": [
       "AI網通零組件供應商",
       "AI伺服器內部網路模組"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-27",
+      "evidence": [
+        "sector=網通設備族群",
+        "supply_chain_role=寬頻通訊與無線網路設備供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；寬頻通訊與無線網路設備供應商；佐證: sector=網通設備族群"
+    }
   },
   "3702": {
     "name": "大聯大",
@@ -1574,7 +3740,21 @@
     "not_classify_as": [
       "貿易商",
       "傳統電子代理商"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-27",
+      "evidence": [
+        "sector=電子零組件通路族群",
+        "supply_chain_role=AI相關電子零組件整合性通路服務商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI相關電子零組件整合性通路服務商；佐證: sector=電子零組件通路族群"
+    }
   },
   "2882": {
     "name": "國泰金",
@@ -1591,7 +3771,73 @@
     "not_classify_as": [
       "AI科技公司",
       "AI軟體服務商"
-    ]
+    ],
+    "market_role": {
+      "base_role": "defensive_income",
+      "label": "防守收息股",
+      "title_guidance": "適合做風控或防守配置，不宜包裝成攻擊主軸。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-06",
+      "evidence": [
+        "sector=金融保險族群",
+        "supply_chain_role=綜合性金融服務提供者",
+        "latest_flow_state=mentioned",
+        "tracking=2 predictions, 1 hits, hit_rate=50.0%",
+        "last_foreign_buy_date=2026-07-01"
+      ],
+      "reason": "防守收息股；mentioned；歷史驗收 2 次，命中率 50.0%；綜合性金融服務提供者；佐證: sector=金融保險族群；title_priority=13 (E18/F0/V25/C50)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 50,
+        "title_priority": 13,
+        "as_of": "2026-08-06"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=defensive_income:28",
+          "defensive_sector_penalty"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=5",
+          "sell_amount=-8.0億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=2, hit_rate=50%, trust=0.40"
+        ],
+        "title_priority": [
+          "weighted=17.6",
+          "defensive_title_penalty"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 1,
+      "hit_rate": "50.0%",
+      "last_recommended": "2026-07-01",
+      "consecutive_foreign_buy_days": 1,
+      "last_foreign_buy_date": "2026-07-01",
+      "history": [
+        {
+          "date": "2026-06-05",
+          "direction": "多",
+          "trigger": "外資買超第 2 名且股價逆勢漲，展現抗跌性與法人支撐",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +5.93% → ✅ 命中"
+        },
+        {
+          "date": "2026-07-01",
+          "direction": "多",
+          "trigger": "股價重挫但法人狂撈，量增比2.05倍之極端洗盤訊號",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -3.36% → ❌ 失準"
+        }
+      ]
+    }
   },
   "2002": {
     "name": "中鋼",
@@ -1608,7 +3854,20 @@
     "not_classify_as": [
       "AI伺服器結構件供應商",
       "AI設備關鍵材料廠"
-    ]
+    ],
+    "market_role": {
+      "base_role": "indirect_infrastructure",
+      "label": "間接受惠基建股",
+      "title_guidance": "適合放在專題延伸，不宜說成 AI 伺服器核心 BOM 個股。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-27",
+      "evidence": [
+        "sector=鋼鐵產業族群",
+        "supply_chain_role=綜合鋼鐵材料製造商",
+        "latest_flow_state=mentioned"
+      ],
+      "reason": "間接受惠基建股；mentioned；綜合鋼鐵材料製造商；佐證: sector=鋼鐵產業族群"
+    }
   },
   "2885": {
     "name": "元大金",
@@ -1625,7 +3884,46 @@
     "not_classify_as": [
       "AI科技股",
       "AI概念股"
-    ]
+    ],
+    "market_role": {
+      "base_role": "defensive_income",
+      "label": "防守收息股",
+      "title_guidance": "適合做風控或防守配置，不宜包裝成攻擊主軸。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-21",
+      "evidence": [
+        "sector=金融證券族群",
+        "supply_chain_role=綜合性金融服務提供者",
+        "latest_flow_state=mentioned"
+      ],
+      "reason": "防守收息股；mentioned；綜合性金融服務提供者；佐證: sector=金融證券族群；title_priority=32 (E18/F85/V25/C40)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 85,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 32,
+        "as_of": "2026-07-21"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=defensive_income:28",
+          "defensive_sector_penalty"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=4",
+          "buy_amount=+14.6億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=42.0",
+          "defensive_title_penalty"
+        ]
+      }
+    }
   },
   "1101": {
     "name": "台泥",
@@ -1641,7 +3939,44 @@
     "not_classify_as": [
       "AI數據中心建材供應商",
       "AI電池供應鏈核心成員"
-    ]
+    ],
+    "market_role": {
+      "base_role": "indirect_infrastructure",
+      "label": "間接受惠基建股",
+      "title_guidance": "適合放在專題延伸，不宜說成 AI 伺服器核心 BOM 個股。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-28",
+      "evidence": [
+        "sector=水泥及能源族群",
+        "supply_chain_role=水泥建材及能源解決方案供應商",
+        "latest_flow_state=mentioned"
+      ],
+      "reason": "間接受惠基建股；mentioned；水泥建材及能源解決方案供應商；佐證: sector=水泥及能源族群；title_priority=47 (E45/F71/V25/C40)",
+      "scores": {
+        "elasticity": 45,
+        "foreign_buy_strength": 71,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 47,
+        "as_of": "2026-07-28"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=indirect_infrastructure:45"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=5",
+          "buy_amount=+4.4億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=47.3"
+        ]
+      }
+    }
   },
   "009819": {
     "name": "中信數據及電力",
@@ -1655,7 +3990,21 @@
       "AI伺服器零組件製造商",
       "AI硬體供應商",
       "AI供應鏈實體公司"
-    ]
+    ],
+    "market_role": {
+      "base_role": "capital_vehicle",
+      "label": "資金載體",
+      "title_guidance": "適合描述資金流向或 ETF 熱度，不應當成單一個股爆發故事。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-04-27",
+      "evidence": [
+        "sector=指數股票型基金 (ETF) - 主題型",
+        "supply_chain_role=追蹤數據與電力基礎設施產業鏈表現的投資工具",
+        "latest_flow_state=mentioned",
+        "role_rule=ETF/capital vehicle stock id or sector marker"
+      ],
+      "reason": "資金載體；mentioned；追蹤數據與電力基礎設施產業鏈表現的投資工具；佐證: sector=指數股票型基金 (ETF) - 主題型"
+    }
   },
   "2412": {
     "name": "中華電",
@@ -1671,7 +4020,75 @@
       "電信業",
       "定存股",
       "公共事業"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-07-30",
+      "evidence": [
+        "sector=AI 雲端算力基礎建設族群",
+        "supply_chain_role=AI 數據中心 (IDC) 與高效能算力代管服務商",
+        "latest_flow_state=validated_previous_target",
+        "tracking=3 predictions, 0 hits, hit_rate=0.0%",
+        "last_foreign_buy_date=2026-07-30",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；validated_previous_target；歷史驗收 3 次，命中率 0.0%；AI 數據中心 (IDC) 與高效能算力代管服務商；佐證: sector=AI 雲端算力基礎建設族群；title_priority=33 (E58/F15/V25/C20)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 20,
+        "title_priority": 33,
+        "as_of": "2026-07-30"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=3, hit_rate=0%, trust=0.60"
+        ],
+        "title_priority": [
+          "weighted=33.0"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 3,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-07-30",
+      "consecutive_foreign_buy_days": 2,
+      "last_foreign_buy_date": "2026-07-30",
+      "history": [
+        {
+          "date": "2026-05-20",
+          "direction": "多",
+          "trigger": "外資在崩盤日砸下23億買超第一，且成交量具隱蔽性，尚未被短線熱錢追逐",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -2.46% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-29",
+          "direction": "多",
+          "trigger": "外資買超第 2 名，典型防禦性建倉，技術面站穩 MA20",
+          "stop_loss": "收盤跌破 136 元",
+          "result": "實際 -0.35% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-30",
+          "direction": "多",
+          "trigger": "外資買超第3名，唯一抗跌且站穩MA20的AI權值，防禦堡壘",
+          "stop_loss": "收盤跌破 136 元",
+          "result": "實際 +0.00% → ❌ 失準"
+        }
+      ]
+    }
   },
   "2880": {
     "name": "華南金",
@@ -1700,7 +4117,48 @@
     "not_classify_as": [
       "消費電子通路",
       "電子零組件代理商"
-    ]
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-07",
+      "evidence": [
+        "sector=AI 記憶體供應鏈族群",
+        "supply_chain_role=AI 伺服器高頻寬記憶體 (HBM) 與大容量存儲分銷",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI 伺服器高頻寬記憶體 (HBM) 與大容量存儲分銷；佐證: sector=AI 記憶體供應鏈族群；title_priority=80 (E86/F81/V25/C40)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 81,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 80,
+        "as_of": "2026-08-07"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=4",
+          "buy_amount=+7.7億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=64.7",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
+    }
   },
   "2451": {
     "name": "創見",
@@ -1744,7 +4202,65 @@
     "not_classify_as": [
       "傳統存放款商業銀行",
       "傳產"
-    ]
+    ],
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-06-10",
+      "consecutive_foreign_buy_days": 1,
+      "last_foreign_buy_date": "2026-06-10",
+      "history": [
+        {
+          "date": "2026-06-10",
+          "direction": "多",
+          "trigger": "外資買超第 3 名，量增比 1.78x，且收盤站上 MA20；若續量，代表外資提前布局。",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +0.22% → ✅ 命中"
+        }
+      ]
+    },
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-04",
+      "evidence": [
+        "sector=AI 供應鏈金流服務族群",
+        "supply_chain_role=AI 硬體零組件商營運週轉金與擴廠資本提供者",
+        "latest_flow_state=mentioned",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%",
+        "last_foreign_buy_date=2026-06-10",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；歷史驗收 1 次，命中率 100.0%；AI 硬體零組件商營運週轉金與擴廠資本提供者；佐證: sector=AI 供應鏈金流服務族群；title_priority=33 (E58/F0/V25/C60)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 60,
+        "title_priority": 33,
+        "as_of": "2026-08-04"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=4",
+          "sell_amount=-9.5億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=100%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=32.5"
+        ]
+      }
+    }
   },
   "2892": {
     "name": "第一金",
@@ -1758,7 +4274,46 @@
     "not_classify_as": [
       "官股老牌行庫",
       "傳產"
-    ]
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-10",
+      "evidence": [
+        "sector=AI 供應鏈金流服務族群",
+        "supply_chain_role=AI 全球製造業者大型聯貸案主辦行與跨境金流調度中心",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI 全球製造業者大型聯貸案主辦行與跨境金流調度中心；佐證: sector=AI 供應鏈金流服務族群；title_priority=31 (E58/F0/V25/C40)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 31,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=4",
+          "sell_amount=-6.3億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=30.5"
+        ]
+      }
+    }
   },
   "1504": {
     "name": "東元",
@@ -1810,15 +4365,80 @@
       "base_role": "theme_confirmation",
       "label": "題材確認股",
       "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
-      "latest_flow_state": "foreign_sell_risk",
-      "last_observed": "2026-05-06",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-28",
       "evidence": [
         "sector=AI 晶片測試族群",
         "supply_chain_role=AI 伺服器核心處理器成品測試 (Final Test)",
-        "latest_flow_state=foreign_sell_risk",
+        "latest_flow_state=mentioned",
+        "tracking=4 predictions, 0 hits, hit_rate=0.0%",
+        "last_foreign_buy_date=2026-06-23",
         "role_rule=theme validation/material/test/BOM marker in local DB"
       ],
-      "reason": "題材確認股；foreign_sell_risk；AI 伺服器核心處理器成品測試 (Final Test)；佐證: sector=AI 晶片測試族群"
+      "reason": "題材確認股；mentioned；歷史驗收 4 次，命中率 0.0%；AI 伺服器核心處理器成品測試 (Final Test)；佐證: sector=AI 晶片測試族群；title_priority=28 (E58/F0/V25/C10)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 10,
+        "title_priority": 28,
+        "as_of": "2026-07-28"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=4",
+          "sell_amount=-24.4億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=4, hit_rate=0%, trust=0.80"
+        ],
+        "title_priority": [
+          "weighted=27.5"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 4,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-07-01",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": "2026-06-23",
+      "history": [
+        {
+          "date": "2026-05-27",
+          "direction": "多",
+          "trigger": "外資影子建倉買超 83.4 億，技術面剛突破 MA20 底部完成",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -6.79% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-23",
+          "direction": "多",
+          "trigger": "外資大買 68.1 億元，量增比 2.28 倍突破 MA20，籌碼相對乾淨",
+          "stop_loss": "收盤跌破 310 元",
+          "result": "實際 -2.80% → ❌ 失準"
+        },
+        {
+          "date": "2026-06-26",
+          "direction": "多",
+          "trigger": "外資買超第 1 名且籌碼極度集中（未爆天量），具備補漲空間",
+          "stop_loss": "收盤跌破 305 元 (MA20 位置)",
+          "result": "實際 -7.92% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-01",
+          "direction": "多",
+          "trigger": "外資狂買且籌碼高度鎖定，強勢突破MA20打開上行空間",
+          "stop_loss": "跌破今日起漲點",
+          "result": "實際 -1.93% → ❌ 失準"
+        }
+      ]
     }
   },
   "5469": {
@@ -1865,5 +4485,1519 @@
       "面板零組件廠",
       "低階背光模組"
     ]
+  },
+  "3450": {
+    "name": "聯鈞",
+    "sector": "AI 光通訊與矽光子族群",
+    "supply_chain_role": "AI 伺服器高速光傳輸封測與矽光子模組封裝",
+    "key_products": [
+      "800G 高速光模組封裝",
+      "矽光子 (CPO) 封裝元件",
+      "EML 高速雷射晶片封測"
+    ],
+    "ai_connection": "具備高階光通訊元件封測技術，切入 AI 算力集群交換器所需的 800G 以上高速光收發模組及次世代矽光子 (CPO) 供應鏈。",
+    "not_classify_as": [
+      "傳統光電業",
+      "光碟機讀取頭零件",
+      "傳統通訊元件商"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-05-11",
+      "evidence": [
+        "sector=AI 光通訊與矽光子族群",
+        "supply_chain_role=AI 伺服器高速光傳輸封測與矽光子模組封裝",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；validated_previous_target；歷史驗收 1 次，命中率 100.0%；AI 伺服器高速光傳輸封測與矽光子模組封裝；佐證: sector=AI 光通訊與矽光子族群"
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-05-11",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-11",
+          "direction": "多",
+          "trigger": "外資單日灌頂 38 億，且股價近乎漲停但成交量未過熱，RSI 尚有空間",
+          "stop_loss": "收盤跌破 380 元",
+          "result": "實際 +4.39% → ✅ 命中"
+        }
+      ]
+    }
+  },
+  "1216": {
+    "name": "統一",
+    "sector": "民生消費與全通路零售族群",
+    "supply_chain_role": "民生物資供應與零售終端通路平台",
+    "key_products": [
+      "民生食品",
+      "快消飲品",
+      "零售通路服務 (7-11)"
+    ],
+    "ai_connection": "無 (其產品未進入 AI 伺服器硬體 BOM 表，不屬於 AI 硬體供應鏈)",
+    "not_classify_as": [
+      "AI 概念股",
+      "數位物流科技業"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-08-10",
+      "evidence": [
+        "sector=民生消費與全通路零售族群",
+        "supply_chain_role=民生物資供應與零售終端通路平台",
+        "latest_flow_state=validated_previous_target",
+        "tracking=2 predictions, 0 hits, hit_rate=0.0%",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；validated_previous_target；歷史驗收 2 次，命中率 0.0%；民生物資供應與零售終端通路平台；佐證: sector=民生消費與全通路零售族群；title_priority=34 (E58/F15/V25/C30)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 30,
+        "title_priority": 34,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=2, hit_rate=0%, trust=0.40"
+        ],
+        "title_priority": [
+          "weighted=34.0"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": "2026-08-10",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-07-31",
+          "direction": "多",
+          "trigger": "外資買超第3名，帶量站上MA20，屬防禦性換手標的",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 -2.38% → ❌ 失準"
+        },
+        {
+          "date": "2026-08-10",
+          "direction": "多",
+          "trigger": "外資買超全市場第2名，強勢站上MA20，作為震盪期之避險防禦標的",
+          "stop_loss": "收盤跌破 MA20 均線",
+          "result": "實際 -0.26% → ❌ 失準"
+        }
+      ]
+    }
+  },
+  "6282": {
+    "name": "康舒",
+    "sector": "AI 伺服器高效電源族群",
+    "supply_chain_role": "AI 伺服器高功率電源供應器 (PSU) 核心供應商",
+    "key_products": [
+      "3000W-5500W 高效率 AI 伺服器電源模組",
+      "CRPS (通用冗餘電源) 標準電源系統",
+      "液冷散熱整合電源模組"
+    ],
+    "ai_connection": "透過併購 ABB Power Conversion (OmniOn) 成功切入北美大型雲端服務供應商 (CSP) 供應鏈，提供符合 GPU/ASIC 加速器運算需求之 3,000W 以上高功率密度電源，直接進入 AI 伺服器機櫃與節點之 BOM 表。",
+    "not_classify_as": [
+      "傳統電源供應器",
+      "電腦週邊",
+      "傳統電子零組件"
+    ]
+  },
+  "6116": {
+    "name": "彩晶",
+    "sector": "車用與工控智聯顯示族群",
+    "supply_chain_role": "中小尺寸車載與工業自動化顯示面板封裝",
+    "key_products": [
+      "智慧座艙多螢幕顯示面板",
+      "工業級 HMI 人機介面面板",
+      "穿戴式裝置顯示模組"
+    ],
+    "ai_connection": "未進入 AI 伺服器硬體 BOM 表。主要產品集中於邊緣端應用之顯示介面，以智慧車載座艙與工業物聯網（IIoT）終端顯示為核心成長動能。",
+    "not_classify_as": [
+      "面板五虎",
+      "傳統光電業",
+      "傳統面板產業"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-05-22",
+      "evidence": [
+        "sector=車用與工控智聯顯示族群",
+        "supply_chain_role=中小尺寸車載與工業自動化顯示面板封裝",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；中小尺寸車載與工業自動化顯示面板封裝；佐證: sector=車用與工控智聯顯示族群"
+    }
+  },
+  "3706": {
+    "name": "神達",
+    "sector": "AI 伺服器系統整合族群",
+    "supply_chain_role": "AI 伺服器與資料中心 L6-L10 系統組裝/主機板供應商",
+    "key_products": [
+      "AI 伺服器系統",
+      "邊緣運算設備",
+      "高效能運算主機板"
+    ],
+    "ai_connection": "旗下神雲科技承接 Intel DSG 業務並深化與英特爾及超微合作，提供搭載高階 GPU 與 ASIC 之 AI 伺服器整機與機櫃解決方案，直接切入次世代資料中心供應鏈。",
+    "not_classify_as": [
+      "傳統電腦周邊",
+      "投資控股公司",
+      "老牌傳產股",
+      "消費性電子"
+    ]
+  },
+  "2492": {
+    "name": "華新科",
+    "sector": "AI 被動元件族群",
+    "supply_chain_role": "AI 伺服器電源管理模組高規 MLCC 供應商",
+    "key_products": [
+      "高壓高容 MLCC",
+      "精密晶片電阻",
+      "低溫共燒陶瓷 (LTCC)"
+    ],
+    "ai_connection": "AI 伺服器因 GPU 高算力導致功耗激增，其高壓高容 MLCC 產品切入 AI 伺服器之電壓轉換模組 (VRM) 與電源供應單元 (PSU) 之材料清單。",
+    "not_classify_as": [
+      "被動元件傳產",
+      "一般電子零件買賣",
+      "焦師傅集團股"
+    ]
+  },
+  "2377": {
+    "name": "微星",
+    "sector": "AI 伺服器與邊際運算族群",
+    "supply_chain_role": "AI 伺服器 L10 系統整合與 Edge AI 硬體商",
+    "key_products": [
+      "AI 伺服器",
+      "高效能運算 (HPC) 工作站",
+      "液冷散熱模組"
+    ],
+    "ai_connection": "已由板卡品牌轉型為 AI 系統廠，具備 NVIDIA MGX/HGX 架構之 AI 伺服器出貨能力，並切入企業端 Edge AI 私有雲硬體設備。",
+    "not_classify_as": [
+      "電腦板卡商",
+      "電競筆電品牌",
+      "消費性電子組裝廠"
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-04",
+      "evidence": [
+        "sector=AI 伺服器與邊際運算族群",
+        "supply_chain_role=AI 伺服器 L10 系統整合與 Edge AI 硬體商",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI 伺服器 L10 系統整合與 Edge AI 硬體商；佐證: sector=AI 伺服器與邊際運算族群；title_priority=75 (E78/F74/V25/C40)",
+      "scores": {
+        "elasticity": 78,
+        "foreign_buy_strength": 74,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 75,
+        "as_of": "2026-08-04"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=5",
+          "buy_amount=+10.8億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=59.8",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
+    }
+  },
+  "2355": {
+    "name": "敬鵬",
+    "sector": "智慧車載電子組件族群",
+    "supply_chain_role": "全球車用高可靠度硬板與 ADAS 模組載板供應商",
+    "key_products": [
+      "車用多層 PCB",
+      "HDI 板",
+      "車聯網通訊模組板"
+    ],
+    "ai_connection": "透過 ADAS (先進駕駛輔助系統) 與自動駕駛算力單元 PCB 進入車用邊緣 AI 領域，為車載智慧運算硬體之核心載體。",
+    "not_classify_as": [
+      "傳統 PCB",
+      "傳統產業",
+      "家電電路板"
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-05-19",
+      "evidence": [
+        "sector=智慧車載電子組件族群",
+        "supply_chain_role=全球車用高可靠度硬板與 ADAS 模組載板供應商",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 1 次，命中率 100.0%；全球車用高可靠度硬板與 ADAS 模組載板供應商；佐證: sector=智慧車載電子組件族群"
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-05-19",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-19",
+          "direction": "多",
+          "trigger": "外資買超第二名，股價站上 MA20，疑似影子建倉階段。",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +9.88% → ✅ 命中"
+        }
+      ]
+    }
+  },
+  "2615": {
+    "name": "萬海",
+    "sector": "亞太電子半導體物流鏈",
+    "supply_chain_role": "亞洲區內 AI 伺服器零組件與半導體封裝材料特快航線供應商",
+    "key_products": [
+      "近洋貨櫃航運",
+      "冷鏈運輸服務",
+      "電子商務物流"
+    ],
+    "ai_connection": "負責 AI 伺服器供應鏈中下游零組件(如被動元件、接插件)與半導體封測相關材料在亞太加工基地的快速週轉。",
+    "not_classify_as": [
+      "傳統產業",
+      "散裝航運",
+      "傳統運輸"
+    ]
+  },
+  "2603": {
+    "name": "長榮",
+    "sector": "全球 AI 基礎建設海運供應鏈",
+    "supply_chain_role": "全球高階 AI 伺服器整機與機櫃 (L10/L11) 跨境長程運力提供者",
+    "key_products": [
+      "遠洋貨櫃航運",
+      "智慧倉儲物流",
+      "全球碼頭裝卸"
+    ],
+    "ai_connection": "作為 AI 數據中心硬體基礎設施由亞洲組裝廠輸出至北美、歐洲終端客戶之關鍵戰略性物流鏈結。",
+    "not_classify_as": [
+      "傳統產業",
+      "內需產業",
+      "傳統航運"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-07-22",
+      "evidence": [
+        "sector=全球 AI 基礎建設海運供應鏈",
+        "supply_chain_role=全球高階 AI 伺服器整機與機櫃 (L10/L11) 跨境長程運力提供者",
+        "latest_flow_state=validated_previous_target",
+        "tracking=2 predictions, 1 hits, hit_rate=50.0%",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；validated_previous_target；歷史驗收 2 次，命中率 50.0%；全球高階 AI 伺服器整機與機櫃 (L10/L11) 跨境長程運力提供者；佐證: sector=全球 AI 基礎建設海運供應鏈；title_priority=36 (E58/F15/V25/C50)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 50,
+        "title_priority": 36,
+        "as_of": "2026-07-22"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=2, hit_rate=50%, trust=0.40"
+        ],
+        "title_priority": [
+          "weighted=36.0"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 2,
+      "hit_count": 1,
+      "hit_rate": "50.0%",
+      "last_recommended": "2026-07-22",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-21",
+          "direction": "多",
+          "trigger": "外資影子建倉第一名，量增比 2.08x 且站上 MA20",
+          "stop_loss": "收盤跌破 MA20 (約 205.7 元)",
+          "result": "實際 -0.24% → ❌ 失準"
+        },
+        {
+          "date": "2026-07-22",
+          "direction": "多",
+          "trigger": "外資買超第 2 名且站上 MA20，法人買超尚未擴散成市場共識",
+          "stop_loss": "收盤跌破 192 元",
+          "result": "實際 +1.48% → ✅ 命中"
+        }
+      ]
+    }
+  },
+  "3090": {
+    "name": "日電貿",
+    "sector": "AI 伺服器被動元件供應族群",
+    "supply_chain_role": "AI 伺服器高階電解電容與電壓調節模組輔材供應商",
+    "key_products": [
+      "高階MLCC (多層陶瓷電容)",
+      "固態電容",
+      "鋁質電解電容",
+      "電感"
+    ],
+    "ai_connection": "代理一線大廠（如Nippon Chemi-Con）產品，切入AI伺服器電源供應器（PSU）與主機板VRM（電壓調節模組）之高壓、耐高溫關鍵電容組件，為電力穩定系統之必要零組件。",
+    "not_classify_as": [
+      "電子代理商",
+      "零組件貿易商",
+      "消費性電子通路"
+    ]
+  },
+  "2388": {
+    "name": "威盛",
+    "sector": "AI ASIC 與邊緣運算族群",
+    "supply_chain_role": "AI 客製化晶片 (ASIC) 設計服務與邊緣運算軟硬體整合方案商",
+    "key_products": [
+      "AI ASIC 委託設計 (NRE)",
+      "智慧車載與工業邊緣運算平台",
+      "處理器與相關 IP 授權"
+    ],
+    "ai_connection": "威盛已轉型為 ASIC 設計服務商，提供 AI 特殊應用晶片開發，並開發嵌入式 AI 視覺辨識系統，切入 AI 邊緣運算及智慧安防監控。其技術已脫離傳統 PC 晶片組，轉向高效能運算與 AI 邏輯晶片開發。",
+    "not_classify_as": [
+      "傳統 PC 晶片組廠",
+      "傳統 CPU 廠商",
+      "一般消費性電子零件"
+    ]
+  },
+  "3189": {
+    "name": "景碩",
+    "sector": "AI 半導體載板族群",
+    "supply_chain_role": "AI 伺服器運算晶片與高效能運算 (HPC) 之 ABF 載板供應商",
+    "key_products": [
+      "ABF 載板",
+      "BT 載板"
+    ],
+    "ai_connection": "AI 伺服器中的 GPU、FPGA 及客製化 ASIC 晶片需使用高層數、大尺寸之 ABF 載板以滿足高速運算傳輸需求，景碩為全球少數具備高階 ABF 載板產能之關鍵供應商。",
+    "not_classify_as": [
+      "消費性電子零組件廠",
+      "手機通訊供應商",
+      "傳統 PCB 業"
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-05-22",
+      "evidence": [
+        "sector=AI 半導體載板族群",
+        "supply_chain_role=AI 伺服器運算晶片與高效能運算 (HPC) 之 ABF 載板供應商",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 1 次，命中率 100.0%；AI 伺服器運算晶片與高效能運算 (HPC) 之 ABF 載板供應商；佐證: sector=AI 半導體載板族群"
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-05-22",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-05-22",
+          "direction": "多",
+          "trigger": "外資買超第一名且呈現影子建倉特徵，突破 MA20",
+          "stop_loss": "收盤跌破 MA20",
+          "result": "實際 +9.93% → ✅ 命中"
+        }
+      ]
+    }
+  },
+  "9105": {
+    "name": "泰金寶-DR",
+    "sector": "AI 伺服器代工與儲存基礎設施族群",
+    "supply_chain_role": "AI 伺服器 PCBA 代工與企業級儲存裝置製造商",
+    "key_products": [
+      "AI 伺服器 PCBA (主機板組裝)",
+      "企業級 SSD 儲存設備",
+      "伺服器電源供應組件"
+    ],
+    "ai_connection": "隸屬金仁寶集團海外核心產能，承接集團 AI 伺服器 L6 (主機板組裝) 至 L10 (系統組裝) 訂單，並受惠於 AI 運算需求帶動的大規模企業級儲存與資料中心基礎設施布建。",
+    "not_classify_as": [
+      "印表機廠",
+      "傳統消費性電子代工",
+      "硬碟零件廠",
+      "一般存託憑證"
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-06-02",
+      "evidence": [
+        "sector=AI 伺服器代工與儲存基礎設施族群",
+        "supply_chain_role=AI 伺服器 PCBA 代工與企業級儲存裝置製造商",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI 伺服器 PCBA 代工與企業級儲存裝置製造商；佐證: sector=AI 伺服器代工與儲存基礎設施族群"
+    }
+  },
+  "2353": {
+    "name": "宏碁",
+    "sector": "AI PC 與 HPC 高效能運算族群",
+    "supply_chain_role": "AI 終端品牌系統商與邊緣運算方案整合商",
+    "key_products": [
+      "AI 筆記型電腦",
+      "AI 工作站",
+      "HPC 高效能伺服器",
+      "AI 加速器硬體整合"
+    ],
+    "ai_connection": "核心業務全面轉型 AI PC 並導入 NPU 運算架構；旗下子公司安圖斯 (Altos) 直接切入 AI 伺服器與高效能運算 (HPC) 市場，提供搭載高階 GPU 之伺服器解決方案，並透過軟硬體整合提供企業級生成式 AI 落地應用。",
+    "not_classify_as": [
+      "傳統電腦組裝廠",
+      "純消費性筆電品牌",
+      "傳產"
+    ]
+  },
+  "2329": {
+    "name": "華泰",
+    "sector": "AI 伺服器 EMS 封測族群",
+    "supply_chain_role": "AI 伺服器主機板組裝 (EMS) 與企業級儲存封測服務",
+    "key_products": [
+      "AI 伺服器主機板組裝",
+      "NAND Flash 封裝測試",
+      "企業級 SSD 模組"
+    ],
+    "ai_connection": "深耕美超微 (Supermicro) 供應鏈，負責其 AI 伺服器主機板核心組裝業務；同時受惠於 AI Data Center 對高容量高速儲存的需求，承接大量企業級 SSD 之 NAND Flash 封測訂單。",
+    "not_classify_as": [
+      "消費性電子封測",
+      "傳統老牌 IC 封裝",
+      "通訊零組件"
+    ]
+  },
+  "3711": {
+    "name": "日月光投控",
+    "sector": "AI 先進封裝測試族群",
+    "supply_chain_role": "AI 晶片高階封裝與異質整合最終測試供應商",
+    "key_products": [
+      "CoWoS 相關技術封裝",
+      "FOPLP (扇出型面板級封裝)",
+      "SiP (系統級封裝)"
+    ],
+    "ai_connection": "提供 NVIDIA 與 AMD AI GPU 必要的先進封裝服務，其高階封裝製程與測試是 AI 晶片能順利出貨至 BOM 表的關鍵終端步驟。",
+    "not_classify_as": [
+      "傳統封裝測試",
+      "半導體下游勞力密集產業",
+      "二極體製造商"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-04",
+      "evidence": [
+        "sector=AI 先進封裝測試族群",
+        "supply_chain_role=AI 晶片高階封裝與異質整合最終測試供應商",
+        "latest_flow_state=mentioned",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%",
+        "last_foreign_buy_date=2026-06-22",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；歷史驗收 1 次，命中率 100.0%；AI 晶片高階封裝與異質整合最終測試供應商；佐證: sector=AI 先進封裝測試族群；title_priority=33 (E58/F0/V25/C60)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 60,
+        "title_priority": 33,
+        "as_of": "2026-08-04"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=2",
+          "sell_amount=-77.0億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "predictions=1, hit_rate=100%, trust=0.20"
+        ],
+        "title_priority": [
+          "weighted=32.5"
+        ]
+      }
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-06-22",
+      "consecutive_foreign_buy_days": 1,
+      "last_foreign_buy_date": "2026-06-22",
+      "history": [
+        {
+          "date": "2026-06-22",
+          "direction": "多",
+          "trigger": "外資買超 81.9 億，封測族群補漲觀察",
+          "stop_loss": "跌破短均線且外資反手賣超",
+          "result": "實際 +9.95% → ✅ 命中"
+        }
+      ]
+    }
+  },
+  "058998": {
+    "name": "臺股指群益5A購13",
+    "sector": "台股大盤衍生性金融商品",
+    "supply_chain_role": "台股 AI 權值股指數槓桿曝險工具",
+    "key_products": [
+      "臺指認購權證"
+    ],
+    "ai_connection": "該標的追蹤之加權指數中，AI 相關權值股（如台積電、鴻海、聯發科）佔比極高，其損益變動與 AI 產業鏈估值高度聯動。",
+    "not_classify_as": [
+      "實體科技股",
+      "半導體硬體商",
+      "傳統產業"
+    ]
+  },
+  "2610": {
+    "name": "華航",
+    "sector": "航空貨運服務族群",
+    "supply_chain_role": "AI 伺服器與高階晶片全球空運承運商",
+    "key_products": [
+      "航空貨運 (Air Cargo)",
+      "航空客運"
+    ],
+    "ai_connection": "AI 伺服器因單價高且具時效性，多採空運出貨，華航承擔了將台灣組裝之 AI 伺服器與散熱模組運往北美資料中心的核心角色。",
+    "not_classify_as": [
+      "觀光股",
+      "傳統交通運輸",
+      "內需民生產業"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-10",
+      "evidence": [
+        "sector=航空貨運服務族群",
+        "supply_chain_role=AI 伺服器與高階晶片全球空運承運商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI 伺服器與高階晶片全球空運承運商；佐證: sector=航空貨運服務族群；title_priority=39 (E58/F0/V60/C40)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 60,
+        "validation_credibility": 40,
+        "title_priority": 39,
+        "as_of": "2026-08-10"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=3",
+          "sell_amount=-16.0億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [
+          "divergence_present"
+        ],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=39.3"
+        ]
+      }
+    }
+  },
+  "2633": {
+    "name": "台灣高鐵",
+    "sector": "科技廊帶基礎建設族群",
+    "supply_chain_role": "西部半導體與 AI 產業廊帶人力通勤動脈",
+    "key_products": [
+      "鐵路客運服務"
+    ],
+    "ai_connection": "串連竹科、中科、南科等 AI 研發與製造重鎮，提供 AI 供應鏈工程師、技術專家及高階主管在半導體生態系內流動的關鍵物理基礎。",
+    "not_classify_as": [
+      "觀光旅遊",
+      "公用事業",
+      "傳統陸運"
+    ]
+  },
+  "1314": {
+    "name": "中石化",
+    "sector": "AI 高頻基板特用化學材料族群",
+    "supply_chain_role": "AI 伺服器高規 CCL/FCCL 關鍵樹脂材料供應商",
+    "key_products": [
+      "OPPE (鄰苯基苯酚環氧樹脂)",
+      "電子級特用環氧樹脂",
+      "高階封裝材料"
+    ],
+    "ai_connection": "透過開發高階 OPPE 樹脂材料，切入 AI 伺服器所需之高頻高速 CCL (覆銅板) 與 FCCL 供應鏈；該材料具備低介電常數 (Dk) 與低損耗因子 (Df) 特性，為 AI 運算環境中維持信號完整性的核心化學輔材。",
+    "not_classify_as": [
+      "傳統塑膠中游",
+      "CPL/AN 廠",
+      "傳統化工業",
+      "石化業",
+      "土地開發商"
+    ]
+  },
+  "2609": {
+    "name": "陽明",
+    "sector": "航運物流族群",
+    "supply_chain_role": "全球資通訊產業與 AI 基礎設施跨國貨櫃運輸服務商",
+    "key_products": [
+      "貨櫃航運服務",
+      "定期航線",
+      "物流轉運"
+    ],
+    "ai_connection": "未進入 AI 伺服器 BOM 表。其與 AI 之關聯僅限於下游物流鏈，負責將組裝完成之 AI 伺服器、機櫃及上游原材料進行跨國遠洋運輸，屬電子產業全球交付鏈之環節。",
+    "not_classify_as": [
+      "AI 伺服器概念股",
+      "科技族群",
+      "AI 核心供應鏈"
+    ]
+  },
+  "1312": {
+    "name": "國喬",
+    "sector": "消費電子機構件材料族群",
+    "supply_chain_role": "電子終端與家電外殼基礎樹脂供應商",
+    "key_products": [
+      "SM (苯乙烯)",
+      "ABS 樹脂",
+      "PS (聚苯乙烯)"
+    ],
+    "ai_connection": "主要產品ABS及PS樹脂目前廣泛應用於消費性電子終端外殼、顯示器邊框及家電產品，尚未直接進入AI伺服器內部的核心高頻基材(CCL)或散熱結構BOM表，與AI運算核心無直接供應關聯。",
+    "not_classify_as": [
+      "傳統石化業",
+      "傳統產業",
+      "塑化股"
+    ]
+  },
+  "1718": {
+    "name": "中纖",
+    "sector": "AI PCB 關鍵材料族群",
+    "supply_chain_role": "AI 伺服器高階低損耗電子級玻纖布供應商",
+    "key_products": [
+      "電子級玻纖布",
+      "低損耗 (Low-Dk) 玻纖紗",
+      "環氧乙烷 (EO)"
+    ],
+    "ai_connection": "透過與德商 P-D Interglas 技術合作及自身產線轉型，切入高階電子級玻纖布領域。該產品為 AI 伺服器高頻高速 PCB 基板（CCL）的核心補強材料，負責支撐訊號傳輸穩定性並降低介電損耗，已成功跨入 AI 零組件最上游材料端。",
+    "not_classify_as": [
+      "塑化業",
+      "紡織業",
+      "乙二醇（EG）傳產商",
+      "傳統人造纖維"
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-06-05",
+      "evidence": [
+        "sector=AI PCB 關鍵材料族群",
+        "supply_chain_role=AI 伺服器高階低損耗電子級玻纖布供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；AI 伺服器高階低損耗電子級玻纖布供應商；佐證: sector=AI PCB 關鍵材料族群"
+    }
+  },
+  "3036": {
+    "name": "文曄",
+    "sector": "AI 半導體通路族群",
+    "supply_chain_role": "AI 伺服器核心零組件與高速傳輸方案代理商",
+    "key_products": [
+      "AI ASIC/GPU 運算晶片代理",
+      "高速交換機(Switch)控制晶片",
+      "高階伺服器電源管理 IC (PMIC)"
+    ],
+    "ai_connection": "代理 Broadcom、Marvell、Intel 等 AI 核心原廠產品，切入 AI 伺服器與資料中心高速網通供應鏈，並透過併購 Future Electronics 擴大在高毛利 AI 基礎建設與能源管理解決方案的覆蓋率。",
+    "not_classify_as": [
+      "傳統電子通路商",
+      "低毛利貿易商",
+      "消費性電子經銷"
+    ]
+  },
+  "5876": {
+    "name": "上海商銀",
+    "sector": "金融服務族群",
+    "supply_chain_role": "科技產業供應鏈金流與企業營運融資服務商",
+    "key_products": [
+      "企業貸款",
+      "跨境匯款",
+      "供應鏈融資"
+    ],
+    "ai_connection": "未進入 AI 伺服器 BOM 表。該公司主要透過金融服務支持科技產業鏈運行，提供 AI 伺服器代工廠及零組件廠營運週轉金與跨境資金融通，屬於間接支持的金融基礎設施角色。",
+    "not_classify_as": [
+      "AI 相關族群",
+      "科技硬體業"
+    ]
+  },
+  "1714": {
+    "name": "和桐",
+    "sector": "民生化學原料族群",
+    "supply_chain_role": "全球洗劑與介面活性劑基礎原料供應商",
+    "key_products": [
+      "烷基苯 (LAB)",
+      "正烷烴 (Normal Paraffin)",
+      "脂肪醇醚硫酸鈉 (SLES)"
+    ],
+    "ai_connection": "無。該公司產品線未進入AI伺服器硬體物料清單(BOM)，核心業務維持在傳統石化與民生消費洗滌原料，與AI運算或伺服器零組件無直接關聯。",
+    "not_classify_as": [
+      "AI供應鏈",
+      "特種化學材料族群",
+      "電子化學品"
+    ]
+  },
+  "2347": {
+    "name": "聯強",
+    "sector": "AI 伺服器通路與基礎建設族群",
+    "supply_chain_role": "AI 伺服器亞太區關鍵通路代理與系統整合服務商",
+    "key_products": [
+      "NVIDIA DGX AI 伺服器系統",
+      "資料中心存儲與高速網絡設備",
+      "企業級 AI 加值雲端服務"
+    ],
+    "ai_connection": "聯強為 NVIDIA 在亞太區的重要合作夥伴，負責推廣與銷售包含 DGX 系統在內的 AI 高階運算設備，並代理 Dell、HPE 等主要伺服器品牌之 AI 機型，是 AI 伺服器整機進入企業市場與資料中心之末端關鍵推手。",
+    "not_classify_as": [
+      "電腦批發商",
+      "貿易百貨",
+      "家電代理商"
+    ]
+  },
+  "3042": {
+    "name": "晶技",
+    "sector": "AI 高頻頻率元件族群",
+    "supply_chain_role": "AI 伺服器高精度時序控制關鍵組件商",
+    "key_products": [
+      "高階差分振盪器 (Differential Oscillator)",
+      "溫度補償石英振盪器 (TCXO)"
+    ],
+    "ai_connection": "AI 伺服器運算速度極高，需配備高頻、低抖動 (Jitter) 的差分振盪器以維持訊號同步，晶技產品已切入 AI 伺服器主板與高速交換器供應鏈。",
+    "not_classify_as": [
+      "被動元件",
+      "石英礦業",
+      "傳產"
+    ]
+  },
+  "00712": {
+    "name": "復華富時不動產",
+    "sector": "房地產抵押債券信託 (mREITs) 族群",
+    "supply_chain_role": "美國抵押貸款擔保證券 (MBS) 資產配置工具",
+    "key_products": [
+      "FTSE NAREIT Mortgage REITs Index 追蹤",
+      "抵押權益憑證"
+    ],
+    "ai_connection": "無直接關聯，其核心業務為獲取抵押貸款利差，非硬體供應鏈角色。",
+    "not_classify_as": [
+      "營建股",
+      "房地產開發商",
+      "傳產",
+      "AI 伺服器概念股"
+    ]
+  },
+  "2406": {
+    "name": "國碩",
+    "sector": "綠能與太陽能能源管理族群",
+    "supply_chain_role": "太陽能電站開發 (EPC) 與能源材料供應商",
+    "key_products": [
+      "太陽能導電漿",
+      "太陽能電站開發服務"
+    ],
+    "ai_connection": "未進入 AI 伺服器硬體 BOM 表，目前轉向綠能開發與電業管理，與 AI 硬體供應鏈無直接相關。",
+    "not_classify_as": [
+      "半導體矽晶圓",
+      "AI PCB 材料",
+      "傳產"
+    ]
+  },
+  "3576": {
+    "name": "聯合再生",
+    "sector": "太陽能與綠電儲能族群",
+    "supply_chain_role": "太陽能電池模組與大型儲能系統 (ESS) 整合商",
+    "key_products": [
+      "太陽能電池",
+      "太陽能模組",
+      "儲能系統系統整合 (System Integration)"
+    ],
+    "ai_connection": "目前未進入 AI 伺服器硬體 BOM 表。其主要價值在於提供 AI 資料中心運作所需之「零碳電力來源」及「電網端儲能解決方案」，屬於 AI 基礎設施的電力配套，非硬體零件供應商。",
+    "not_classify_as": [
+      "光電面板業",
+      "半導體元件",
+      "AI 伺服器零組件"
+    ]
+  },
+  "5880": {
+    "name": "合庫金",
+    "sector": "金融控股業 (傳統產業)",
+    "supply_chain_role": "實體產業資金融通與營運資本供應者",
+    "key_products": [
+      "商業銀行業務",
+      "企業融資",
+      "資產管理"
+    ],
+    "ai_connection": "未進入 AI 伺服器 BOM 表；僅扮演資金融通角色，提供 AI 供應鏈企業資本支出之貸款及金融服務。",
+    "not_classify_as": [
+      "AI 科技族群",
+      "電子零組件業",
+      "半導體供應鏈"
+    ],
+    "market_role": {
+      "base_role": "defensive_income",
+      "label": "防守收息股",
+      "title_guidance": "適合做風控或防守配置，不宜包裝成攻擊主軸。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-30",
+      "evidence": [
+        "sector=金融控股業 (傳統產業)",
+        "supply_chain_role=實體產業資金融通與營運資本供應者",
+        "latest_flow_state=mentioned"
+      ],
+      "reason": "防守收息股；mentioned；實體產業資金融通與營運資本供應者；佐證: sector=金融控股業 (傳統產業)；title_priority=29 (E18/F75/V25/C40)",
+      "scores": {
+        "elasticity": 18,
+        "foreign_buy_strength": 75,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 29,
+        "as_of": "2026-07-30"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=defensive_income:28",
+          "defensive_sector_penalty"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=5",
+          "buy_amount=+11.5億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=39.0",
+          "defensive_title_penalty"
+        ]
+      }
+    }
+  },
+  "6269": {
+    "name": "台郡",
+    "sector": "AI 高速傳輸材料族群",
+    "supply_chain_role": "AI 伺服器高速光收發模組與傳輸介面 LCP 軟板",
+    "key_products": [
+      "Neuro-LCP 高頻材料",
+      "高速傳輸 FPC",
+      "毫米波通訊模組"
+    ],
+    "ai_connection": "透過開發 Neuro-LCP 高速傳輸技術，切入 AI 伺服器內部的高速傳輸線路與 800G 光模組，解決高頻訊號傳輸下的能耗與衰減問題。",
+    "not_classify_as": [
+      "傳統手機軟板廠",
+      "消費性電子零組件",
+      "PCB 傳產"
+    ]
+  },
+  "2464": {
+    "name": "盟立",
+    "sector": "AI 半導體先進封裝設備族群",
+    "supply_chain_role": "AI 晶片先進封裝 (CoWoS) 自動化物流搬運系統",
+    "key_products": [
+      "OHT 自動化搬運系統",
+      "EFEM 設備前端模組",
+      "AI 數據中心液冷散熱解決方案"
+    ],
+    "ai_connection": "供應台積電等晶圓代工廠 AI 晶片 CoWoS 產線之自動化搬運與晶圓傳送設備，並投入 AI 伺服器機房之液冷散熱系統整合。",
+    "not_classify_as": [
+      "傳統機械業",
+      "自動化倉儲",
+      "工業自動化"
+    ]
+  },
+  "6919": {
+    "name": "康霈*",
+    "sector": "全球美體醫美新藥開發族群",
+    "supply_chain_role": "非侵入性局部溶脂新藥研發商",
+    "key_products": [
+      "CBL-514 局部溶脂注射劑",
+      "罕見疾病治療藥物"
+    ],
+    "ai_connection": "無直接關聯。該公司並未進入 AI 伺服器 BOM 表，其技術核心在於小分子新藥研發，終端應用為精準醫學美體與脂肪代謝治療。",
+    "not_classify_as": [
+      "傳統化學工業",
+      "一般學名藥廠"
+    ]
+  },
+  "4904": {
+    "name": "遠傳",
+    "sector": "AI 雲端基礎設施與算力服務族群",
+    "supply_chain_role": "AI GPU 算力服務 (GPUaaS) 與雲網整合服務商",
+    "key_products": [
+      "GPU 算力租賃服務",
+      "5G 企業專網",
+      "雲端資料中心 (IDC) 服務"
+    ],
+    "ai_connection": "雖未直接進入伺服器硬體 BOM 表，但身為 AI 算力落地的關鍵基礎設施，透過與 NVIDIA 合作建置大型 AI 算力中心，轉型為 AI 算力租賃服務提供商，為 AI 產業鏈的下游應用場域。",
+    "not_classify_as": [
+      "傳統電信服務業",
+      "公用事業",
+      "純消費性通訊服務"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-29",
+      "evidence": [
+        "sector=AI 雲端基礎設施與算力服務族群",
+        "supply_chain_role=AI GPU 算力服務 (GPUaaS) 與雲網整合服務商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；AI GPU 算力服務 (GPUaaS) 與雲網整合服務商；佐證: sector=AI 雲端基礎設施與算力服務族群；title_priority=53 (E58/F74/V25/C40)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 74,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 53,
+        "as_of": "2026-07-29"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=5",
+          "buy_amount=+9.6億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=52.8"
+        ]
+      }
+    }
+  },
+  "009821": {
+    "name": "野村稀土關鍵資源",
+    "sector": "AI 關鍵戰略材料族群",
+    "supply_chain_role": "AI 伺服器高效率散熱系統與光通訊模組底層原材料供應商",
+    "key_products": [
+      "稀土永磁材料 (NdFeB)",
+      "半導體級關鍵金屬 (鎵、鍺、銦)",
+      "高階光學元件研磨材料"
+    ],
+    "ai_connection": "切入 AI 伺服器冷卻系統（高轉速風扇馬達）所需之關鍵磁石原材料，並提供 800G/1.6T 光通訊模組與 CPO 封裝所需之化合物半導體戰略金屬，為 AI 硬體運算與傳輸效能的物理支撐點。",
+    "not_classify_as": [
+      "傳統礦業",
+      "基礎冶金業",
+      "資源回收業",
+      "傳統傳產股"
+    ]
+  },
+  "8046": {
+    "name": "南電",
+    "sector": "AI 半導體封裝載板族群",
+    "supply_chain_role": "AI 伺服器核心運算晶片 ABF 載板供應商",
+    "key_products": [
+      "ABF 載板",
+      "BT 載板",
+      "高階多層電路板 (PCB)"
+    ],
+    "ai_connection": "供應 AI GPU 與 ASIC 等高效能運算 (HPC) 晶片所需之高層數、大尺寸 ABF 載板，為 AI 晶片進入封裝程序的關鍵材料，直接進入 AI 伺服器核心元件 BOM 表。",
+    "not_classify_as": [
+      "南亞塑膠子公司",
+      "塑膠加工業",
+      "傳統 PCB 廠",
+      "傳產台塑家族"
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "validated_previous_target",
+      "last_observed": "2026-06-24",
+      "evidence": [
+        "sector=AI 半導體封裝載板族群",
+        "supply_chain_role=AI 伺服器核心運算晶片 ABF 載板供應商",
+        "latest_flow_state=validated_previous_target",
+        "tracking=1 predictions, 1 hits, hit_rate=100.0%",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；validated_previous_target；歷史驗收 1 次，命中率 100.0%；AI 伺服器核心運算晶片 ABF 載板供應商；佐證: sector=AI 半導體封裝載板族群"
+    },
+    "tracking": {
+      "prediction_count": 1,
+      "hit_count": 1,
+      "hit_rate": "100.0%",
+      "last_recommended": "2026-06-24",
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": [
+        {
+          "date": "2026-06-24",
+          "direction": "多",
+          "trigger": "外資買超冠軍但量能未爆，具備爆發潛力",
+          "stop_loss": "收盤跌破 870 元",
+          "result": "實際 +5.06% → ✅ 命中"
+        }
+      ]
+    }
+  },
+  "8105": {
+    "name": "凌巨",
+    "sector": "車載與工控顯示模組族群",
+    "supply_chain_role": "利基型中小尺寸液晶面板及觸控顯示模組供應商",
+    "key_products": [
+      "TFT-LCD 液晶面板",
+      "車載儀表與中控顯示模組",
+      "工控與醫療顯示器"
+    ],
+    "ai_connection": "目前未進入 AI 伺服器 BOM 表。其業務核心在於「邊緣顯示介面」，主要受惠於車載電子化及工業自動化對高耐用度顯示螢幕的需求，並非 AI 基礎設施之核心運算或傳輸組件。",
+    "not_classify_as": [
+      "消費性電子面板廠",
+      "傳統大尺寸面板業"
+    ]
+  },
+  "009824": {
+    "name": "群益美國科技巨頭",
+    "sector": "AI 全球算力暨終端應用族群",
+    "supply_chain_role": "AI 伺服器規格定義者與核心運算架構供應商",
+    "key_products": [
+      "AI 核心運算晶片 (GPU/ASIC)",
+      "大型語言模型 (LLM) 基礎建設",
+      "雲端超大規模資料中心 (Hyperscale Data Center)"
+    ],
+    "ai_connection": "該標的代表台股 AI 供應鏈的最上游「需求源頭」，其成分股包含輝達 (NVIDIA)、微軟 (Microsoft) 等核心權值，直接決定了台股下游 OEM/ODM (如廣達、緯穎) 與零組件廠 (如光通訊、散熱) 的技術標準與拉貨動能。",
+    "not_classify_as": [
+      "一般海外指數基金",
+      "金融商品",
+      "被動式資產組合"
+    ]
+  },
+  "6191": {
+    "name": "精成科",
+    "sector": "AI PCB 與伺服器組裝族群",
+    "supply_chain_role": "AI伺服器與AI PC高層數PCB及PCBA組裝供應商",
+    "key_products": [
+      "多層印刷電路板 (PCB)",
+      "電子製造服務 (EMS/PCBA)",
+      "伺服器電源管理板"
+    ],
+    "ai_connection": "切入AI伺服器供應鏈，提供包括電源管理、邊緣運算節點之高層數PCB板與PCBA組裝服務；同時受惠於AI PC世代更迭，提供高頻低損耗之硬板需求。",
+    "not_classify_as": [
+      "傳統筆電零組件",
+      "華新集團傳產股",
+      "消費性電子代工"
+    ]
+  },
+  "00662": {
+    "name": "富邦NASDAQ-100 ETF",
+    "sector": "AI全球戰略核心領先族群",
+    "supply_chain_role": "AI伺服器最上游定義者與終端需求買方(CSP)",
+    "key_products": [
+      "AI高階算力晶片(GPU/ASIC)",
+      "大型語言模型(LLM)",
+      "高效能運算(HPC)平台"
+    ],
+    "ai_connection": "該標的成份股涵蓋AI伺服器BOM表中價值量最高的環節，包括NVIDIA(GPU)、Broadcom(網通晶片)以及全球四大雲端服務商(CSP)，是定義台股AI供應鏈規格與訂單量的核心源頭。",
+    "not_classify_as": [
+      "金融商品",
+      "被動型基金",
+      "資產管理業"
+    ]
+  },
+  "2363": {
+    "name": "矽統",
+    "sector": "AI 特殊應用晶片 (ASIC) 與設計服務族群",
+    "supply_chain_role": "AI 晶片與高效能運算 (HPC) 設計服務商",
+    "key_products": [
+      "ASIC 設計服務",
+      "高階 IP 授權",
+      "微機電感測技術"
+    ],
+    "ai_connection": "透過收購英國老牌 ASIC 設計公司 Sondrel，正式由傳統消費性 IC 廠轉型，切入 5nm、7nm 等先進製程的 AI、自動駕駛及資料中心晶片開發服務，並與聯電集團資源深度整合，提供 AI 伺服器所需之客製化晶片設計。 ",
+    "not_classify_as": [
+      "傳統觸控晶片商",
+      "電腦周邊 IC 廠",
+      "消費性電子組件"
+    ]
+  },
+  "2812": {
+    "name": "台中銀",
+    "sector": "金融服務與產業融資族群",
+    "supply_chain_role": "科技產業營運資金供應與資本仲介",
+    "key_products": [
+      "企業週轉金貸款",
+      "貿易融資",
+      "數位金融平台"
+    ],
+    "ai_connection": "無直接進入 AI 伺服器硬體 BOM 表。主要透過提供中堅供應鏈廠商所需之資本支出貸款與營運資金，間接支撐 AI 產業鏈之運作。",
+    "not_classify_as": [
+      "傳統產業",
+      "營造業相關",
+      "落後產業"
+    ]
+  },
+  "00927": {
+    "name": "群益半導體收益",
+    "sector": "AI 半導體核心價值鏈族群",
+    "supply_chain_role": "AI 伺服器核心運算與傳輸晶片權益代理",
+    "key_products": [
+      "台積電成份股權益",
+      "聯發科成份股權益",
+      "先進封裝供應鏈權益"
+    ],
+    "ai_connection": "成份股深度覆蓋 AI 伺服器 BOM 表中價值量最高的組件，包括 GPU/ASIC 代工（TSMC）、高速傳輸晶片（聯發科）、及先進封裝（日月光），為 AI 硬體價值之集合體。",
+    "not_classify_as": [
+      "一般高股息 ETF",
+      "傳統金融收息商品",
+      "資產管理類傳產"
+    ]
+  },
+  "2634": {
+    "name": "漢翔",
+    "sector": "航太精密製造族群",
+    "supply_chain_role": "航太發動機與機身核心零組件一級供應商",
+    "key_products": [
+      "航空發動機零組件",
+      "軍用/民用飛機機身結構",
+      "高階精密鑄造件"
+    ],
+    "ai_connection": "目前未直接進入 AI 伺服器 BOM 表，其核心業務為航太等級精密製造與系統整合，主要應用於全球民航與國防產業。",
+    "not_classify_as": [
+      "運輸工業",
+      "傳產"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-27",
+      "evidence": [
+        "sector=航太精密製造族群",
+        "supply_chain_role=航太發動機與機身核心零組件一級供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；航太發動機與機身核心零組件一級供應商；佐證: sector=航太精密製造族群；title_priority=31 (E58/F0/V25/C40)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 0,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 31,
+        "as_of": "2026-07-27"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "sell_rank=3",
+          "sell_amount=-6.4億",
+          "flow=foreign_sell_risk"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=30.5"
+        ]
+      }
+    }
+  },
+  "2484": {
+    "name": "希華",
+    "sector": "AI 頻率控制元件族群",
+    "supply_chain_role": "AI 伺服器與高速運算模組定時元件供應商",
+    "key_products": [
+      "高精密石英晶體",
+      "石英振盪器 (Oscillator)",
+      "溫度補償石英振盪器 (TCXO)"
+    ],
+    "ai_connection": "AI 伺服器需處理高速訊號傳輸與異質運算同步，其高頻、高穩定度之頻率元件進入 AI 伺服器硬體 BOM 表，負責提供運算核心與通訊介面之精確基準時脈。",
+    "not_classify_as": [
+      "石英加工業",
+      "一般電子零組件"
+    ]
+  },
+  "2332": {
+    "name": "友訊",
+    "sector": "網通終端與消費電子族群",
+    "supply_chain_role": "中小企業及家用網通設備供應商",
+    "key_products": [
+      "交換器",
+      "無線路由器",
+      "網路攝影機"
+    ],
+    "ai_connection": "產品主要整合邊緣端AI影像辨識與自動化管理軟體，目前尚未進入AI伺服器（Data Center）核心硬體BOM表。",
+    "not_classify_as": [
+      "電腦週邊代理商",
+      "傳統網通代工廠"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-13",
+      "evidence": [
+        "sector=網通終端與消費電子族群",
+        "supply_chain_role=中小企業及家用網通設備供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；中小企業及家用網通設備供應商；佐證: sector=網通終端與消費電子族群；title_priority=35 (E58/F15/V25/C40)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 15,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 35,
+        "as_of": "2026-07-13"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=35.0"
+        ]
+      }
+    }
+  },
+  "6505": {
+    "name": "台塑化",
+    "sector": "傳統產業 (能源與石化基礎工業)",
+    "supply_chain_role": "上游原油煉製與石化基本原料供應商",
+    "key_products": [
+      "成品油",
+      "乙烯",
+      "丙烯",
+      "丁二烯"
+    ],
+    "ai_connection": "屬於能源與基礎材料供應鏈，目前其產品與AI伺服器硬體材料BOM表無直接關聯。",
+    "not_classify_as": [
+      "電子特種化學品",
+      "下游塑膠製品業"
+    ],
+    "market_role": {
+      "base_role": "theme_confirmation",
+      "label": "題材確認股",
+      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-07-23",
+      "evidence": [
+        "sector=傳統產業 (能源與石化基礎工業)",
+        "supply_chain_role=上游原油煉製與石化基本原料供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=theme validation/material/test/BOM marker in local DB"
+      ],
+      "reason": "題材確認股；mentioned；上游原油煉製與石化基本原料供應商；佐證: sector=傳統產業 (能源與石化基礎工業)；title_priority=57 (E58/F89/V25/C40)",
+      "scores": {
+        "elasticity": 58,
+        "foreign_buy_strength": 89,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 57,
+        "as_of": "2026-07-23"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=theme_confirmation:58"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=4",
+          "buy_amount=+21.4億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=57.2"
+        ]
+      }
+    }
+  },
+  "2542": {
+    "name": "興富發",
+    "sector": "房地產開發與營建族群",
+    "supply_chain_role": "全台大型住宅與商用不動產開發商",
+    "key_products": [
+      "住宅大樓開發",
+      "商務辦公室建案",
+      "土地開發與物業管理"
+    ],
+    "ai_connection": "無直接切入 AI 伺服器硬體 BOM 表。其角色主要受惠於 AI 產業鏈擴充所帶動的台灣在地商辦需求，以及科技園區周邊住宅人口紅利，屬產業發展之外部空間支持者。",
+    "not_classify_as": [
+      "AI 科技族群",
+      "伺服器硬體供應鏈"
+    ]
+  },
+  "2845": {
+    "name": "遠東銀",
+    "sector": "數位金融與供應鏈融資族群",
+    "supply_chain_role": "產業鏈營運資金調度中心",
+    "key_products": [
+      "企業融資服務",
+      "數位銀行服務 (Bankee)",
+      "外匯與資金結算"
+    ],
+    "ai_connection": "主要透過生成式AI優化內部風險控管、智能客服系統(Bankee)，並為遠東集團資通訊供應鏈提供資金調度之後援。本公司產品未進入AI伺服器硬體BOM表，屬金融後勤體系。",
+    "not_classify_as": [
+      "傳產",
+      "傳統商業銀行"
+    ]
+  },
+  "3044": {
+    "name": "健鼎",
+    "sector": "AI PCB 基板族群",
+    "supply_chain_role": "AI 伺服器高層數硬板與加速器專用 PCB 供應商",
+    "key_products": [
+      "高層數硬板 (HLC PCB)",
+      "AI 加速器模組板 (OAM)",
+      "通用基板 (UBB)"
+    ],
+    "ai_connection": "切入 AI 伺服器供應鏈中的高頻、高層數電路板，負責承載 AI 晶片之加速器模組（OAM）與通用基板（UBB），符合 AI Server BOM 表中高規格傳輸需求。",
+    "not_classify_as": [
+      "一般消費電子 PCB",
+      "面板零組件廠"
+    ]
+  },
+  "3006": {
+    "name": "晶豪科",
+    "sector": "利基型記憶體與邊緣AI晶片族群",
+    "supply_chain_role": "邊緣運算與網通設備關鍵緩衝記憶體供應商",
+    "key_products": [
+      "DDR3/DDR4 利基型記憶體",
+      "LPDDR4/4X 行動記憶體",
+      "SLC NAND Flash",
+      "類比及混合訊號IC"
+    ],
+    "ai_connection": "提供 Edge AI (邊緣人工智慧) 終端裝置所需的低功耗利基型記憶體，並切入 AIoT 設備與中低階 AI 運算平台的資料快取與暫存需求。",
+    "not_classify_as": [
+      "消費性電子傳產",
+      "傳統 IC 代理商",
+      "通用型 DRAM 廠"
+    ],
+    "market_role": {
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "latest_flow_state": "mentioned",
+      "last_observed": "2026-08-06",
+      "evidence": [
+        "sector=利基型記憶體與邊緣AI晶片族群",
+        "supply_chain_role=邊緣運算與網通設備關鍵緩衝記憶體供應商",
+        "latest_flow_state=mentioned",
+        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+      ],
+      "reason": "彈性攻擊股；mentioned；邊緣運算與網通設備關鍵緩衝記憶體供應商；佐證: sector=利基型記憶體與邊緣AI晶片族群；title_priority=83 (E86/F88/V25/C40)",
+      "scores": {
+        "elasticity": 86,
+        "foreign_buy_strength": 88,
+        "volume_confirmation": 25,
+        "validation_credibility": 40,
+        "title_priority": 83,
+        "as_of": "2026-08-06"
+      },
+      "score_evidence": {
+        "elasticity": [
+          "prior=elastic_attack:78",
+          "elastic_sector_boost"
+        ],
+        "foreign_buy_strength": [
+          "buy_rank=4",
+          "buy_amount=+20.2億"
+        ],
+        "volume_confirmation": [],
+        "validation_credibility": [
+          "no_tracking_history"
+        ],
+        "title_priority": [
+          "weighted=66.8",
+          "elastic_title_boost",
+          "flow_x_elastic_boost"
+        ]
+      }
+    }
   }
 }

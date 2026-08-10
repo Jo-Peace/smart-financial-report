@@ -18,6 +18,11 @@ youtube_title_packaging
 thumbnail_ab_testing
 notebooklm_cover_alignment
 market_analysis_memory
+event_radar
+news_extraction
+transcript_mining
+thumbnail_qc
+weekly_special_planning
 ```
 
 ## Registry Fields

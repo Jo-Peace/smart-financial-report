@@ -1,0 +1,133 @@
+{
+  "date": "2026-05-19",
+  "index_action": "下跌 716.26 點",
+  "heavyweights_dumped": [
+    "台積電 (-380.3億)",
+    "旺宏 (-68.3億)",
+    "華邦電 (-57.5億)",
+    "南亞科 (-55.9億)",
+    "元大台灣50 (-43.2億)"
+  ],
+  "safe_havens_bought": [
+    "中華電 (+23.1億)",
+    "國泰金 (+19.8億)",
+    "中信金 (+17.0億)",
+    "台灣大 (+15.2億)",
+    "富邦金 (+14.0億)"
+  ],
+  "sectors": {
+    "AI 雲端算力基礎建設族群": [
+      "中華電",
+      "台灣大"
+    ],
+    "AI 核心晶圓代工族群": [
+      "台積電"
+    ],
+    "AI 伺服器輔助晶片族群": [
+      "聯電"
+    ],
+    "AI 邊緣運算記憶體族群": [
+      "華邦電"
+    ],
+    "AI 儲存基礎設施族群": [
+      "旺宏"
+    ],
+    "AI 記憶體關鍵材料族群": [
+      "南亞科"
+    ],
+    "AI 記憶體整合技術族群": [
+      "力積電"
+    ],
+    "AI 先進封裝材料族群": [
+      "群創"
+    ],
+    "AI 伺服器電源關鍵元件族群": [
+      "強茂"
+    ],
+    "智慧車載電子組件族群": [
+      "敬鵬"
+    ],
+    "低軌衛星與高密度PCB族群": [
+      "華通"
+    ],
+    "金融服務與防禦族群": [
+      "國泰金",
+      "中信金",
+      "富邦金",
+      "台新新光金"
+    ]
+  },
+  "ai_data_picks": [
+    "中華電 (外資買超全市場第一且具避險特質)",
+    "聯電 (逆勢收紅且展現強大承接力)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2412",
+      "name": "中華電",
+      "direction": "多",
+      "trigger": "外資在崩盤日砸下23億買超第一，且成交量具隱蔽性，尚未被短線熱錢追逐",
+      "stop_loss_price": 136.7,
+      "stop_loss_desc": "收盤跌破 MA20"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2313 華通 (-1.16%, 預測未成立，成交量排名第9)",
+    "2355 敬鵬 (+9.88%, 預測成立)"
+  ],
+  "price_volume_divergence": [
+    "2412 中華電: 外資買超金額全市場第一，但成交量未進入前 20 名榜單 (影子避險)",
+    "2313 華通: 成交量熱絡但外資買盤斷糧，導致價格位階震盪劇烈",
+    "3481 群創: 成交量大但外資重砍 16.8 億，主力套現撤退"
+  ],
+  "commodities": [
+    "原油跌 4.97%"
+  ],
+  "conservative_strategy": "關注外資買超金額前三名的金融股與電信股。在大盤未站穩 MA20 前，避開高位階電子股。",
+  "aggressive_strategy": "今日無安全推薦標的，建議現金為王，靜待台積電止跌訊號。",
+  "validation_results": [
+    {
+      "id": "2313",
+      "name": "華通",
+      "direction": "多",
+      "trigger": "外資買超第一名(34.3億)，毛利率連續三季改善，強勢突破 MA20。",
+      "stop_loss_price": 245.6,
+      "stop_loss_desc": "收盤跌破 MA20",
+      "price": 256.0,
+      "pct_change": -1.16,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 9,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 256，漲跌 -1.16%",
+        "成交量排名第 9 名",
+        "未觸發停損：收盤跌破 MA20"
+      ]
+    },
+    {
+      "id": "2355",
+      "name": "敬鵬",
+      "direction": "多",
+      "trigger": "外資買超第二名，股價站上 MA20，疑似影子建倉階段。",
+      "stop_loss_price": 52.5,
+      "stop_loss_desc": "收盤跌破 MA20",
+      "price": 63.4,
+      "pct_change": 9.88,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 63.4，漲跌 +9.88%",
+        "未觸發停損：收盤跌破 MA20"
+      ]
+    }
+  ]
+}

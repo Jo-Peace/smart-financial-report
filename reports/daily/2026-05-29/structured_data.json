@@ -1,0 +1,195 @@
+{
+  "date": "2026-05-29",
+  "index_action": "上漲 1096 點",
+  "heavyweights_dumped": [
+    "日月光投控 (-61.7億)",
+    "聯電 (-40.8億)",
+    "台新新光金 (-14.5億)"
+  ],
+  "safe_havens_bought": [
+    "台積電 (+312.8億)",
+    "鴻海 (+232.2億)",
+    "華邦電 (+84.7億)",
+    "群創 (+83.3億)"
+  ],
+  "sectors": {
+    "AI 核心晶圓代工": [
+      "台積電 (外資影子建倉)"
+    ],
+    "AI 先進封裝材料": [
+      "群創 (天量漲停)"
+    ],
+    "AI 記憶體整合技術": [
+      "力積電 (內資主導漲停)"
+    ],
+    "AI 伺服器系統組裝": [
+      "仁寶 (量能突破)",
+      "鴻海 (強勢攻擊)"
+    ],
+    "AI 邊緣人機介面": [
+      "友達 (人氣回流)"
+    ],
+    "AI 邊緣運算記憶體": [
+      "華邦電 (底部型態確立)"
+    ],
+    "AI 伺服器輔助晶片": [
+      "聯電 (高位橫盤/法人提款)"
+    ],
+    "車用與工控智聯顯示": [
+      "彩晶 (補漲發動)"
+    ],
+    "綠色循環經濟新材料": [
+      "遠東新 (量能回溫)"
+    ],
+    "航空貨運": [
+      "華航 (貨運溢價)"
+    ]
+  },
+  "ai_data_picks": [
+    "台積電 (外資影子建倉)",
+    "華邦電 (外資大買且基期低)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資買超第3名，股價底部站上MA20，具備補漲空間",
+      "stop_loss_price": 145,
+      "stop_loss_desc": "收盤跌破 MA5"
+    }
+  ],
+  "prev_day_picks_result": [
+    "6770 力積電 (+9.91%, 預測成立，成交量排名第2)"
+  ],
+  "price_volume_divergence": [
+    "台積電：外資買超312.8億元居冠，但成交量未進前20名 (影子建倉)",
+    "聯電：成交量3.6億股高居第6名，但外資大賣40.8億元 (高檔提款)"
+  ],
+  "commodities": [
+    "黃金 +1.02%",
+    "原油 -0.08%"
+  ],
+  "conservative_strategy": "跟隨影子巨象，分批布局台積電，只要外資買超不縮，回檔皆是機會。",
+  "aggressive_strategy": "鎖定華邦電或群創，只要不跌破今日長紅K中值可續抱。",
+  "validation_results": [
+    {
+      "id": "6770",
+      "name": "力積電",
+      "direction": "多",
+      "trigger": "成交量全台第3名，量增比 1.81 倍，外資/量/價三位一體共振，站穩所有均線",
+      "stop_loss_price": 71.5,
+      "stop_loss_desc": "收盤跌破 MA5",
+      "price": 88.7,
+      "pct_change": 9.91,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 2,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 88.7，漲跌 +9.91%",
+        "成交量排名第 2 名",
+        "未觸發停損：收盤跌破 MA5"
+      ]
+    }
+  ],
+  "editorial_frame": {
+    "frame": "validation_day",
+    "label": "驗收日",
+    "confidence": 82,
+    "reasons": [
+      "昨日驗收有 1 命中、0 失準，可建立連續追蹤。"
+    ],
+    "allowed_tones": [
+      "驗收",
+      "命中",
+      "失準",
+      "修正假說"
+    ],
+    "prohibited_tones": [
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報"
+    ],
+    "title_fatigue_report": "# 近期標題疲勞檢查\n- 檢查最近 5 支影片標題。\n- 未偵測到明顯疲勞詞；仍需避免無數據支撐的警報語氣。"
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD commits $10B to Taiwan AI packaging push | AI Weekly",
+      "url": "https://aiweekly.co/alerts/amd-commits-10b-to-taiwan-ai-packaging-push",
+      "snippet": "* AMD is investing $10B+ in Taiwan packaging partnerships with ASE and SPIL to secure capacity for its MI450X and EPYC Venice chips. * The MI450X GPU inside AMD's Helios rack-scale platform is confirmed on track, with multi-gigawatt deployments targeted for late 2026. Advanced packaging is now a pri",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "AI 伺服器 / 機架系統",
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD宣布於台灣產業體系投資逾100億美元 加速建置AI基礎設施 | 產業熱點 | 產業 | 經濟日報",
+      "url": "https://money.udn.com/money/story/5612/9518362",
+      "snippet": "### 熱門關鍵字. ### 最近搜尋. ### 網站導覽. ### 服務. 聯合報系著作權所有 © 2026 All Rights Reserved. # AMD宣布於台灣產業體系投資逾100億美元 加速建置AI基礎設施. AMD21日宣布，為滿足日益增長的AI基礎設施需求，於台灣產業體系投資超過100億美元，以擴大策略合作夥伴關係，並提升下一代AI基礎設施的先進封裝製造產能。. 透過與台灣及全球的策略夥伴密切合作，AMD正持續推動先進的晶片、封裝與製造技術，以實現更高的效能、更佳的效率並加速AI系統的部署。這些努力奠定在AMD與產業體系的深厚合作關係，以及在小晶片（Chiplet）架構、高",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    },
+    {
+      "event": "US Chip Giant AMD To Invest US$10B Across Taiwan's AI Ecosystem",
+      "url": "https://www.youtube.com/shorts/sGguL21_wiM",
+      "snippet": "... AI infrastructure surges. Su also reportedly met with TSMC Chair C.C. Wei on Thursday to secure advanced packaging and manufacturing capacity.",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "晶圓代工 / 先進製程"
+      ]
+    },
+    {
+      "event": "AMD宣布於台灣產業體系投資逾100億美元，加速建置AI基礎設施",
+      "url": "https://www.amd.com/zh-tw/newsroom/press-releases/2026-5-20-amd-announces-more-than-10-billion-in-taiwan-ecos.html",
+      "snippet": "###### 伺服器處理器. ###### 商用系統. ###### 個人與遊戲. ###### 嵌入式產品. ###### 加速器. ###### DPU 加速器. ###### 乙太網配接器. ###### 桌上型電腦. ###### FPGA 與自適應 SoC 工具. ###### 系統模組 (SOM). ###### 開發者資源. ###### 評估板與套件. ###### 處理器工具. ###### 顯示卡工具與應用程式. ###### IP 與應用. ###### GPU 加速器工具與應用程式. ###### 乙太網路轉接器工具. ###### 適用於資料中心與雲端. ######",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "GPU / CPU 平台"
+      ]
+    }
+  ]
+}

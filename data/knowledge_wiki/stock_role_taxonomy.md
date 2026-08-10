@@ -22,3 +22,15 @@
 
 ## 間接受惠基建股 (`indirect_infrastructure`)
 - **標題用途**：適合放在專題延伸，不宜說成 AI 伺服器核心 BOM 個股。
+
+## 量化分數（`market_role.scores`）
+
+每日本機更新，供標題 / 封面 / NotebookLM 主角排序：
+
+- **elasticity**：彈性攻擊適配度（方向股/ETF 會被壓低）
+- **foreign_buy_strength**：外資買超排名與金額
+- **volume_confirmation**：量榜/量增/影子低量買超
+- **validation_credibility**：歷史 prediction 命中可信度
+- **title_priority**：綜合分（誰該當標題/封面/主角卡）
+
+規則：方向指標股（如台積電）即使買超大，title_priority 仍應低於彈性攻擊股。

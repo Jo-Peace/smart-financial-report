@@ -1,159 +1,48 @@
 import os
 import datetime
-import glob
-import json
-import time
+import logging
 from dotenv import load_dotenv
 from modules.data_fetcher import DataFetcher
 from modules.analyzer import MarketAnalyzer
-from modules.notebooklm_generator import generate_notebooklm_prompt
-from modules.market_signal_scorer import build_market_signal_pack, format_signal_pack_for_prompt, load_stock_db
+from modules.fetch_result import unwrap_fetch_result
 from modules.project_skill_registry import format_skill_summary, select_skills
-from modules.prediction_validator import (
-    format_validation_results_for_prompt,
-    format_validation_results_for_structured_data,
-    validate_prediction_targets,
+from modules.ai_usage_guard import print_today_usage
+from modules.pipeline_context import build_pipeline_context
+from modules.pipeline_support import (
+    find_previous_report,
+    find_previous_structured_data,
+    is_generation_error,
 )
-from modules.local_knowledge_compounder import LocalKnowledgeCompounder
+from modules.pipeline_stages import build_dynamic_universe
+from modules.pipeline_analysis import build_analysis_bundle
+from modules.pipeline_persist import persist_daily_artifacts
+from modules.monthly_consolidate import maybe_run_before_daily_main
+from modules.data_quality_gate import apply_data_quality_gate, evaluate_data_quality
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 # Load environment variables from .env
 load_dotenv()
+CTX = build_pipeline_context()
 
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-PROJECT_THEME = os.getenv("PROJECT_THEME", "") # e.g. "中東地緣政治危機" or "GTC 大會"
-DAILY_VISUAL_THEME = os.getenv("DAILY_VISUAL_THEME", os.getenv("THUMBNAIL_STYLE", ""))
-
-# BASE Tickers (永遠保留)
-BASE_SYMBOLS = ["^TWII", "2330.TW"]
-
-# [優化 E] BASE_TOPICS 精簡為必搜主題（高信噪比）
-# 族群專屬搜尋改為「動態觸發」：只有外資買超出現時才搜
-BASE_TOPICS = [
-    "Taiwan Semiconductor",
-    "台股 今日強勢族群 逆勢抗跌",
-    "台股 今日成交量 法人買賣超 量價背離 最新分析",
-]
-
-# Reports directory
-REPORTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
-YOUTUBE_ASSETS_DIR = os.path.join(REPORTS_DIR, "06_YouTube_Assets")
-CHANNEL_STORY_LOG = os.path.join(YOUTUBE_ASSETS_DIR, "channel_story_log.md")
-
-
-def find_previous_report():
-    """Find the most recent report file for historical comparison."""
-    if not os.path.exists(REPORTS_DIR):
-        return None
-    
-    reports = sorted(glob.glob(os.path.join(REPORTS_DIR, "daily_report_V21_*.md")))
-    if reports:
-        latest = reports[-1]
-        print(f"  找到前日報告: {os.path.basename(latest)}")
-        return latest
-    return None
-
-
-def find_previous_structured_data():
-    """
-    [優化 B] 找出最近一份 structured_data_YYYYMMDD.json（前次執行），
-    載入後回傳其中的 prediction_targets 列表與日期。
-    """
-    all_jsons = sorted(glob.glob(os.path.join(REPORTS_DIR, "structured_data_????????.json")))
-    # 也找 archive 目錄
-    archive_jsons = sorted(glob.glob(os.path.join(REPORTS_DIR, "archive", "*", "structured_data_????????.json")))
-    all_jsons = sorted(set(all_jsons + archive_jsons))
-
-    today_str = datetime.datetime.now().strftime("%Y%m%d")
-    # 取今天以前的最新一份
-    candidates = [f for f in all_jsons if today_str not in f]
-    if not candidates:
-        return [], None
-
-    latest = candidates[-1]
-    try:
-        with open(latest, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        targets = data.get("prediction_targets", [])
-        data_date = data.get("date") or os.path.basename(latest).replace("structured_data_", "").replace(".json", "")
-        print(f"  [優化 B] 讀取前次 structured_data: {os.path.basename(latest)} ({data_date})，預測標的: {len(targets)} 檔")
-        return targets, data
-    except Exception as e:
-        print(f"  [優化 B] 無法讀取前次 structured_data: {e}")
-        return [], None
-
-
-def append_channel_story_log(date_str, structured_data, visual_theme="", prediction_result_summary="待驗收", video_id="", title_used=""):
-    """
-    [優化 C] 每日執行後，將本日重點 append 至 channel_story_log.md。
-    提供「頻道敘事連貫性」給下次 /2 指令參考。
-    """
-    os.makedirs(YOUTUBE_ASSETS_DIR, exist_ok=True)
-
-    # 初始化表頭（如果檔案不存在）
-    if not os.path.exists(CHANNEL_STORY_LOG):
-        header = "# 頻道敘事紀錄 (Channel Story Log)\n\n"
-        header += "| 日期 | 核心標的 | 預測方向 | 隔日驗收 | 視覺風格 | 標題方向 | 影片ID | 使用標題 | 觀看數 |\n"
-        header += "|------|---------|---------|---------|---------|---------|--------|---------|--------|\n"
-        with open(CHANNEL_STORY_LOG, "w", encoding="utf-8") as f:
-            f.write(header)
-
-    # 整理本日資料
-    picks = structured_data.get("ai_data_picks", [])
-    picks_str = "、".join(picks[:2]) if picks else "無明牌"
-
-    targets = structured_data.get("prediction_targets", [])
-    direction_str = "、".join([f"{t.get('name','')}({t.get('direction','多')})" for t in targets[:2]]) if targets else "無"
-
-    index_action = structured_data.get("index_action", "")
-
-    row = f"| {date_str} | {picks_str} | {direction_str} | {prediction_result_summary} | {visual_theme if visual_theme else '未指定'} | {index_action[:20]} | {video_id if video_id else '-'} | {title_used if title_used else '-'} | 待更新 |\n"
-
-    try:
-        with open(CHANNEL_STORY_LOG, "a", encoding="utf-8") as f:
-            f.write(row)
-        print(f"  [優化 C] 頻道敘事紀錄已更新: {CHANNEL_STORY_LOG}")
-    except Exception as e:
-        print(f"  [優化 C] 無法寫入頻道敘事紀錄: {e}")
-
-
-def is_generation_error(content):
-    """Return True when an AI generation helper returned an error string instead of content."""
-    return isinstance(content, str) and content.strip().startswith("Error generating")
-
-
-def _read_tail(path, max_chars=5000):
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            content = f.read()
-        return content[-max_chars:]
-    except Exception:
-        return ""
-
-
-def build_packaging_context(validation_summary=""):
-    """Build late-stage YouTube packaging context from local learning records."""
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    title_rules_path = os.path.join(base_dir, "project_skills", "youtube_title_packaging.md")
-    analytics_path = os.path.join(REPORTS_DIR, "analytics_summary.md")
-    local_memory_path = os.path.join(base_dir, "data", "knowledge_wiki", "local_market_memory.md")
-    role_taxonomy_path = os.path.join(base_dir, "data", "knowledge_wiki", "stock_role_taxonomy.md")
-    audience_profile = (
-        "觀眾偏好：標題與封面要具體點名個股；先講情境或矛盾，再回答哪幾檔。"
-        "避免只說 AI 族群、資金輪動、前景看好。"
-        "同一支股票要分清角色：方向指標、彈性攻擊、題材確認、資金載體要分開包裝。"
-        "角色判斷必須參照本機 stock_db 的 market_role.evidence，不可只憑印象。"
-    )
-    return {
-        "validation_summary": validation_summary,
-        "analytics_summary": _read_tail(analytics_path, max_chars=4500),
-        "channel_story": _read_tail(CHANNEL_STORY_LOG, max_chars=3500),
-        "title_packaging_rules": _read_tail(title_rules_path, max_chars=5000),
-        "local_market_memory": _read_tail(local_memory_path, max_chars=3500),
-        "stock_role_taxonomy": _read_tail(role_taxonomy_path, max_chars=2500),
-        "audience_profile": audience_profile,
-    }
+TAVILY_API_KEY = CTX.tavily_api_key
+GEMINI_API_KEY = CTX.gemini_api_key
+YOUTUBE_API_KEY = CTX.youtube_api_key
+YOUTUBE_CHANNEL_ID = CTX.youtube_channel_id
+PROJECT_THEME = CTX.project_theme
+DAILY_VISUAL_THEME = CTX.daily_visual_theme
+ALLOW_EARLY_RUN = CTX.allow_early_run
+NEWS_MODE = CTX.news_mode
+TAVILY_DAILY_SEARCH_LIMIT = CTX.tavily_daily_search_limit
+BASE_SYMBOLS = CTX.base_symbols
+BASE_TOPICS = CTX.base_topics
+REPORTS_DIR = CTX.reports_dir
+YOUTUBE_ASSETS_DIR = CTX.youtube_assets_dir
+CHANNEL_STORY_LOG = CTX.channel_story_log
+YOUTUBE_PERFORMANCE_WIKI = os.path.join(CTX.base_dir, "data", "knowledge_wiki", "youtube_performance_patterns.md")
 
 
 def main():
@@ -161,45 +50,78 @@ def main():
     print(f"  智慧財經新聞助理 (V21 Pro)")
     print(f"  日期: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print(f"{'='*50}\n")
+
+    now = datetime.datetime.now()
+    cutoff = now.replace(hour=16, minute=10, second=0, microsecond=0)
+    if now < cutoff and not ALLOW_EARLY_RUN:
+        print("  ⛔ 16:10 前不執行 /1，避免資料未齊與 Gemini/API 成本浪費。")
+        print("  若確定要強制執行，請設定 ALLOW_EARLY_RUN=1 後再跑。")
+        print_today_usage(prefix="  ")
+        return
+
+    print_today_usage(prefix="  ")
+    run_date = now.strftime("%Y-%m-%d")
     
     if not TAVILY_API_KEY or not GEMINI_API_KEY:
         print("[Error] 請在 .env 檔案中設定 TAVILY_API_KEY 和 GEMINI_API_KEY")
         return
+
+    maybe_run_before_daily_main(REPORTS_DIR, now=now)
 
     try:
         active_skills = select_skills(
             [
                 "market_analysis",
                 "prediction_validation",
-                "youtube_package",
-                "thumbnail_prompt",
                 "notebooklm_prompt",
+                "event_radar",
+                "news",
+                "supply_chain",
             ],
             base_dir=os.path.dirname(os.path.abspath(__file__)),
         )
         print(f"\n🧩 Project skills loaded: {format_skill_summary(active_skills)}")
     except Exception as e:
         print(f"\n⚠️  Project skills registry unavailable: {e}")
+        active_skills = []
 
     # ========================================
     # 0. Update yesterday's video performance stats
     # ========================================
     if YOUTUBE_API_KEY:
-        print("\n📺 正在更新已記錄影片的最新公開觀看數...")
-        from modules.youtube_analytics import update_log_with_stats
+        print("\n📺 正在更新 YouTube 近期影片與公開觀看數...")
+        from modules.youtube_analytics import update_log_from_channel, update_log_with_stats
+        from modules.youtube_learning import update_youtube_performance_wiki
+
+        if YOUTUBE_CHANNEL_ID:
+            update_log_from_channel(
+                log_path=CHANNEL_STORY_LOG,
+                api_key=YOUTUBE_API_KEY,
+                channel_id=YOUTUBE_CHANNEL_ID,
+                max_results=50,
+            )
         update_log_with_stats(CHANNEL_STORY_LOG, YOUTUBE_API_KEY, update_all=True)
+        try:
+            update_youtube_performance_wiki(CHANNEL_STORY_LOG, YOUTUBE_PERFORMANCE_WIKI)
+            print(f"  ✅ YouTube 成效學習摘要已更新: {os.path.basename(YOUTUBE_PERFORMANCE_WIKI)}")
+        except Exception as e:
+            print(f"  ⚠️  YouTube 成效學習摘要更新失敗，略過：{e}")
     else:
         print("\n⚠️  未設定 YOUTUBE_API_KEY，跳過影片觀看數更新。")
         print("   請在 .env 加入 YOUTUBE_API_KEY=... 以啟用自動觀看數追蹤。")
     
     # Initialize Modules
-    fetcher = DataFetcher(TAVILY_API_KEY)
+    fetcher = DataFetcher(TAVILY_API_KEY, tavily_search_limit=TAVILY_DAILY_SEARCH_LIMIT)
+    print(f"  📰 NEWS_MODE={NEWS_MODE}，Tavily 搜尋上限={TAVILY_DAILY_SEARCH_LIMIT}")
     analyzer = MarketAnalyzer(GEMINI_API_KEY)
     
     # ========================================
     # 1. Fetch Institutional Data (三大法人 — Top 10 動態排名)
     # ========================================
-    institutional_data = fetcher.get_institutional_data(top_n=10)
+    institutional_data = unwrap_fetch_result(
+        fetcher.get_institutional_data(top_n=10),
+        default={"top_buy": [], "top_sell": [], "data_date": None},
+    )
     has_inst_data = institutional_data.get("top_buy") or institutional_data.get("top_sell")
     if not has_inst_data:
         print("  ❌ 無法取得三大法人數據（今日資料尚未發布），停止執行。")
@@ -208,200 +130,142 @@ def main():
 
     # ========================================
     # [優化 B] 讀取前次 structured_data，取得預測標的供後續驗收
+    # 若前次產出距今 >1 交易日（中間沒跑 /1），不當作「昨日/上集驗收」
     # ========================================
     print("\n🔍 [優化 B] 讀取前次預測標的...")
-    yesterday_predictions, yesterday_structured = find_previous_structured_data()
+    from modules.pipeline_support import resolve_onair_prediction_targets
+
+    previous_predictions, yesterday_structured, validation_meta = find_previous_structured_data(
+        REPORTS_DIR,
+        as_of_date=run_date,
+    )
+    # Universe 仍可用前次標的做追蹤；內容驗收僅用「上一交易日有產出」的標的
+    yesterday_predictions = resolve_onair_prediction_targets(previous_predictions, validation_meta)
 
     # 動態決定今日分析標的 (大盤 + 台積電 + 外資買賣超前三名)
-    dynamic_symbols = BASE_SYMBOLS.copy()
-    dynamic_topics = BASE_TOPICS.copy()
-
-    if has_inst_data:
-        for item in institutional_data.get("top_buy", [])[:3]:
-            symbol_yf = f"{item['id']}.TW"
-            if symbol_yf not in dynamic_symbols:
-                dynamic_symbols.append(symbol_yf)
-                # [優化 E] 加入族群專屬搜尋（動態觸發）
-                dynamic_topics.append(f"Taiwan stock {item['id']} {item['name']} 外資買超 原因")
-
-        for item in institutional_data.get("top_sell", [])[:3]:
-            symbol_yf = f"{item['id']}.TW"
-            if symbol_yf not in dynamic_symbols:
-                dynamic_symbols.append(symbol_yf)
-                dynamic_topics.append(f"Taiwan stock {item['id']} {item['name']} 外資賣超 原因")
-
-    # [優化 B] 確保前次預測標的也被抓取技術指標
-    if yesterday_predictions:
-        for pred in yesterday_predictions:
-            pred_symbol = f"{pred.get('id', '')}.TW"
-            if pred_symbol not in dynamic_symbols and pred.get('id'):
-                dynamic_symbols.append(pred_symbol)
+    dynamic_symbols, dynamic_topics = build_dynamic_universe(
+        BASE_SYMBOLS,
+        BASE_TOPICS,
+        institutional_data,
+        previous_predictions or yesterday_predictions,
+    )
 
     # ========================================
     # 2. Fetch Market Data (with Technical Indicators)
     # ========================================
     market_data = {}
-    print("\n📊 正在獲取動態股票數據與技術指標...")
-    for symbol in dynamic_symbols:
-        data = fetcher.get_stock_data(symbol)
-        if data:
-            market_data[symbol] = data
-            indicator_str = ""
-            if data.get('ma5'):
-                indicator_str += f" MA5={data['ma5']}"
-            if data.get('ma20'):
-                indicator_str += f" MA20={data['ma20']}"
-            if data.get('rsi') is not None:
-                indicator_str += f" RSI={data['rsi']}"
-            print(f"  ✅ {symbol}: ${data['price']} ({data['pct_change']:+.2f}%){indicator_str}")
-        else:
-            print(f"  ❌ {symbol}: 失敗")
+    print("\n📊 正在獲取動態股票數據與技術指標（平行處理）...")
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    
+    def fetch_and_format(sym):
+        return sym, unwrap_fetch_result(fetcher.get_stock_data(sym))
+        
+    # max_workers = min(10, max(1, len(dynamic_symbols)))
+    worker_count = min(10, len(dynamic_symbols)) if dynamic_symbols else 1
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        future_to_symbol = {executor.submit(fetch_and_format, sym): sym for sym in dynamic_symbols}
+        for future in as_completed(future_to_symbol):
+            symbol, data = future.result()
+            if data:
+                market_data[symbol] = data
+                indicator_str = ""
+                if data.get('ma5'):
+                    indicator_str += f" MA5={data['ma5']}"
+                if data.get('ma20'):
+                    indicator_str += f" MA20={data['ma20']}"
+                if data.get('rsi') is not None:
+                    indicator_str += f" RSI={data['rsi']}"
+                print(f"  ✅ {symbol}: ${data['price']} ({data['pct_change']:+.2f}%){indicator_str}")
+            else:
+                print(f"  ❌ {symbol}: 失敗")
     
     # ========================================
     # 2.5 Fetch Commodity Data (油金銀)
     # ========================================
     print("\n🛢️  正在獲取國際商品行情...")
-    commodity_data = fetcher.get_commodity_data()
+    commodity_data = unwrap_fetch_result(fetcher.get_commodity_data(), default={})
 
     # ========================================
     # 2.6 Fetch Top Volume Stocks (今日成交量前20名 - 真實市場投票)
     # ========================================
-    volume_data = fetcher.get_top_volume_stocks(top_n=20)
-            
+    volume_result = fetcher.get_top_volume_stocks(top_n=20)
+    volume_data = unwrap_fetch_result(volume_result, default=[])
+    volume_date = (volume_result.get("meta") or {}).get("data_date") if isinstance(volume_result, dict) else None
+    institutional_date = institutional_data.get("data_date")
+    if volume_data and institutional_date and volume_date and volume_date != institutional_date:
+        print("\n  ⚠️  法人與成交量日期不一致，嘗試對齊到成交量交易日...")
+        print(f"     三大法人資料日期：{institutional_date}")
+        print(f"     成交量排行資料日期：{volume_date}")
+        aligned = unwrap_fetch_result(
+            fetcher.get_institutional_data(top_n=10, target_date=volume_date),
+            default={"top_buy": [], "top_sell": [], "data_date": None},
+        )
+        if aligned.get("top_buy") or aligned.get("top_sell"):
+            institutional_data = aligned
+            institutional_date = aligned.get("data_date")
+            print(f"  ✅ 已對齊法人資料日期：{institutional_date}")
+        if institutional_date != volume_date:
+            print("\n  ❌ 仍無法對齊交易日，停止執行以避免跨日污染。")
+            print("  💡 通常等 2～5 分鐘後重跑即可；證交所法人榜偶爾比成交量晚幾分鐘。")
+            return
+
+    quality_report = evaluate_data_quality(
+        run_date=run_date,
+        institutional_data=institutional_data,
+        market_data=market_data,
+        volume_data=volume_data,
+        volume_date=volume_date,
+        yesterday_predictions=yesterday_predictions,
+        expected_symbols=dynamic_symbols,
+    )
+    if not apply_data_quality_gate(quality_report):
+        return
+
     # ========================================
     # 2.6 Fetch Macro Economic Events (日曆事件)
     # ========================================
-    macro_events = fetcher.get_macro_events()
+    macro_events = [] if NEWS_MODE == "off" else unwrap_fetch_result(fetcher.get_macro_events(), default=[])
 
-    # ========================================
-    # 2.6.5 Deterministic previous prediction validation
-    # ========================================
-    validation_results = validate_prediction_targets(
-        previous_targets=yesterday_predictions,
-        market_data=market_data,
+    analysis_bundle = build_analysis_bundle(
+        fetcher=fetcher,
         institutional_data=institutional_data,
-        volume_data=volume_data,
-    )
-    validation_summary = format_validation_results_for_prompt(validation_results)
-    if validation_results:
-        print("\n✅ 本機正式驗收結果：")
-        for line in validation_summary.splitlines()[1:]:
-            print(f"  {line}")
-
-    # ========================================
-    # 2.7 Fetch Tech Catalyst Events (NVIDIA GTC / Fed / 財報 等)
-    # ========================================
-    tech_catalyst_events = fetcher.get_tech_catalyst_events()
-
-    # ========================================
-    # 2.8 Auto Update Stock Database + [優化 D] 績效追蹤
-    # ========================================
-    print("\n🔍 正在檢查是否有新股票需要 AI 供應鏈調查...")
-    from modules.stock_db_updater import StockDatabaseUpdater
-    updater = None
-    try:
-        updater = StockDatabaseUpdater(GEMINI_API_KEY)
-        stocks_to_check = []
-        if has_inst_data:
-            for s in institutional_data.get("top_buy", []) + institutional_data.get("top_sell", []):
-                stocks_to_check.append({"id": s["id"], "name": s["name"]})
-        if volume_data:
-            for s in volume_data:
-                stocks_to_check.append({"id": s["id"], "name": s["name"]})
-        updater.update_new_stocks(stocks_to_check)
-
-        # [優化 D] 用前次 prediction_targets 更新今日驗收結果
-        if yesterday_predictions:
-            print("\n📊 [優化 D] 正在更新前次預測標的的績效追蹤...")
-            updater.update_tracking_stats(
-                yesterday_predictions=yesterday_predictions,
-                todays_market_data=market_data,
-                todays_institutional_data=institutional_data
-            )
-    except Exception as e:
-        print(f"  [Error] 自動資料庫調查/績效追蹤失敗: {e}")
-
-    # ========================================
-    # 3. [優化 E] Fetch News 精準優先策略
-    # ========================================
-    news_data = []
-    print("\n📰 正在獲取新聞（精準優先策略）...")
-
-    for topic in dynamic_topics:
-        query = f"{topic} market news today"
-        results = fetcher.get_news(query)
-        if results:
-            news_data.extend(results)
-            print(f"  ✅ {topic}: 找到 {len(results)} 篇文章")
-        else:
-            print(f"  ⚠️  {topic}: 未找到文章")
-
-    # 大盤 + 台積電 股價新聞
-    for symbol in dynamic_symbols[:2]:
-        query = f"{symbol} stock news today"
-        results = fetcher.get_news(query)
-        if results:
-            news_data.extend(results)
-
-    # Deduplicate
-    unique_news = list({n['url']: n for n in news_data}.values())
-    print(f"\n  📋 獨特新聞文章總數: {len(unique_news)}")
-
-    # ========================================
-    # 3.5 [深度押注] 每日焦點股深挖
-    # ========================================
-    deep_dive_data = None
-    top_buy_list = institutional_data.get("top_buy", [])
-    if top_buy_list:
-        focus_stock = top_buy_list[0]  # 外資買超金額第一名
-        focus_id = focus_stock.get("id", "")
-        focus_name = focus_stock.get("name", "")
-        print(f"\n🎯 [深度押注] 今日焦點股：{focus_id} {focus_name}")
-        try:
-            deep_dive_data = fetcher.get_deep_dive_data(
-                stock_id=focus_id,
-                stock_name=focus_name,
-                institutional_data=institutional_data
-            )
-        except Exception as e:
-            print(f"  ⚠️  深度押注資料抓取失敗: {e}")
-
-    # ========================================
-    # 3.6 Local Market Signal Scoring (no AI quota)
-    # ========================================
-    print("\n🧮 正在計算本地量化訊號包（不消耗 Gemini 額度）...")
-    stock_db = load_stock_db(os.path.dirname(os.path.abspath(__file__)))
-    signal_pack = build_market_signal_pack(
         market_data=market_data,
-        institutional_data=institutional_data,
+        commodity_data=commodity_data,
         volume_data=volume_data,
-        stock_db=stock_db,
+        macro_events=macro_events,
+        yesterday_predictions=yesterday_predictions,
+        validation_meta=validation_meta,
+        dynamic_topics=dynamic_topics,
+        news_mode=NEWS_MODE,
+        supply_chain_event_radar=[],
+        active_skills=active_skills,
+        channel_story_log=CHANNEL_STORY_LOG,
+        base_dir=os.path.dirname(os.path.abspath(__file__)),
+        gemini_api_key=GEMINI_API_KEY,
+        report_date=run_date,
     )
-    signal_summary = format_signal_pack_for_prompt(signal_pack)
-    strongest = signal_pack.get("strongest_anomaly")
-    if strongest:
-        print(f"  ✅ 今日最強異常: {strongest['type']} - {strongest['text']}")
-    else:
-        print("  ⚠️  未偵測到明確法人/成交量背離，將以成交量與技術位共振為主。")
-    watch_candidates = signal_pack.get("watch_candidates") or []
-    if watch_candidates:
-        preview = "、".join([f"{c['ticker']} {c.get('name', '')}".strip() for c in watch_candidates[:3]])
-        print(f"  ✅ 明日觀察候選: {preview}")
-    else:
-        print("  ⚠️  本地門檻下無安全明日觀察候選。")
+
+    validation_results = analysis_bundle["validation_results"]
+    validation_summary = analysis_bundle["validation_summary"]
+    validation_meta = analysis_bundle.get("validation_meta") or validation_meta
+    supply_chain_event_radar = analysis_bundle["supply_chain_event_radar"]
+    skill_context = analysis_bundle["skill_context"]
+    unique_news = analysis_bundle["unique_news"]
+    deep_dive_data = analysis_bundle["deep_dive_data"]
+    editorial_frame = analysis_bundle["editorial_frame"]
+    signal_summary = analysis_bundle["signal_summary"]
+    tech_catalyst_events = []
 
     # ========================================
     # 4. Historical Comparison
     # ========================================
     print("\n📁 檢查歷史報告...")
-    prev_report = find_previous_report()
+    prev_report = find_previous_report(REPORTS_DIR)
     
     # ========================================
     # 5. Generate AI Report
     # ========================================
-    print("\n⏳ [速率限制保護] 等待 5 秒後呼叫 Gemini 主報告...")
-    time.sleep(5)
-    print("\n🤖 正在使用 Gemini 生成 AI 報告...")
+    print("\n🤖 正在使用 Gemini 生成 AI 報告（無固定等待，限流改由 retry 處理）...")
     report_content = analyzer.generate_report(
         market_data, 
         unique_news, 
@@ -415,6 +279,7 @@ def main():
         signal_summary=signal_summary,
         previous_prediction_targets=yesterday_predictions,
         previous_validation_summary=validation_summary,
+        editorial_frame=editorial_frame,
     )
     if is_generation_error(report_content):
         print("\n❌ AI 報告生成失敗，停止流程以避免覆蓋正式報告。")
@@ -422,226 +287,32 @@ def main():
         print("   已抓取的市場資料未寫成正式日報；請稍後更換/恢復 Gemini 額度後重跑。")
         return
     
-    # ========================================
-    # 6. Save Report
-    # ========================================
-    os.makedirs(REPORTS_DIR, exist_ok=True)
-    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-    filename = f"daily_report_V21_{date_str}.md"
-    filepath = os.path.join(REPORTS_DIR, filename)
-    
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(report_content)
-        
-    # ========================================
-    # 7. Generate Structured Data & NotebookLM Prompt
-    # ========================================
-    from modules.data_extractor import extract_structured_data
-
-    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 萃取結構化數據...")
-    time.sleep(8)
-    print("\n📦 正在萃取結構化數據 (防止 AI 幻覺)...")
-    structured_data = extract_structured_data(GEMINI_API_KEY, report_content)
-    if isinstance(structured_data, dict) and structured_data.get("error"):
-        failed_json_filename = f"structured_data_failed_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        failed_json_filepath = os.path.join(REPORTS_DIR, failed_json_filename)
-        import json
-        with open(failed_json_filepath, "w", encoding="utf-8") as f:
-            json.dump(structured_data, f, ensure_ascii=False, indent=2)
-        print("\n❌ 結構化數據萃取失敗，停止後續素材生成以避免覆蓋正式 JSON。")
-        print(f"   錯誤紀錄已儲存: {failed_json_filename}")
-        print("   日報已保留，可在 Gemini 額度恢復後只重跑後續素材流程。")
-        return
-    
-    # Save the structured data json for debugging
-    json_filename = f"structured_data_{date_str.replace('-', '')}.json"
-    json_filepath = os.path.join(REPORTS_DIR, json_filename)
-    import json
-    with open(json_filepath, "w", encoding="utf-8") as f:
-        deterministic_prev_results = format_validation_results_for_structured_data(validation_results)
-        if deterministic_prev_results:
-            structured_data["prev_day_picks_result"] = deterministic_prev_results
-            structured_data["validation_results"] = validation_results
-        json.dump(structured_data, f, ensure_ascii=False, indent=2)
-    print(f"  ✅ 結構化數據已儲存: {json_filename}")
-
-    # ========================================
-    # 7.0 Local Knowledge Compounding (no Gemini quota)
-    # ========================================
-    print("\n🧠 正在更新本機知識複利（市場記憶 + 個股角色分類，不消耗 AI 額度）...")
-    try:
-        compound_result = LocalKnowledgeCompounder().update_from_structured_data(
-            structured_data=structured_data,
-            report_content=report_content,
-            report_date=date_str,
-        )
-        print(
-            "  ✅ 本機知識已更新："
-            f"市場記憶 {'新增' if compound_result['memory_appended'] else '已存在'}；"
-            f"個股角色更新 {compound_result['roles_updated']} 檔"
-        )
-    except Exception as e:
-        print(f"  ⚠️  本機知識複利更新失敗，略過: {e}")
-
-    # ========================================
-    # 7.1 Local Analytics DB (no extra AI quota)
-    # ========================================
-    print("\n📈 正在寫入本地 Analytics DB（資料複利，不消耗 AI 額度）...")
-    try:
-        from modules.analytics_store import AnalyticsStore
-
-        analytics_summary = AnalyticsStore().record_daily_run(
-            run_date=datetime.datetime.now().strftime("%Y-%m-%d"),
-            structured_data=structured_data,
-            report_path=filepath,
-            structured_data_path=json_filepath,
-            market_data=market_data,
-            institutional_data=institutional_data,
-            volume_data=volume_data,
-        )
-        hit_rate = analytics_summary.get("hit_rate")
-        hit_rate_str = f"{hit_rate:.1f}%" if hit_rate is not None else "尚無可驗收樣本"
-        print(
-            "  ✅ Analytics DB 已更新: "
-            f"日報 {analytics_summary['daily_runs']} 筆、"
-            f"預測 {analytics_summary['predictions']} 筆、"
-            f"驗收 {analytics_summary['evaluated_results']} 筆、"
-            f"命中率 {hit_rate_str}"
-        )
-        try:
-            from analytics_report import write_report as write_analytics_report
-
-            analytics_report_path = write_analytics_report()
-            print(f"  ✅ Analytics 摘要已更新: {os.path.basename(analytics_report_path)}")
-        except Exception as report_error:
-            print(f"  ⚠️  Analytics 摘要產生失敗: {report_error}")
-    except Exception as e:
-        print(f"  ⚠️  Analytics DB 寫入失敗，略過本地統計: {e}")
-    
-    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 生成 Podcast 腳本...")
-    time.sleep(8)
-    print("\n🎧 正在基於結構化數據生成 NotebookLM Podcast 腳本指令...")
-    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-    print(f"  📌 目前專案主題標籤: {PROJECT_THEME if PROJECT_THEME else '無 (日常盤勢)'}")
-    print(f"  🎨 今日視覺設定: {DAILY_VISUAL_THEME if DAILY_VISUAL_THEME else '未指定 (預設風格)'}")
-    notebooklm_prompt_content = generate_notebooklm_prompt(GEMINI_API_KEY, structured_data, date_str, current_theme=PROJECT_THEME)
-    if is_generation_error(notebooklm_prompt_content):
-        print("  ⚠️  NotebookLM prompt 生成失敗，跳過寫入。")
-        notebooklm_prompt_content = None
-    nl_filename = f"notebooklm_prompt_podcast_{datetime.datetime.now().strftime('%Y%m%d')}.md"
-    nl_filepath = os.path.join(REPORTS_DIR, nl_filename)
-    
-    if notebooklm_prompt_content:
-        with open(nl_filepath, "w", encoding="utf-8") as f:
-            f.write(notebooklm_prompt_content)
-        
-    print(f"\n✅ 報告已儲存至: {filepath}")
-    if notebooklm_prompt_content:
-        print(f"✅ NotebookLM 腳本指令已儲存至: {nl_filepath}")
-    
-    # ========================================
-    # 7.5 Generate YouTube Content Package (titles + description + pinned comment)
-    # ========================================
-    from modules.youtube_content_generator import generate_youtube_package, save_youtube_package
-
-    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 生成 YouTube 素材...")
-    time.sleep(8)
-    print("\n📢 正在生成 YouTube 上架素材（標題/描述/置頂留言）...")
-    yt_package = generate_youtube_package(
-        GEMINI_API_KEY,
-        structured_data,
-        report_content,
-        date_str,
-        packaging_context=build_packaging_context(validation_summary=validation_summary),
-    )
-    if yt_package.get("titles"):
-        yt_package_path = save_youtube_package(yt_package, YOUTUBE_ASSETS_DIR, date_str)
-        print(f"  ✅ YouTube 素材包已儲存: {os.path.basename(yt_package_path)}")
-        for i, title in enumerate(yt_package["titles"][:2]):
-            print(f"     標題{'AB'[i]}: {title}")
-
-        try:
-            from modules.video_asset_planner import (
-                append_youtube_package_addendum,
-                build_video_asset_record,
-                build_youtube_package_addendum,
-            )
-
-            package_addendum = build_youtube_package_addendum(
-                structured_data=structured_data,
-                report_content=report_content,
-                youtube_package=yt_package,
-                date_str=date_str,
-                visual_theme=DAILY_VISUAL_THEME,
-            )
-            append_youtube_package_addendum(yt_package_path, package_addendum)
-            print("  ✅ YouTube 素材包已補入封面/NotebookLM/驗收計畫")
-
-            try:
-                from modules.analytics_store import AnalyticsStore
-
-                asset_record = build_video_asset_record(
-                    structured_data=structured_data,
-                    youtube_package=yt_package,
-                    date_str=date_str,
-                    visual_theme=DAILY_VISUAL_THEME,
-                )
-                AnalyticsStore().record_youtube_asset_plan(
-                    run_date=date_str,
-                    asset_record=asset_record,
-                    youtube_package_path=yt_package_path,
-                    video_plan_path=yt_package_path,
-                    visual_theme=DAILY_VISUAL_THEME,
-                )
-                print("  ✅ 標題/封面學習資料庫已記錄本日 A/B 方案")
-            except Exception as e:
-                print(f"  ⚠️  標題/封面學習資料庫寫入失敗，略過: {e}")
-        except Exception as e:
-            print(f"  ⚠️  影片製作計畫產生失敗，略過: {e}")
-    else:
-        print("  ⚠️  YouTube 素材生成失敗，跳過。")
-
-    # ========================================
-    # 7.6 Generate thumbnail prompts for manual image generation
-    # ========================================
-    from modules.thumbnail_generator import generate_ab_test_thumbnails, print_ab_test_summary
-
-    print("\n🎨 正在用本機規則產生 YouTube 情境式縮圖 Prompt（手動生圖用，不呼叫 Gemini）...")
-    try:
-        thumbnail_styles = [DAILY_VISUAL_THEME] if DAILY_VISUAL_THEME else None
-        ab_results = generate_ab_test_thumbnails(
-            gemini_api_key=GEMINI_API_KEY,
-            openai_api_key=None,
-            report_content=report_content,
-            reports_dir=YOUTUBE_ASSETS_DIR,
-            styles=thumbnail_styles,
-            num_titles=2,
-            structured_data=structured_data,
-            run_date=date_str,
-        )
-        print_ab_test_summary(ab_results)
-    except Exception as e:
-        print(f"  ⚠️  縮圖 Prompt 生成失敗，跳過，不影響日報與文字素材: {e}")
-
-    # ========================================
-    # 8. Update Knowledge Wiki (The Second Brain) [優化 A]
-    # ========================================
-    from modules.knowledge_manager import KnowledgeUpdater
-    print("\n⏳ [速率限制保護] 等待 8 秒後呼叫 Gemini 更新 Knowledge Wiki...")
-    time.sleep(8)
-    knowledge_updater = KnowledgeUpdater(GEMINI_API_KEY)
-    knowledge_updater.update_knowledge_base(report_content)
-
-    # ========================================
-    # 9. [優化 C] 更新頻道敘事紀錄 (Channel Story Log)
-    # ========================================
-    print("\n📺 [優化 C] 更新頻道敘事紀錄...")
-    append_channel_story_log(
+    date_str = run_date
+    persist_result = persist_daily_artifacts(
+        gemini_api_key=GEMINI_API_KEY,
+        report_content=report_content,
+        reports_dir=REPORTS_DIR,
         date_str=date_str,
-        structured_data=structured_data,
-        visual_theme=DAILY_VISUAL_THEME,
-        prediction_result_summary="待驗收"
+        validation_results=validation_results,
+        validation_meta=validation_meta,
+        editorial_frame=editorial_frame,
+        supply_chain_event_radar=supply_chain_event_radar,
+        market_data=market_data,
+        institutional_data=institutional_data,
+        volume_data=volume_data,
+        commodity_data=commodity_data,
+        skill_context=skill_context,
+        project_theme=PROJECT_THEME,
+        channel_story_log=CHANNEL_STORY_LOG,
+        youtube_assets_dir=YOUTUBE_ASSETS_DIR,
     )
+    if not persist_result.get("ok"):
+        return
+
+    structured_data = persist_result["structured_data"]
+    notebooklm_prompt_content = persist_result.get("notebooklm_prompt_content")
+    filename = persist_result.get("filename", f"daily_report_V21_{date_str}.md")
+    nl_filename = os.path.basename(persist_result["notebooklm_prompt_path"]) if persist_result.get("notebooklm_prompt_path") else None
 
     print("\n" + "="*50)
     print("  ✅ 所有任務完成！")

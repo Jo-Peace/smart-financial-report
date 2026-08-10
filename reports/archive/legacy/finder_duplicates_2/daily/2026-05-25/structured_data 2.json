@@ -1,0 +1,133 @@
+{
+  "date": "2026-05-25",
+  "index_action": "資金大挪移，外資重金護盤鴻海以穩定大盤",
+  "heavyweights_dumped": [
+    "廣達 (-62.8億)",
+    "富采 (-15.1億)",
+    "至上 (-12.9億)",
+    "第一金 (-12.9億)",
+    "台新新光金 (-11.9億)",
+    "英業達 (-9.5億)"
+  ],
+  "safe_havens_bought": [
+    "鴻海 (+135.9億)",
+    "華邦電 (+92.6億)",
+    "聯電 (+60.6億)",
+    "力積電 (+47.4億)",
+    "台玻 (+31.9億)"
+  ],
+  "sectors": {
+    "AI 伺服器垂直整合": [
+      "鴻海 (外資買超金額第一)"
+    ],
+    "AI 伺服器系統組裝": [
+      "仁寶 (強勢封漲停)"
+    ],
+    "AI 伺服器輔助晶片": [
+      "聯電 (帶量跳空站上 MA20)"
+    ],
+    "AI 邊緣運算記憶體": [
+      "華邦電 (外資重金駐紮)"
+    ],
+    "AI 記憶體整合技術": [
+      "力積電 (連續兩日量價齊揚)"
+    ],
+    "AI 記憶體關鍵材料": [
+      "南亞科 (爆量跌破 MA5)"
+    ],
+    "AI PCB 基板材料": [
+      "台玻 (結構性補漲)"
+    ],
+    "AI 伺服器 ODM": [
+      "英業達 (漲停但外資反向拋售)"
+    ],
+    "鋼鐵產業": [
+      "中鋼 (爆量噴發)"
+    ],
+    "主動型基金": [
+      "00403A (主動型資金瘋狂湧入)"
+    ]
+  },
+  "ai_data_picks": [
+    "鴻海 (外資買超 135.9 億)",
+    "華邦電 (外資掃貨 92.6 億)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2317",
+      "name": "鴻海",
+      "direction": "多",
+      "trigger": "外資重金護盤站穩 MA20，預期 2 週內挑戰 280 元壓力區",
+      "stop_loss_price": 248.7,
+      "stop_loss_desc": "收盤跌破 MA5"
+    },
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "AI 邊緣運算記憶體缺口顯現，量增比 1.64 倍且法人重金鎖籌",
+      "stop_loss_price": 112.5,
+      "stop_loss_desc": "收盤跌破 MA20"
+    }
+  ],
+  "prev_day_picks_result": [
+    "6770 力積電 (+5.96%, 預測成立，成交量排名第5)",
+    "2344 華邦電 (+2.80%, 預測成立，成交量排名第2)"
+  ],
+  "price_volume_divergence": [
+    "英業達強攻漲停但外資賣超 9.5 億 (籌碼背離)",
+    "廣達外資大幅提款 62.8 億",
+    "南亞科爆量跌破 MA5"
+  ],
+  "commodities": [
+    "黃金 (4523.2元，反映避險情緒)"
+  ],
+  "conservative_strategy": "關注鴻海護盤動能，現金為王，嚴格避開漲停板但法人撤離之個股。",
+  "aggressive_strategy": "追蹤華邦電與聯電之法人共鳴標的，利用量價同步突破進行波段操作。",
+  "validation_results": [
+    {
+      "id": "6770",
+      "name": "力積電",
+      "direction": "多",
+      "trigger": "外資大買且價格站上所有均線，量增比 1.63 倍",
+      "stop_loss_price": null,
+      "stop_loss_desc": "收盤跌破 MA20",
+      "price": 67.6,
+      "pct_change": 5.96,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": null,
+      "volume_rank": 5,
+      "institutional_side": "buy",
+      "institutional_rank": 4,
+      "institutional_est_amount": 47.41,
+      "evidence": [
+        "收盤 67.6，漲跌 +5.96%",
+        "成交量排名第 5 名",
+        "外資買超第 4 名，+47.4 億"
+      ]
+    },
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資買超第 2 名且放量漲停，屬於強勢突破",
+      "stop_loss_price": null,
+      "stop_loss_desc": "今日漲停低點",
+      "price": 128.5,
+      "pct_change": 2.8,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": null,
+      "volume_rank": 2,
+      "institutional_side": "buy",
+      "institutional_rank": 2,
+      "institutional_est_amount": 92.64,
+      "evidence": [
+        "收盤 128.5，漲跌 +2.80%",
+        "成交量排名第 2 名",
+        "外資買超第 2 名，+92.6 億"
+      ]
+    }
+  ]
+}

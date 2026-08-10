@@ -1,0 +1,223 @@
+{
+  "date": "2026-05-27",
+  "index_action": "資金大搬風，外資執行影子建倉",
+  "heavyweights_dumped": [
+    "旺宏 (-71.0 億)",
+    "廣達 (-66.8 億)",
+    "京元電子 (-37.7 億)",
+    "友達 (-19.2 億)",
+    "台新新光金 (-19.1 億)"
+  ],
+  "safe_havens_bought": [
+    "力積電 (+55.5 億)",
+    "鴻海 (+51.8 億)",
+    "富邦金 (+50.5 億)",
+    "南亞 (+43.6 億)",
+    "聯電 (+30.9 億)"
+  ],
+  "sectors": {
+    "AI 先進封裝材料": [
+      "群創 (+9.85%)"
+    ],
+    "AI 邊緣運算記憶體": [
+      "華邦電 (+9.93%)"
+    ],
+    "AI 記憶體整合技術": [
+      "力積電 (+5.65%)"
+    ],
+    "車用與工控智聯顯示": [
+      "彩晶 (+6.23%)"
+    ],
+    "AI 伺服器輔助晶片": [
+      "聯電 (+9.96%)"
+    ],
+    "AI 儲存基礎設施": [
+      "旺宏 (-3.12%)"
+    ],
+    "AI 記憶體關鍵材料": [
+      "南亞科 (+2.80%)"
+    ],
+    "金融服務與數位轉型資產": [
+      "台新新光金 (-1.27%)",
+      "富邦金 (+50.5 億)"
+    ],
+    "AI 伺服器基礎設施": [
+      "金寶 (-6.62%)",
+      "鴻海 (+51.8 億)"
+    ],
+    "綠色循環經濟新材料": [
+      "遠東新 (-9.98%)"
+    ],
+    "AI PCB 材料": [
+      "南亞 (+43.6 億)"
+    ],
+    "系統整合": [
+      "廣達 (-66.8 億)"
+    ],
+    "封裝測試": [
+      "京元電子 (-6.79%)"
+    ]
+  },
+  "ai_data_picks": [
+    "力積電 (外資買超冠軍且量價共振)",
+    "鴻海 (影子建倉百億資金入駐)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "6770",
+      "name": "力積電",
+      "direction": "多",
+      "trigger": "外資單日買超冠軍且毛利率改善，成交量與買超金額共振，底部突破",
+      "stop_loss_price": 67.2,
+      "stop_loss_desc": "收盤跌破 MA5"
+    },
+    {
+      "id": "2317",
+      "name": "鴻海",
+      "direction": "多",
+      "trigger": "影子建倉 51.8 億，佈局下一波 AI 伺服器整機出貨潮",
+      "stop_loss_price": 246.4,
+      "stop_loss_desc": "跌破 MA20"
+    },
+    {
+      "id": "2337",
+      "name": "旺宏",
+      "direction": "空",
+      "trigger": "外資狂賣 71 億且高位放量不漲，主力撤出傳統儲存標的",
+      "stop_loss_price": null,
+      "stop_loss_desc": "外資反手回補超過 20 億元"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2449 京元電子 (-6.79%, 預測未成立)",
+    "2344 華邦電 (+9.93%, 預測成立，成交量排名第4)"
+  ],
+  "price_volume_divergence": [
+    "鴻海/富邦金 (外資買超共 102 億但未進成交量前 20 名，顯示大戶安靜搬走籌碼)",
+    "旺宏 (爆出 24 萬張天量但外資賣超 71 億，高位放量不漲反跌)"
+  ],
+  "commodities": [
+    "原油 (Crude Oil) 大跌 3.11%"
+  ],
+  "conservative_strategy": "關注鴻海等待市場量能跟進，目前無防禦標的，建議現金為王。",
+  "aggressive_strategy": "鎖定力積電，若開盤不回測今日低點，可視為強勢噴發挑戰 85 元壓力位。",
+  "validation_results": [
+    {
+      "id": "2449",
+      "name": "京元電子",
+      "direction": "多",
+      "trigger": "外資影子建倉買超 83.4 億，技術面剛突破 MA20 底部完成",
+      "stop_loss_price": 306.7,
+      "stop_loss_desc": "收盤跌破 MA20",
+      "price": 315.5,
+      "pct_change": -6.79,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": "sell",
+      "institutional_rank": 3,
+      "institutional_est_amount": -37.7,
+      "evidence": [
+        "收盤 315.5，漲跌 -6.79%",
+        "外資賣超第 3 名，-37.7 億",
+        "未觸發停損：收盤跌破 MA20"
+      ]
+    },
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資連續回補，成交量熱度與籌碼一致，開啟主升段",
+      "stop_loss_price": 124.8,
+      "stop_loss_desc": "收盤跌破 MA5",
+      "price": 155.0,
+      "pct_change": 9.93,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 4,
+      "institutional_side": "buy",
+      "institutional_rank": 6,
+      "institutional_est_amount": 22.9,
+      "evidence": [
+        "收盤 155，漲跌 +9.93%",
+        "成交量排名第 4 名",
+        "外資買超第 6 名，+22.9 億",
+        "未觸發停損：收盤跌破 MA5"
+      ]
+    }
+  ],
+  "editorial_frame": {
+    "frame": "validation_day",
+    "label": "驗收日",
+    "confidence": 82,
+    "reasons": [
+      "昨日驗收有 1 命中、1 失準，可建立連續追蹤。"
+    ],
+    "allowed_tones": [
+      "驗收",
+      "命中",
+      "失準",
+      "修正假說"
+    ],
+    "prohibited_tones": [
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "真空吸籌",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報"
+    ],
+    "title_fatigue_report": "# 近期標題疲勞檢查\n- 檢查最近 5 支影片標題。\n- 避免連續重複用詞：真空吸籌。\n- 若今日數據不是同一條故事的延續，標題應換成驗收、事件、整理日或明日確認條件。"
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD commits over US$10 billion to Taiwan ecosystem to expand AI packaging and infrastructure capacity",
+      "url": "https://www.digitimes.com/news/a20260521PR202/amd-packaging-capacity-taiwan-infrastructure.html",
+      "snippet": "Topco and Bloom Energy install Taiwan's first on-site SOFC low-carbon data center power system. Global PMX shifts into AI server cooling as demand for AI compute soars. # AMD commits over US$10 billion to Taiwan ecosystem to expand AI packaging and infrastructure capacity. AMD said on May 21 that it",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "AI 伺服器 / 機架系統"
+      ]
+    },
+    {
+      "event": "AMD宣布於台灣產業體系投資逾100億美元，加速建置AI基礎設施",
+      "url": "https://www.amd.com/zh-tw/newsroom/press-releases/2026-5-20-amd-announces-more-than-10-billion-in-taiwan-ecos.html",
+      "snippet": "###### 伺服器處理器. ###### 商用系統. ###### 個人與遊戲. ###### 嵌入式產品. ###### 加速器. ###### DPU 加速器. ###### 乙太網配接器. ###### 桌上型電腦. ###### FPGA 與自適應 SoC 工具. ###### 系統模組 (SOM). ###### 開發者資源. ###### 評估板與套件. ###### 處理器工具. ###### 顯示卡工具與應用程式. ###### IP 與應用. ###### GPU 加速器工具與應用程式. ###### 乙太網路轉接器工具. ###### 適用於資料中心與雲端. ######",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD (AMD) Stock; Edges Higher on Massive Taiwan AI Supply Chain Investment Plan | MEXC News",
+      "url": "https://www.mexc.co/news/1107283",
+      "snippet": "# AMD (AMD) Stock; Edges Higher on Massive Taiwan AI Supply Chain Investment Plan. AMD shares posted modest gains after the company revealed a sweeping plan to invest more than $10 billion into Taiwan’s AI supply chain ecosystem. At the core of the announcement is AMD’s effort to secure manufacturin",
+      "impact_score": 75,
+      "matched_factors": [
+        "investment",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": []
+    }
+  ]
+}

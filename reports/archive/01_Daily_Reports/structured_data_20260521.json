@@ -1,0 +1,135 @@
+{
+  "date": "2026-05-21",
+  "index_action": "避險情緒消退，資金大挪移轉向電子進攻",
+  "heavyweights_dumped": [
+    "華邦電 (-35.6億)",
+    "旺宏 (-32.2億)",
+    "第一金 (-19.9億)",
+    "台新新光金 (-8.3億)",
+    "凱基金 (-5.3億)"
+  ],
+  "safe_havens_bought": [
+    "景碩 (+66.0億)",
+    "鴻海 (+59.5億)",
+    "聯電 (+50.8億)",
+    "群創 (+39.8億)",
+    "緯創 (+38.7億)"
+  ],
+  "sectors": {
+    "AI 半導體載板": [
+      "景碩 (3189)"
+    ],
+    "AI 伺服器垂直整合": [
+      "鴻海 (2317)"
+    ],
+    "AI 伺服器輔助晶片": [
+      "聯電 (2303)"
+    ],
+    "AI 先進封裝材料": [
+      "群創 (3481)"
+    ],
+    "AI 運算模組核心": [
+      "緯創 (3231)"
+    ],
+    "AI 邊緣人機介面": [
+      "友達 (2409)"
+    ],
+    "AI 邊緣運算記憶體": [
+      "華邦電 (2344)"
+    ],
+    "AI 記憶體關鍵材料": [
+      "南亞科 (2408)"
+    ],
+    "AI 伺服器系統組裝": [
+      "仁寶 (2324)"
+    ],
+    "AI 儲存基礎設施": [
+      "旺宏 (2337)"
+    ],
+    "金融服務與數位轉型": [
+      "台新新光金 (2887)",
+      "第一金 (2892)"
+    ],
+    "金融服務": [
+      "凱基金 (2883)"
+    ],
+    "主動型 ETF": [
+      "主動統一升級50 (00403A)"
+    ],
+    "科技權重資本組合": [
+      "群益台灣精選高息 (00919)"
+    ]
+  },
+  "ai_data_picks": [
+    "景碩 (外資大買66億且籌碼真空狀態)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "3189",
+      "name": "景碩",
+      "direction": "多",
+      "trigger": "外資買超第一名且呈現影子建倉特徵，突破 MA20",
+      "stop_loss_price": 506.7,
+      "stop_loss_desc": "收盤跌破 MA20"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2603 長榮 (-0.24%, 預測未成立)",
+    "2891 中信金 (-0.52%, 預測未成立)"
+  ],
+  "price_volume_divergence": [
+    "景碩：外資買超金額第一(66億)但成交量未進前20名，籌碼高度鎖定",
+    "華邦電：成交量全市場第5名(20萬張)但外資賣超第一(35.6億)，呈高位分配危險訊號"
+  ],
+  "commodities": [
+    "黃金 ($4535.6)",
+    "原油 ($98.21)"
+  ],
+  "conservative_strategy": "關注 2303 聯電，其剛突破 MA20 且有法人實質買盤支撐，位階相對安全。",
+  "aggressive_strategy": "鎖定 3189 景碩，利用今日漲停後的首個量縮拉回機會進場，抓取 ABF 載板族群重新定價行情。",
+  "validation_results": [
+    {
+      "id": "2603",
+      "name": "長榮",
+      "direction": "多",
+      "trigger": "外資影子建倉第一名，量增比 2.08x 且站上 MA20",
+      "stop_loss_price": 205.7,
+      "stop_loss_desc": "收盤跌破 MA20 (約 205.7 元)",
+      "price": 212.0,
+      "pct_change": -0.24,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 212，漲跌 -0.24%",
+        "未觸發停損：收盤跌破 MA20 (約 205.7 元)"
+      ]
+    },
+    {
+      "id": "2891",
+      "name": "中信金",
+      "direction": "多",
+      "trigger": "外資買超第二名，量增比 2.06x 且突破 MA20，資金防禦色彩濃厚",
+      "stop_loss_price": 54.2,
+      "stop_loss_desc": "收盤跌破 54.2 元",
+      "price": 57.5,
+      "pct_change": -0.52,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": "buy",
+      "institutional_rank": 10,
+      "institutional_est_amount": 16.11,
+      "evidence": [
+        "收盤 57.5，漲跌 -0.52%",
+        "外資買超第 10 名，+16.1 億",
+        "未觸發停損：收盤跌破 54.2 元"
+      ]
+    }
+  ]
+}

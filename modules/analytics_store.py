@@ -150,6 +150,20 @@ class AnalyticsStore:
         """)
 
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS daily_editorial_frames (
+                run_date TEXT PRIMARY KEY,
+                frame TEXT NOT NULL,
+                label TEXT,
+                confidence INTEGER,
+                reasons TEXT,
+                allowed_tones TEXT,
+                prohibited_tones TEXT,
+                raw_json TEXT NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS youtube_asset_plans (
                 run_date TEXT PRIMARY KEY,
                 youtube_package_path TEXT,
@@ -291,6 +305,7 @@ class AnalyticsStore:
         self._record_market_snapshots(cur, run_date, market_data or {})
         self._record_institutional_flows(cur, run_date, institutional_data or {})
         self._record_volume_rankings(cur, run_date, volume_data or [])
+        self._record_editorial_frame(cur, run_date, structured_data.get("editorial_frame") or {})
         self._evaluate_due_predictions(cur, run_date)
 
         conn.commit()
@@ -539,6 +554,37 @@ class AnalyticsStore:
                 ),
             )
 
+    def _record_editorial_frame(self, cur, run_date, frame):
+        if not frame or not frame.get("frame"):
+            return
+        cur.execute(
+            """
+            INSERT INTO daily_editorial_frames (
+                run_date, frame, label, confidence, reasons,
+                allowed_tones, prohibited_tones, raw_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(run_date) DO UPDATE SET
+                frame = excluded.frame,
+                label = excluded.label,
+                confidence = excluded.confidence,
+                reasons = excluded.reasons,
+                allowed_tones = excluded.allowed_tones,
+                prohibited_tones = excluded.prohibited_tones,
+                raw_json = excluded.raw_json
+            """,
+            (
+                run_date,
+                frame.get("frame", ""),
+                frame.get("label", ""),
+                frame.get("confidence"),
+                "\n".join(frame.get("reasons") or []),
+                "\n".join(frame.get("allowed_tones") or []),
+                "\n".join(frame.get("prohibited_tones") or []),
+                _json_dumps(frame),
+            ),
+        )
+
     def _evaluate_due_predictions(self, cur, run_date):
         today = _parse_date(run_date)
         rows = cur.execute("SELECT * FROM predictions").fetchall()
@@ -667,3 +713,104 @@ class AnalyticsStore:
             "youtube_metric_samples": youtube_metric_samples,
             "hit_rate": round(hit_rate * 100, 1) if hit_rate is not None else None,
         }
+
+    def get_horizon_performance_summary(self, conn=None):
+        own_conn = conn is None
+        if own_conn:
+            conn = self._connect()
+        cur = conn.cursor()
+        rows = cur.execute(
+            """
+            SELECT
+                horizon_days,
+                COUNT(*) AS samples,
+                AVG(hit) AS hit_rate,
+                AVG(return_pct) AS avg_return,
+                AVG(excess_return_pct) AS avg_excess
+            FROM prediction_results
+            GROUP BY horizon_days
+            ORDER BY horizon_days
+            """
+        ).fetchall()
+        if own_conn:
+            conn.close()
+        return [dict(row) for row in rows]
+
+    def get_recent_prediction_results(self, limit=10, conn=None):
+        own_conn = conn is None
+        if own_conn:
+            conn = self._connect()
+        cur = conn.cursor()
+        rows = cur.execute(
+            """
+            SELECT
+                p.prediction_date, p.ticker, p.name, p.direction,
+                r.horizon_days, r.evaluated_date, r.return_pct,
+                r.index_return_pct, r.excess_return_pct, r.hit, r.result_desc
+            FROM prediction_results r
+            JOIN predictions p ON p.id = r.prediction_id
+            ORDER BY r.evaluated_date DESC, p.prediction_date DESC, p.ticker, r.horizon_days
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+        if own_conn:
+            conn.close()
+        return [dict(row) for row in rows]
+
+    def get_recent_market_trends(self, tickers, windows=(5, 10, 20), conn=None):
+        tickers = [t for t in {_normalize_ticker(t) for t in (tickers or [])} if t]
+        if not tickers:
+            return {}
+
+        own_conn = conn is None
+        if own_conn:
+            conn = self._connect()
+        cur = conn.cursor()
+        max_window = max(windows or [5])
+        result = {}
+
+        for ticker in tickers:
+            rows = cur.execute(
+                """
+                SELECT snapshot_date, price, pct_change
+                FROM market_snapshots
+                WHERE ticker = ?
+                ORDER BY snapshot_date DESC
+                LIMIT ?
+                """,
+                (ticker, max_window + 1),
+            ).fetchall()
+            if not rows:
+                continue
+
+            rows = list(rows)
+            latest = rows[0]
+            trends = {}
+            latest_price = latest["price"]
+            for window in windows or []:
+                if len(rows) <= window:
+                    continue
+                base = rows[window]
+                base_price = base["price"]
+                if latest_price is None or base_price in (None, 0):
+                    continue
+                pct = (float(latest_price) - float(base_price)) / float(base_price) * 100
+                trends[f"{window}D"] = {
+                    "from_date": base["snapshot_date"],
+                    "to_date": latest["snapshot_date"],
+                    "base_price": base_price,
+                    "latest_price": latest_price,
+                    "pct_change": pct,
+                }
+
+            result[ticker] = {
+                "latest_date": latest["snapshot_date"],
+                "latest_price": latest_price,
+                "latest_pct_change": latest["pct_change"],
+                "trends": trends,
+            }
+
+        if own_conn:
+            conn.close()
+        return result

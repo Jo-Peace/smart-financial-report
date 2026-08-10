@@ -1,0 +1,375 @@
+{
+  "date": "2026-06-15",
+  "index_action": "內外資大鬥法，外資瘋狂倒貨但內資與主動型資本強力承接",
+  "heavyweights_dumped": [
+    "力成 (-47.3億)",
+    "光寶科 (-40.2億)",
+    "華通 (-38.8億)",
+    "聯電 (-34.0億)"
+  ],
+  "safe_havens_bought": [
+    "台積電 (+229.1億)",
+    "國巨 (+115.0億)",
+    "00403A 主動統一升級50 (+31.1億)"
+  ],
+  "sectors": {
+    "AI 記憶體": [
+      "華邦電 (領頭羊續強)",
+      "南亞科 (位階遷移續航)",
+      "力積電 (大漲9.08%)"
+    ],
+    "AI 伺服器被動元件": [
+      "國巨 (強鎖漲停)"
+    ],
+    "AI 伺服器輔助晶片": [
+      "聯電 (內資強收外資籌碼)"
+    ],
+    "AI 核心晶圓代工": [
+      "台積電 (外資買超第一)"
+    ],
+    "AI 邊緣人機介面": [
+      "友達 (低位階復甦)"
+    ],
+    "主動型 ETF": [
+      "00403A 統一升級50 (成交量第一)",
+      "00981A 統一台股增長",
+      "009816 凱基台灣TOP50"
+    ]
+  },
+  "ai_data_picks": [
+    "華邦電 (外資大買且AMD利多)",
+    "國巨 (籌碼鎖死且外資狂建倉)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資連買、進入成交量前10名，且AMD百億投資利多發酵，收復MA20",
+      "stop_loss_price": 172.0,
+      "stop_loss_desc": "收盤跌破今日低點"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2344 華邦電 (+9.88%, 預測成立，成交量排名第7)"
+  ],
+  "price_volume_divergence": [
+    "聯電 (外資賣超34.0億但股價逆勢噴漲5.99%)",
+    "國巨 (外資大買115.0億且鎖漲停，但成交量未入前20名，籌碼極乾淨)",
+    "力積電 (外資賣超25.0億但股價大漲9.08%)"
+  ],
+  "commodities": [
+    "黃金 (反映地緣政治隱憂)"
+  ],
+  "conservative_strategy": "關注台積電是否補量站穩，目前外資買盤雖強但市場共振尚未完全達成。",
+  "aggressive_strategy": "鎖定華邦電與南亞科記憶體雙雄，只要不跌破MA5均可續抱。",
+  "short_term_horizon": "1~5日",
+  "long_term_horizon": "2~6週 / 1~3個月",
+  "short_term_validation_window": "1D / 3D / 5D",
+  "long_term_validation_window": "20D / 60D",
+  "short_term_picks": [
+    {
+      "ticker": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資連買、進入成交量前10名，且AMD百億投資利多發酵，收復MA20",
+      "invalidation": "收盤跌破今日低點"
+    }
+  ],
+  "long_term_picks": [
+    {
+      "theme": "2344 華邦電",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "5D +2.38%、10D +33.85%",
+      "evidence": "5D +2.38%、10D +33.85%"
+    }
+  ],
+  "long_term_thesis": "長線主軸應優先看供應鏈與族群是否有多日驗證延續，而不是單日爆量。",
+  "long_term_evidence": [
+    "多日回測命中率與平均超額報酬，應作為長線可信度基準。",
+    "事件雷達與族群同步性，應優先高於單日籌碼雜訊。"
+  ],
+  "timeframe_history": {
+    "horizon_performance": [
+      {
+        "horizon_days": 1,
+        "samples": 55,
+        "hit_rate": 0.4909090909090909,
+        "avg_return": 1.3648894867537522,
+        "avg_excess": 1.0151071330691828
+      },
+      {
+        "horizon_days": 3,
+        "samples": 42,
+        "hit_rate": 0.5238095238095238,
+        "avg_return": 1.1042368313124773,
+        "avg_excess": 0.3937400864182691
+      },
+      {
+        "horizon_days": 5,
+        "samples": 38,
+        "hit_rate": 0.5526315789473685,
+        "avg_return": 5.077676581390398,
+        "avg_excess": 4.220536403905586
+      },
+      {
+        "horizon_days": 20,
+        "samples": 21,
+        "hit_rate": 0.7619047619047619,
+        "avg_return": 18.513916407696072,
+        "avg_excess": 18.7624878362675
+      }
+    ],
+    "recent_results": [
+      {
+        "prediction_date": "2026-06-11",
+        "ticker": "2303",
+        "name": "聯電",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-06-12",
+        "return_pct": 6.800000000000001,
+        "index_return_pct": 2.36,
+        "excess_return_pct": 4.440000000000001,
+        "hit": 1,
+        "result_desc": "1日驗收: +6.80% -> 命中"
+      },
+      {
+        "prediction_date": "2026-06-11",
+        "ticker": "2313",
+        "name": "華通",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-06-12",
+        "return_pct": -4.363636363636364,
+        "index_return_pct": 2.36,
+        "excess_return_pct": -6.7236363636363645,
+        "hit": 0,
+        "result_desc": "1日驗收: -4.36% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-02",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-06-12",
+        "return_pct": -10.846245530393325,
+        "index_return_pct": 2.36,
+        "excess_return_pct": -13.206245530393325,
+        "hit": 0,
+        "result_desc": "3日驗收: -10.85% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-02",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizon_days": 5,
+        "evaluated_date": "2026-06-12",
+        "return_pct": -10.846245530393325,
+        "index_return_pct": 2.36,
+        "excess_return_pct": -13.206245530393325,
+        "hit": 0,
+        "result_desc": "5日驗收: -10.85% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-01",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-06-12",
+        "return_pct": -1.9659239842726082,
+        "index_return_pct": 2.36,
+        "excess_return_pct": -4.325923984272608,
+        "hit": 0,
+        "result_desc": "3日驗收: -1.97% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-01",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizon_days": 5,
+        "evaluated_date": "2026-06-12",
+        "return_pct": -1.9659239842726082,
+        "index_return_pct": 2.36,
+        "excess_return_pct": -4.325923984272608,
+        "hit": 0,
+        "result_desc": "5日驗收: -1.97% -> 失準"
+      },
+      {
+        "prediction_date": "2026-05-20",
+        "ticker": "2891",
+        "name": "中信金",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-06-12",
+        "return_pct": 16.95501730103806,
+        "index_return_pct": 2.36,
+        "excess_return_pct": 14.595017301038059,
+        "hit": 1,
+        "result_desc": "3日驗收: +16.96% -> 命中"
+      },
+      {
+        "prediction_date": "2026-05-20",
+        "ticker": "2891",
+        "name": "中信金",
+        "direction": "多",
+        "horizon_days": 5,
+        "evaluated_date": "2026-06-12",
+        "return_pct": 16.95501730103806,
+        "index_return_pct": 2.36,
+        "excess_return_pct": 14.595017301038059,
+        "hit": 1,
+        "result_desc": "5日驗收: +16.96% -> 命中"
+      }
+    ],
+    "recent_trends": {
+      "2344": {
+        "latest_date": "2026-06-12",
+        "latest_price": 172.0,
+        "latest_pct_change": 9.9,
+        "trends": {
+          "5D": {
+            "from_date": "2026-06-01",
+            "to_date": "2026-06-12",
+            "base_price": 168.0,
+            "latest_price": 172.0,
+            "pct_change": 2.380952380952381
+          },
+          "10D": {
+            "from_date": "2026-05-25",
+            "to_date": "2026-06-12",
+            "base_price": 128.5,
+            "latest_price": 172.0,
+            "pct_change": 33.85214007782101
+          }
+        }
+      }
+    },
+    "tickers": [
+      "2344"
+    ]
+  },
+  "validation_results": [
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資買超第2名且突破MA20，具備低位階補漲與法人共振優勢",
+      "stop_loss_price": 156.5,
+      "stop_loss_desc": "收盤跌破今日低點",
+      "price": 189.0,
+      "pct_change": 9.88,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 7,
+      "institutional_side": "buy",
+      "institutional_rank": 4,
+      "institutional_est_amount": 30.67,
+      "evidence": [
+        "收盤 189，漲跌 +9.88%",
+        "成交量排名第 7 名",
+        "外資買超第 4 名，+30.7 億",
+        "未觸發停損：收盤跌破今日低點"
+      ]
+    }
+  ],
+  "editorial_frame": {
+    "frame": "validation_day",
+    "label": "驗收日",
+    "confidence": 82,
+    "reasons": [
+      "昨日驗收有 1 命中、0 失準，可建立連續追蹤。"
+    ],
+    "allowed_tones": [
+      "驗收",
+      "命中",
+      "失準",
+      "修正假說"
+    ],
+    "prohibited_tones": [
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報"
+    ],
+    "title_fatigue_report": "# 近期標題疲勞檢查\n- 檢查最近 5 支影片標題。\n- 未偵測到明顯疲勞詞；仍需避免無數據支撐的警報語氣。"
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD砸百億美金加碼台灣供應鏈解讀：劍指先進封裝產能 - Yahoo股市",
+      "url": "https://tw.stock.yahoo.com/news/amd%E7%A0%B8%E7%99%BE%E5%84%84%E7%BE%8E%E9%87%91%E5%8A%A0%E7%A2%BC%E5%8F%B0%E7%81%A3-%E4%BE%9B%E6%87%89%E9%8F%88%E8%A7%A3%E8%AE%80-%E5%8A%8D%E6%8C%87%E5%85%88%E9%80%B2%E5%B0%81%E8%A3%9D%E7%94%A2%E8%83%BD-081921666.html",
+      "snippet": "... AI基礎設施需求，將在台灣產業體系投資超過100億美元（約合新台幣3200億元），用以擴大與台灣供應鏈的策略合作，並大舉提升下一代AI晶片的先進封裝",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    },
+    {
+      "event": "AMD 宣布在台灣生態系統投資超過100 億美元以加速AI 基礎設施",
+      "url": "https://www.facebook.com/groups/morningtaiwan/posts/2497948297321011",
+      "snippet": "這項投資將聚焦於與當地企業合作，強化下一代AI 基礎設施所需的晶片封裝與製造流程，包括先進異質整 合（heterogeneous integration）與2.5D／3D 封裝技術，以",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    },
+    {
+      "event": "Nvidia's Taiwan Investment Highlights A New AI Supply Chain Reality - Advanced Micro Devices (NASDAQ:AMD) - Benzinga",
+      "url": "https://www.benzinga.com/Opinion/26/05/52808834/nvidias-taiwan-investment-signals-a-new-ai-supply-chain-reality",
+      "snippet": "## Nvidia's Taiwan Investment Highlights A New AI Supply Chain Reality. **From $15 Billion to $150 Billion: What the Leap Tells Investors**. Building a Taiwan headquarters that accommodates roughly 4,000 engineers, with groundbreaking set for 2026 and operations targeted for 2030, further cements th",
+      "impact_score": 83,
+      "matched_factors": [
+        "investment",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": []
+    },
+    {
+      "event": "AMD and Nvidia Taiwan Investment Plans Tighten AI Supply Chain Competition - Astute Group",
+      "url": "https://www.astutegroup.com/news/memory-shortages/amd-and-nvidia-taiwan-investment-plans-tighten-ai-supply-chain-competition",
+      "snippet": "Global semiconductor demand remains strong in 2026, prompting new investment across Southeast Asia, Vietnam and India as governments and manufacturers seek to reduce supply chain concentration and secure future component availability. Home > Memory Shortages > AMD and Nvidia Taiwan Investment Plans ",
+      "impact_score": 68,
+      "matched_factors": [
+        "investment",
+        "taiwan",
+        "mega_buyer",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "HBM / 記憶體"
+      ]
+    }
+  ]
+}

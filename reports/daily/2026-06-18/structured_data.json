@@ -1,0 +1,183 @@
+{
+  "date": "2026-06-18",
+  "index_action": "加權指數上漲 1.28%，外資資金從高位 AI 零組件轉向低位半導體、封測與傳產權值，形成高低位切換。",
+  "editorial_frame": {
+    "label": "驗收後換劇本：低位補漲接棒",
+    "confidence": 82
+  },
+  "heavyweights_dumped": [
+    "臻鼎-KY (-116.2億)",
+    "華新科 (-84.1億)",
+    "鴻海 (-68.4億)",
+    "華邦電 (-43.3億)",
+    "緯創 (-40.5億)"
+  ],
+  "safe_havens_bought": [
+    "聯電 (+95.7億)",
+    "日月光投控 (+81.9億)",
+    "台塑 (+73.6億)",
+    "中鋼 (+61.1億)",
+    "京元電子 (+53.6億)"
+  ],
+  "sectors": {
+    "成熟製程半導體": [
+      "聯電 (外資買超第一，股價 +3.93%，站上 MA5/MA20)"
+    ],
+    "封測": [
+      "日月光投控 (外資買超 81.9 億，股價 +3.03%)"
+    ],
+    "傳產權值/低位資產": [
+      "台塑 (外資買超 73.6 億，股價 +7.82%)",
+      "中鋼 (成交量前五，資金低位輪動)"
+    ],
+    "面板": [
+      "群創 (成交量第一，股價 +9.90%)",
+      "友達 (成交量第二，股價 +7.24%)",
+      "彩晶 (成交量第五，股價 +3.01%)"
+    ],
+    "高位 AI 零組件籌碼整理": [
+      "臻鼎-KY",
+      "華新科",
+      "鴻海",
+      "華邦電",
+      "緯創"
+    ]
+  },
+  "ai_data_picks": [
+    "聯電 (外資買超第一，低位半導體補漲主角)",
+    "台塑 (低位權值重估)",
+    "日月光投控 (封測補漲觀察)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2303",
+      "ticker": "2303",
+      "name": "聯電",
+      "direction": "多",
+      "trigger": "外資買超 95.7 億為今日第一，股價 +3.93%，站上 MA5/MA20，成交量溫和確認",
+      "stop_loss_price": 140.0,
+      "stop_loss_desc": "收盤跌回 140 元以下或外資隔日反手大賣"
+    },
+    {
+      "id": "1301",
+      "ticker": "1301",
+      "name": "台塑",
+      "direction": "多",
+      "trigger": "外資買超 73.6 億且股價 +7.82%，低位權值重估",
+      "stop_loss_price": 50.0,
+      "stop_loss_desc": "跌回 50 元下方並放量收黑"
+    },
+    {
+      "id": "3711",
+      "ticker": "3711",
+      "name": "日月光投控",
+      "direction": "多",
+      "trigger": "外資買超 81.9 億，封測族群補漲觀察",
+      "stop_loss_price": null,
+      "stop_loss_desc": "跌破短均線且外資反手賣超"
+    }
+  ],
+  "validation_results": [
+    {
+      "id": "2313",
+      "name": "華通",
+      "result": "失準",
+      "pct_change": "-1.70",
+      "evidence": [
+        "收盤 259.5 元，未跌破 250 元停損，但 1 日方向未成立。"
+      ]
+    },
+    {
+      "id": "2618",
+      "name": "長榮航",
+      "result": "失準",
+      "pct_change": "0.00",
+      "evidence": [
+        "收盤 42.55 元，沒有延續昨日強攻，量能未擴散。"
+      ]
+    }
+  ],
+  "prev_day_picks_result": [
+    "2313 華通 (-1.70%，1 日預測失準)",
+    "2618 長榮航 (約 0.00%，1 日預測失準)"
+  ],
+  "price_volume_divergence": [
+    "聯電: 外資買超 95.7 億且股價 +3.93%，成交量 295,448,011 股，法人與價格方向一致。",
+    "台塑: 外資買超 73.6 億且股價 +7.82%，低位資產被重新定價。",
+    "華新科: 外資賣超 84.1 億但股價 +3.51%，代表承接力強，但 RSI 78.98 不宜追高。",
+    "鴻海: 外資賣超 68.4 億且股價 -1.29%，AI 權值籌碼短線降溫。",
+    "面板族群: 群創、友達、彩晶成交量同時進前五，顯示資金尋找低位補漲。"
+  ],
+  "commodities": [
+    "黃金 $4306.2 (-1.21%)",
+    "原油 $74.34 (-3.19%)",
+    "白銀 $68.31 (-3.38%)"
+  ],
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD commits $10B to Taiwan AI packaging push | AI Weekly",
+      "impact_score": 100,
+      "impacted_roles": [
+        "封測",
+        "台灣 AI 供應鏈",
+        "中期背景事件"
+      ]
+    }
+  ],
+  "conservative_strategy": "等待聯電回測 140~142 元不破，再考慮低位半導體補漲；避免追高 RSI 過熱個股。",
+  "aggressive_strategy": "以聯電為今日主押，台塑、日月光投控為副觀察；若三者隔日同步續強，低位權值輪動成立。",
+  "short_term_horizon": "1~5日",
+  "long_term_horizon": "2~6週 / 1~3個月",
+  "short_term_validation_window": "1D / 3D / 5D",
+  "long_term_validation_window": "20D / 60D",
+  "short_term_picks": [
+    {
+      "ticker": "2303",
+      "name": "聯電",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資買超 95.7 億為今日第一，股價與均線同步轉強。",
+      "invalidation": "收盤跌回 140 元以下或外資隔日反手大賣"
+    },
+    {
+      "ticker": "1301",
+      "name": "台塑",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資買超 73.6 億且股價 +7.82%，低位權值重估。",
+      "invalidation": "跌回 50 元下方並放量收黑"
+    }
+  ],
+  "long_term_picks": [
+    {
+      "theme": "低位半導體/封測輪動",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "若聯電、日月光投控連續獲法人買盤支撐，代表資金從高位 AI 零組件轉向低位半導體資產。",
+      "evidence": "聯電 +95.7 億、日月光投控 +81.9 億。"
+    },
+    {
+      "theme": "低位傳產權值重估",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "台塑、中鋼與面板爆量顯示市場開始尋找低位補漲資產。",
+      "evidence": "台塑 +73.6 億且 +7.82%，中鋼成交量前五。"
+    }
+  ],
+  "long_term_thesis": "長線主軸從單日 AI 題材，轉向觀察低位資產是否能連續多日獲得法人與成交量驗證。",
+  "long_term_evidence": [
+    "聯電、日月光投控、台塑同日進入外資買超前段。",
+    "群創、友達、彩晶成交量同步放大，顯示低位補漲熱度擴散。"
+  ],
+  "timeframe_history": {
+    "horizon_performance": [],
+    "recent_results": []
+  },
+  "source_note": "ChatGPT fallback generated after Gemini quota 429; market/institutional/volume data came from 2026-06-18 pipeline log."
+}

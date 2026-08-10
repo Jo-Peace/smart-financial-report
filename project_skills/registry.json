@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-05-04",
+  "updated_at": "2026-08-04",
   "description": "Machine-readable registry for local project skills. Inspired by Project Golem's skill registry concept, but scoped to this Python pipeline.",
   "skills": [
     {
@@ -15,6 +15,39 @@
       "human_approval": false
     },
     {
+      "id": "stock_history_card",
+      "name": "Stock History Card",
+      "path": "project_skills/stock_history_card.md",
+      "priority": 12,
+      "tags": ["market_analysis", "memory", "stock_db", "analytics", "research"],
+      "applies_to": ["daily_report", "structured_data", "youtube_package", "analytics_summary"],
+      "trigger": "Use before naming prediction_targets or when auditing a ticker's historical hit-rate and triggers.",
+      "output_contract": "Prediction-first research-stock card: hit-rate, multi-horizon results, triggers, stops. Not for audience packaging.",
+      "human_approval": false
+    },
+    {
+      "id": "event_radar",
+      "name": "Event Radar",
+      "path": "project_skills/event_radar.md",
+      "priority": 15,
+      "tags": ["event_radar", "news", "supply_chain", "ai_supply_chain"],
+      "applies_to": ["daily_report", "news_gate", "youtube_package", "weekly_special"],
+      "trigger": "Use when the workflow needs to decide whether an external event is material enough to affect the report or packaging.",
+      "output_contract": "Event score, Taiwan impact mapping, gate decision, and a compact reason the event matters.",
+      "human_approval": false
+    },
+    {
+      "id": "news_extraction",
+      "name": "News Extraction",
+      "path": "project_skills/news_extraction.md",
+      "priority": 18,
+      "tags": ["news", "web_extraction", "article_extraction", "event_radar"],
+      "applies_to": ["daily_report", "news_gate", "event_radar", "weekly_special"],
+      "trigger": "Use when fetched news URLs need clean article text and source quality checks before analysis.",
+      "output_contract": "Clean article text, source metadata, source-quality verdict, and a Taiwan stock relevance note.",
+      "human_approval": false
+    },
+    {
       "id": "youtube_title_packaging",
       "name": "YouTube Title Packaging",
       "path": "project_skills/youtube_title_packaging.md",
@@ -26,6 +59,17 @@
       "human_approval": false
     },
     {
+      "id": "transcript_mining",
+      "name": "Transcript Mining",
+      "path": "project_skills/transcript_mining.md",
+      "priority": 28,
+      "tags": ["youtube", "transcript", "youtube_learning", "content_research"],
+      "applies_to": ["youtube_package", "youtube_learning", "video_review"],
+      "trigger": "Use when reviewing YouTube transcripts for hooks, repeated phrases, and structural patterns.",
+      "output_contract": "Transcript summary, hook lines, repeated phrases, and a section map.",
+      "human_approval": false
+    },
+    {
       "id": "thumbnail_ab_testing",
       "name": "Thumbnail A/B Testing",
       "path": "project_skills/thumbnail_ab_testing.md",
@@ -34,6 +78,28 @@
       "applies_to": ["youtube_package", "thumbnail_prompt", "video_asset_plan"],
       "trigger": "Use when building thumbnail prompts or deciding whether to replace a thumbnail.",
       "output_contract": "Two visually distinct thumbnail concepts with exact visible text and 900-view sample rule.",
+      "human_approval": false
+    },
+    {
+      "id": "thumbnail_qc",
+      "name": "Thumbnail QC",
+      "path": "project_skills/thumbnail_qc.md",
+      "priority": 32,
+      "tags": ["youtube", "thumbnail", "visual", "playwright"],
+      "applies_to": ["thumbnail_prompt", "youtube_package", "visual_qc"],
+      "trigger": "Use when thumbnails are rendered or need a readability and distinctness check before publishing.",
+      "output_contract": "Readability verdict, A/B distinctness check, and one concrete fix if the thumbnail is weak.",
+      "human_approval": false
+    },
+    {
+      "id": "weekly_special_planning",
+      "name": "Weekly Special Planning",
+      "path": "project_skills/weekly_special_planning.md",
+      "priority": 35,
+      "tags": ["weekly_special", "macro", "commodity", "taiwan_stock"],
+      "applies_to": ["weekend_special", "weekend_special_prompt", "weekly_special"],
+      "trigger": "Use when a weekend or weekly special needs a thesis that maps a macro or commodity theme back to Taiwan stocks.",
+      "output_contract": "Weekly thesis, one supporting data story, one Taiwan stock bridge, one follow-up verification point, and a title direction.",
       "human_approval": false
     },
     {

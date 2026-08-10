@@ -113,12 +113,23 @@ class LocalKnowledgeCompounder:
         if validation:
             hit_count = sum(1 for row in validation if row.get("hit") is True)
             total_count = sum(1 for row in validation if row.get("hit") is not None)
-            lines.append(f"- **昨日預測驗收**：{hit_count}/{total_count} 命中")
+            valid_returns = [row.get("pct_change") for row in validation if isinstance(row.get("pct_change"), (int, float))]
+            avg_return = (sum(valid_returns) / len(valid_returns)) if valid_returns else None
+            valid_excess = [row.get("excess_return_pct") for row in validation if isinstance(row.get("excess_return_pct"), (int, float))]
+            avg_excess = (sum(valid_excess) / len(valid_excess)) if valid_excess else None
+            summary_bits = [f"{hit_count}/{total_count} 命中"]
+            if isinstance(avg_return, (int, float)):
+                summary_bits.append(f"平均預測損益 {avg_return:+.2f}%")
+            if isinstance(avg_excess, (int, float)):
+                summary_bits.append(f"平均超額報酬 {avg_excess:+.2f}%")
+            lines.append(f"- **昨日預測驗收**：{'；'.join(summary_bits)}")
             for row in validation[:5]:
                 status = "命中" if row.get("hit") is True else ("未成立" if row.get("hit") is False else "無法驗收")
                 pct = row.get("pct_change")
+                excess = row.get("excess_return_pct")
                 pct_text = f"{pct:+.2f}%" if isinstance(pct, (int, float)) else "無漲跌資料"
-                lines.append(f"  - {row.get('id')} {row.get('name')}：{status}，{pct_text}")
+                excess_text = f"，超額 {excess:+.2f}%" if isinstance(excess, (int, float)) else ""
+                lines.append(f"  - {row.get('id')} {row.get('name')}：{status}，預測損益 {pct_text}{excess_text}")
         elif prev_results:
             lines.append(f"- **昨日預測驗收**：{self._join_limited(prev_results, limit=4)}")
 
@@ -140,22 +151,53 @@ class LocalKnowledgeCompounder:
         return "\n".join(lines)
 
     def _update_stock_roles(self, structured_data, date_str):
+        from modules.role_scorer import (
+            enrich_index_with_names,
+            merge_scores_into_market_role,
+            score_ticker,
+        )
+
         stock_db = self._load_stock_db()
         if not stock_db:
             return 0
 
         daily_flow = self._build_daily_flow_lookup(structured_data)
         mentioned = self._collect_mentioned_stock_ids(structured_data)
+        flow_meta = enrich_index_with_names(structured_data, stock_db)
+        # Include name-resolved tickers from buy/sell/divergence lists (not only digit IDs in text).
+        for sid in flow_meta:
+            mentioned.add(sid)
         updated = 0
 
         for sid in sorted(mentioned):
-            if sid not in stock_db:
+            # stock_db keys are plain tickers; also try case-insensitive match
+            entry = stock_db.get(sid)
+            if entry is None:
+                for k, v in stock_db.items():
+                    if str(k).upper() == str(sid).upper():
+                        entry = v
+                        sid = k
+                        break
+            if entry is None:
                 continue
-            entry = stock_db[sid]
             base_role = self._classify_base_role(sid, entry)
             latest_state = daily_flow.get(sid, "mentioned")
             evidence = self._build_role_evidence(sid, entry, base_role, latest_state)
             reason = self._build_role_reason(sid, entry, base_role, latest_state, evidence)
+            meta = flow_meta.get(sid) or {}
+            scores = score_ticker(
+                sid,
+                entry,
+                buy_rank=meta.get("buy_rank"),
+                sell_rank=meta.get("sell_rank"),
+                amount_yi=meta.get("amount_yi"),
+                volume_rank=meta.get("volume_rank"),
+                vol_ratio=meta.get("vol_ratio"),
+                in_divergence=bool(meta.get("in_divergence")),
+                divergence_text=meta.get("divergence_text") or "",
+                flow_state=meta.get("flow_state") or latest_state,
+                as_of=date_str,
+            )
             market_role = {
                 "base_role": base_role,
                 "label": ROLE_LABELS[base_role],
@@ -165,6 +207,13 @@ class LocalKnowledgeCompounder:
                 "evidence": evidence,
                 "reason": reason,
             }
+            market_role = merge_scores_into_market_role(market_role, scores)
+            # Keep human reason short + score snapshot
+            market_role["reason"] = (
+                f"{reason}；title_priority={scores.get('title_priority')} "
+                f"(E{scores.get('elasticity')}/F{scores.get('foreign_buy_strength')}/"
+                f"V{scores.get('volume_confirmation')}/C{scores.get('validation_credibility')})"
+            )
             if entry.get("market_role") != market_role:
                 entry["market_role"] = market_role
                 updated += 1
@@ -296,6 +345,22 @@ class LocalKnowledgeCompounder:
             lines.append(f"## {label} (`{role}`)")
             lines.append(f"- **標題用途**：{ROLE_TITLE_GUIDANCE[role]}")
             lines.append("")
+        lines.extend(
+            [
+                "## 量化分數（`market_role.scores`）",
+                "",
+                "每日本機更新，供標題 / 封面 / NotebookLM 主角排序：",
+                "",
+                "- **elasticity**：彈性攻擊適配度（方向股/ETF 會被壓低）",
+                "- **foreign_buy_strength**：外資買超排名與金額",
+                "- **volume_confirmation**：量榜/量增/影子低量買超",
+                "- **validation_credibility**：歷史 prediction 命中可信度",
+                "- **title_priority**：綜合分（誰該當標題/封面/主角卡）",
+                "",
+                "規則：方向指標股（如台積電）即使買超大，title_priority 仍應低於彈性攻擊股。",
+                "",
+            ]
+        )
         self._write_text(self.role_taxonomy_path, "\n".join(lines))
         return True
 

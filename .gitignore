@@ -20,6 +20,7 @@ venv/
 
 # Logs
 *.log
+*.jsonl
 
 # Reports (optional - keep if you want to share)
 # reports/

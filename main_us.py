@@ -1,12 +1,19 @@
 import os
 import datetime
 import glob
+import logging
 from dotenv import load_dotenv
 from modules.data_fetcher import DataFetcher
 from modules.analyzer import MarketAnalyzer
+from modules.fetch_result import unwrap_fetch_result
 
 # Load environment variables from .env
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -103,7 +110,7 @@ def main():
     market_data = {}
     print("📊 正在獲取美股數據與技術指標...")
     for symbol in US_SYMBOLS:
-        data = fetcher.get_stock_data(symbol)
+        data = unwrap_fetch_result(fetcher.get_stock_data(symbol))
         if data:
             market_data[symbol] = data
             indicator_str = ""
@@ -124,7 +131,7 @@ def main():
     print("\n📰 正在獲取美股相關新聞...")
     for topic in US_TOPICS:
         query = f"{topic} market news today"
-        results = fetcher.get_news(query)
+        results = unwrap_fetch_result(fetcher.get_news(query), default=[])
         if results:
             news_data.extend(results)
             print(f"  ✅ {topic}: 找到 {len(results)} 篇文章")

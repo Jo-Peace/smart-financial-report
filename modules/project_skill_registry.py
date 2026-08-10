@@ -54,6 +54,21 @@ def format_skill_summary(skills: list[dict]) -> str:
     return ", ".join(f"{skill['id']}:{skill.get('priority', 999)}" for skill in skills)
 
 
+def format_skill_context(skills: list[dict]) -> str:
+    """Concise prompt-ready guidance for selected skills."""
+    if not skills:
+        return ""
+
+    lines = ["## Project skill guidance"]
+    for skill in skills:
+        trigger = skill.get("trigger", "").strip()
+        contract = skill.get("output_contract", "").strip()
+        parts = [part for part in [trigger, contract] if part]
+        detail = " | ".join(parts)
+        lines.append(f"- {skill['id']}: {detail}")
+    return "\n".join(lines)
+
+
 def load_skill_text(skill: dict, base_dir: str | Path = ".") -> str:
     """Load a single skill Markdown body."""
     return (Path(base_dir) / skill["path"]).read_text(encoding="utf-8")

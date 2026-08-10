@@ -341,11 +341,16 @@ def format_signal_pack_for_prompt(signal_pack):
     lines = []
     strongest = signal_pack.get("strongest_anomaly")
     if strongest:
-        lines.append(f"## 本地演算法判定的今日最強異常")
+        lines.append(f"## 本地演算法判定的今日可用訊號")
         lines.append(f"- {strongest['type']}：{strongest['text']}（異常分數 {strongest['score']}）")
     else:
-        lines.append("## 本地演算法判定的今日最強異常")
-        lines.append("- 未偵測到明確法人/成交量背離，請以成交量與技術位共振為主。")
+        lines.append("## 本地演算法判定的今日可用訊號")
+        lines.append("- 未偵測到明確法人/成交量背離。今日應視為整理日或觀察日，不要硬包裝成警報。")
+
+    lines.append("\n## 主軸使用提醒")
+    lines.append("- 只有訊號同時具備具體數字與反直覺證據時，才可稱為異常日或警訊。")
+    lines.append("- 若只是一般外資買賣或常態類股移動，請寫成具體買賣行為，不要升級成資金輪動、退潮或續航。")
+    lines.append("- 若無強訊號，今日唯一結論應偏向等待確認與明日驗收條件。")
 
     lines.append("\n## 異常訊號候選")
     anomalies = signal_pack.get("anomalies") or []

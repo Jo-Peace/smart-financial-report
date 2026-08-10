@@ -1,0 +1,566 @@
+{
+  "date": "2026-06-30",
+  "index_action": "大盤回升，外資與本土主力攻防換手",
+  "heavyweights_dumped": [
+    "南亞科 (-83.0億)",
+    "旺宏 (-63.0億)",
+    "華邦電 (-45.5億)",
+    "兆豐金 (-17.6億)",
+    "力積電 (-15.9億)"
+  ],
+  "safe_havens_bought": [
+    "聯電 (+57.9億)",
+    "京元電子 (+53.1億)",
+    "國泰金 (+48.2億)",
+    "台玻 (+40.4億)",
+    "主動統一台股增長 (+29.7億)",
+    "友達 (+28.0億)"
+  ],
+  "sectors": {
+    "Memory": [
+      "2408 南亞科 (外資提款)",
+      "2337 旺宏 (外資提款)",
+      "2344 華邦電 (外資大賣/內資接手)"
+    ],
+    "AI Edge HMI": [
+      "2409 友達 (全台人氣王/量價齊揚)"
+    ],
+    "AI Advanced Packaging Materials": [
+      "3481 群創 (當沖動能為主)"
+    ],
+    "AI PCB Base Materials": [
+      "1802 台玻 (鎖漲停/AMD供應鏈)"
+    ],
+    "AI Testing": [
+      "2449 京元電子 (籌碼高度鎖定/突破MA20)"
+    ],
+    "AI Server Auxiliary Chips": [
+      "2303 聯電 (外資買超冠軍)"
+    ],
+    "Financials": [
+      "2882 國泰金 (量增比2.05倍/洗盤)",
+      "2886 兆豐金 (外資賣超)"
+    ]
+  },
+  "ai_data_picks": [
+    "2303 聯電 (外資買超冠軍且毛利改善)",
+    "2449 京元電子 (籌碼高度鎖定且突破MA20)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2882",
+      "name": "國泰金",
+      "direction": "多",
+      "trigger": "股價重挫但法人狂撈，量增比2.05倍之極端洗盤訊號",
+      "stop_loss_price": 100.18,
+      "stop_loss_desc": "收盤跌破 MA20"
+    },
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資大倒貨但股價逆勢收紅站穩MA20，內資強勢接手",
+      "stop_loss_price": 203,
+      "stop_loss_desc": "跌破今日低點或爆量收黑跌破MA20"
+    },
+    {
+      "id": "2449",
+      "name": "京元電子",
+      "direction": "多",
+      "trigger": "外資狂買且籌碼高度鎖定，強勢突破MA20打開上行空間",
+      "stop_loss_price": 308,
+      "stop_loss_desc": "跌破今日起漲點"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2409 友達 (+6.86%, 預測成立，成交量排名第1)"
+  ],
+  "price_volume_divergence": [
+    "2303 聯電：外資單日狂買 57.9 億元，但股價僅微漲 0.3%，賣壓集中於 165 元壓力牆",
+    "2344 華邦電：外資賣超 45.5 億元但股價逆勢上漲 2.22%，顯示內資強勢承接",
+    "2882 國泰金：股價下跌 3.15% 但外資逆勢買進 48.2 億元，量增比達 2.05 倍"
+  ],
+  "commodities": [
+    "黃金 ($4047.7, +0.63%)"
+  ],
+  "conservative_strategy": "關注聯電，等待成交量有效突破 35 萬張之發動訊號，並以 MA20 為守點。",
+  "aggressive_strategy": "追蹤京元電子，籌碼極度集中具噴發潛力，站穩 337 元為多頭續強指標。",
+  "short_term_horizon": "1~5日",
+  "long_term_horizon": "2~6週 / 1~3個月",
+  "short_term_validation_window": "1D / 3D / 5D",
+  "long_term_validation_window": "20D / 60D",
+  "short_term_picks": [
+    {
+      "ticker": "2882",
+      "name": "國泰金",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "股價重挫但法人狂撈，量增比2.05倍之極端洗盤訊號",
+      "invalidation": "收盤跌破 MA20"
+    },
+    {
+      "ticker": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資大倒貨但股價逆勢收紅站穩MA20，內資強勢接手",
+      "invalidation": "跌破今日低點或爆量收黑跌破MA20"
+    }
+  ],
+  "long_term_picks": [
+    {
+      "theme": "2303 聯電",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "5D +17.14%、10D +35.54%、20D +51.85%",
+      "evidence": "5D +17.14%、10D +35.54%、20D +51.85%"
+    },
+    {
+      "theme": "2344 華邦電",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "5D +7.41%、10D +14.37%、20D +56.76%",
+      "evidence": "5D +7.41%、10D +14.37%、20D +56.76%"
+    }
+  ],
+  "long_term_thesis": "長線主軸應優先看供應鏈與族群是否有多日驗證延續，而不是單日爆量。",
+  "long_term_evidence": [
+    "多日回測命中率與平均超額報酬，應作為長線可信度基準。",
+    "事件雷達與族群同步性，應優先高於單日籌碼雜訊。"
+  ],
+  "timeframe_history": {
+    "horizon_performance": [
+      {
+        "horizon_days": 1,
+        "samples": 66,
+        "hit_rate": 0.5,
+        "avg_return": 1.2365475511452948,
+        "avg_excess": 0.9871834685293654
+      },
+      {
+        "horizon_days": 3,
+        "samples": 55,
+        "hit_rate": 0.5272727272727272,
+        "avg_return": 2.7089344010728635,
+        "avg_excess": 1.8507368867900136
+      },
+      {
+        "horizon_days": 5,
+        "samples": 51,
+        "hit_rate": 0.5686274509803921,
+        "avg_return": 6.2010901232668685,
+        "avg_excess": 5.230671951807596
+      },
+      {
+        "horizon_days": 20,
+        "samples": 42,
+        "hit_rate": 0.7857142857142857,
+        "avg_return": 18.238197943134157,
+        "avg_excess": 18.0008169907532
+      }
+    ],
+    "recent_results": [
+      {
+        "prediction_date": "2026-06-26",
+        "ticker": "2337",
+        "name": "旺宏",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-06-29",
+        "return_pct": -2.4615384615384617,
+        "index_return_pct": 0.96,
+        "excess_return_pct": -3.4215384615384616,
+        "hit": 0,
+        "result_desc": "1日驗收: -2.46% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-26",
+        "ticker": "2337",
+        "name": "旺宏",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-06-29",
+        "return_pct": -2.4615384615384617,
+        "index_return_pct": 0.96,
+        "excess_return_pct": -3.4215384615384616,
+        "hit": 0,
+        "result_desc": "3日驗收: -2.46% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-26",
+        "ticker": "8150",
+        "name": "南茂",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-06-29",
+        "return_pct": -7.179487179487179,
+        "index_return_pct": 0.96,
+        "excess_return_pct": -8.13948717948718,
+        "hit": 0,
+        "result_desc": "1日驗收: -7.18% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-26",
+        "ticker": "8150",
+        "name": "南茂",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-06-29",
+        "return_pct": -7.179487179487179,
+        "index_return_pct": 0.96,
+        "excess_return_pct": -8.13948717948718,
+        "hit": 0,
+        "result_desc": "3日驗收: -7.18% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-23",
+        "ticker": "2303",
+        "name": "聯電",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-06-29",
+        "return_pct": -3.5294117647058822,
+        "index_return_pct": 0.96,
+        "excess_return_pct": -4.489411764705882,
+        "hit": 0,
+        "result_desc": "3日驗收: -3.53% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-23",
+        "ticker": "2303",
+        "name": "聯電",
+        "direction": "多",
+        "horizon_days": 5,
+        "evaluated_date": "2026-06-29",
+        "return_pct": -3.5294117647058822,
+        "index_return_pct": 0.96,
+        "excess_return_pct": -4.489411764705882,
+        "hit": 0,
+        "result_desc": "5日驗收: -3.53% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-08",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "多",
+        "horizon_days": 20,
+        "evaluated_date": "2026-06-29",
+        "return_pct": 31.818181818181817,
+        "index_return_pct": 0.96,
+        "excess_return_pct": 30.858181818181816,
+        "hit": 1,
+        "result_desc": "20日驗收: +31.82% -> 命中"
+      },
+      {
+        "prediction_date": "2026-06-25",
+        "ticker": "2449",
+        "name": "京元電子",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-06-26",
+        "return_pct": -7.922272047832586,
+        "index_return_pct": -3.64,
+        "excess_return_pct": -4.282272047832587,
+        "hit": 0,
+        "result_desc": "1日驗收: -7.92% -> 失準"
+      }
+    ],
+    "recent_trends": {
+      "2409": {
+        "latest_date": "2026-06-29",
+        "latest_price": 30.6,
+        "latest_pct_change": 9.48,
+        "trends": {}
+      },
+      "2408": {
+        "latest_date": "2026-06-25",
+        "latest_price": 477.0,
+        "latest_pct_change": 7.55,
+        "trends": {
+          "5D": {
+            "from_date": "2026-06-03",
+            "to_date": "2026-06-25",
+            "base_price": 401.5,
+            "latest_price": 477.0,
+            "pct_change": 18.80448318804483
+          },
+          "10D": {
+            "from_date": "2026-05-12",
+            "to_date": "2026-06-25",
+            "base_price": 321.0,
+            "latest_price": 477.0,
+            "pct_change": 48.598130841121495
+          }
+        }
+      },
+      "2303": {
+        "latest_date": "2026-06-29",
+        "latest_price": 164.0,
+        "latest_pct_change": 0.0,
+        "trends": {
+          "5D": {
+            "from_date": "2026-06-17",
+            "to_date": "2026-06-29",
+            "base_price": 140.0,
+            "latest_price": 164.0,
+            "pct_change": 17.142857142857142
+          },
+          "10D": {
+            "from_date": "2026-06-08",
+            "to_date": "2026-06-29",
+            "base_price": 121.0,
+            "latest_price": 164.0,
+            "pct_change": 35.53719008264463
+          },
+          "20D": {
+            "from_date": "2026-05-20",
+            "to_date": "2026-06-29",
+            "base_price": 108.0,
+            "latest_price": 164.0,
+            "pct_change": 51.85185185185185
+          }
+        }
+      },
+      "2449": {
+        "latest_date": "2026-06-26",
+        "latest_price": 308.0,
+        "latest_pct_change": -7.92,
+        "trends": {
+          "5D": {
+            "from_date": "2026-05-27",
+            "to_date": "2026-06-26",
+            "base_price": 315.5,
+            "latest_price": 308.0,
+            "pct_change": -2.3771790808240887
+          },
+          "10D": {
+            "from_date": "2026-05-06",
+            "to_date": "2026-06-26",
+            "base_price": 328.5,
+            "latest_price": 308.0,
+            "pct_change": -6.2404870624048705
+          }
+        }
+      },
+      "2337": {
+        "latest_date": "2026-06-29",
+        "latest_price": 158.5,
+        "latest_pct_change": -2.46,
+        "trends": {
+          "5D": {
+            "from_date": "2026-05-21",
+            "to_date": "2026-06-29",
+            "base_price": 141.0,
+            "latest_price": 158.5,
+            "pct_change": 12.411347517730496
+          },
+          "10D": {
+            "from_date": "2026-05-12",
+            "to_date": "2026-06-29",
+            "base_price": 153.0,
+            "latest_price": 158.5,
+            "pct_change": 3.594771241830065
+          }
+        }
+      },
+      "2882": {
+        "latest_date": "2026-06-05",
+        "latest_price": 100.0,
+        "latest_pct_change": 5.93,
+        "trends": {}
+      },
+      "2344": {
+        "latest_date": "2026-06-29",
+        "latest_price": 203.0,
+        "latest_pct_change": -1.69,
+        "trends": {
+          "5D": {
+            "from_date": "2026-06-15",
+            "to_date": "2026-06-29",
+            "base_price": 189.0,
+            "latest_price": 203.0,
+            "pct_change": 7.4074074074074066
+          },
+          "10D": {
+            "from_date": "2026-06-03",
+            "to_date": "2026-06-29",
+            "base_price": 177.5,
+            "latest_price": 203.0,
+            "pct_change": 14.366197183098592
+          },
+          "20D": {
+            "from_date": "2026-05-15",
+            "to_date": "2026-06-29",
+            "base_price": 129.5,
+            "latest_price": 203.0,
+            "pct_change": 56.75675675675676
+          }
+        }
+      },
+      "1802": {
+        "latest_date": "2026-05-04",
+        "latest_price": 66.2,
+        "latest_pct_change": -1.19,
+        "trends": {}
+      },
+      "3481": {
+        "latest_date": "2026-06-26",
+        "latest_price": 65.0,
+        "latest_pct_change": -8.32,
+        "trends": {
+          "5D": {
+            "from_date": "2026-06-01",
+            "to_date": "2026-06-26",
+            "base_price": 56.1,
+            "latest_price": 65.0,
+            "pct_change": 15.864527629233507
+          }
+        }
+      }
+    },
+    "tickers": [
+      "1802",
+      "2303",
+      "2337",
+      "2344",
+      "2408",
+      "2409",
+      "2449",
+      "2882",
+      "2886",
+      "3481",
+      "4047"
+    ]
+  },
+  "validation_results": [
+    {
+      "id": "2409",
+      "name": "友達",
+      "direction": "多",
+      "trigger": "收盤站上 MA20，成交量第 1 名，外資重金押注",
+      "stop_loss_price": 26.74,
+      "stop_loss_desc": "收盤跌破 26.74 元 (MA20 位置)",
+      "price": 32.7,
+      "pct_change": 6.86,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 1,
+      "institutional_side": "buy",
+      "institutional_rank": 6,
+      "institutional_est_amount": 27.96,
+      "evidence": [
+        "收盤 32.7，漲跌 +6.86%",
+        "成交量排名第 1 名",
+        "外資買超第 6 名，+28.0 億",
+        "未觸發停損：收盤跌破 26.74 元 (MA20 位置)"
+      ]
+    }
+  ],
+  "editorial_frame": {
+    "frame": "validation_day",
+    "label": "驗收日",
+    "confidence": 82,
+    "reasons": [
+      "昨日驗收有 1 命中、0 失準，可建立連續追蹤。"
+    ],
+    "allowed_tones": [
+      "驗收",
+      "命中",
+      "失準",
+      "修正假說"
+    ],
+    "prohibited_tones": [
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "核彈",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報"
+    ],
+    "title_fatigue_report": "# 近期包裝疲勞檢查\n- 檢查最近 7 支影片標題。\n- 檢查最近 10 份縮圖 Prompt。\n- 標題避免再用的詞：核彈。\n- 封面避免再用的 scenario：大跌守線, 榜外吸籌, 資金換手, 驗收現場。\n- 封面大字避免再用：接棒, 被砍。\n- 封面題型家族已連續出現：anomaly, off_board, rotation, validation；今日必須換另一種問法。\n- 若資料支持換手，請改問：為什麼逆勢、量價哪裡矛盾、明日失效條件是什麼。\n- 連續 3 天內不得重複「榜外吸籌 + 資金換手」A/B 配對。"
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD commits $10B to Taiwan AI packaging push | AI Weekly",
+      "url": "https://aiweekly.co/alerts/amd-commits-10b-to-taiwan-ai-packaging-push",
+      "snippet": "* AMD is investing $10B+ in Taiwan packaging partnerships with ASE and SPIL to secure capacity for its MI450X and EPYC Venice chips. * The MI450X GPU inside AMD's Helios rack-scale platform is confirmed on track, with multi-gigawatt deployments targeted for late 2026. Advanced packaging is now a pri",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "AI 伺服器 / 機架系統",
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD宣布於台灣產業體系投資逾100億美元，加速建置AI基礎設施",
+      "url": "https://www.amd.com/zh-tw/newsroom/press-releases/2026-5-20-amd-announces-more-than-10-billion-in-taiwan-ecos.html",
+      "snippet": "# AMD宣布於台灣產業體系投資逾100億美元，加速建置AI基礎設施. * 領先業界、基於EFB技術的2.5D封裝，將為代號“Venice”的第6代AMD EPYC CPU帶來更高的互連頻寬與效率。. * 搭載“Venice”處理器與AMD Instinct MI450X GPU的AMD Helios機架級平台，預計將於2026年下半年開始進行數吉瓦（multi-gigawatt）規模的部署。. **台北，2026年5月21日 --**AMD（NASDAQ: AMD）今日宣布，為滿足日益增長的AI基礎設施需求，於台灣產業體系投資超過100億美元，以擴大策略合作夥伴關係，並提升下一代AI基礎設施",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "AI 伺服器 / 機架系統",
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD擴大台灣AI供應鏈合作：2.5D橋接互連、先進封裝與台積電生態系的關鍵布局",
+      "url": "https://readmo.cmoney.tw/article/45f1412c-75b8-41e7-b0bc-afff779b299c?title=AMD%E6%93%B4%E5%A4%A7%E5%8F%B0%E7%81%A3AI%E4%BE%9B%E6%87%89%E9%8F%88%E5%90%88%E4%BD%9C%EF%BC%9A2.5D%E6%A9%8B%E6%8E%A5%E4%BA%92%E9%80%A3%E3%80%81%E5%85%88%E9%80%B2%E5%B0%81%E8%A3%9D%E8%88%87%E5%8F%B0%E7%A9%8D%E9%9B%BB%E7%94%9F%E6%85%8B%E7%B3%BB%E7%9A%84%E9%97%9C%E9%8D%B5%E5%B8%83%E5%B1%80",
+      "snippet": "# AMD擴大台灣AI供應鏈合作：2.5D橋接互連、先進封裝與台積電生態系的關鍵布局. Answer / Powered by Readmo.ai. AMD這次宣布在台灣產業體系投入超過100億美元，重點不只是加碼投資，而是把下一代AI基礎設施所需要的製造能力、封裝技術與供應鏈協作一起拉高。對關注台積電(2330)、日月光投控(3711)與力成科技(6239)的人來說，真正值得留意的是：這代表AI晶片競爭已經從單一製程，延伸到晶圓、封測、載板與伺服器硬體的整體整合。AMD選擇在台灣強化EFB產業體系，也反映台灣在先進封裝與高階製造上的關鍵地位。. ## 日月光投控(3711)與力成科技(623",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "基板 / 載板",
+        "晶圓代工 / 先進製程"
+      ]
+    },
+    {
+      "event": "AMD and Nvidia Taiwan Investment Plans Tighten AI Supply Chain Competition - Astute Group",
+      "url": "https://www.astutegroup.com/news/memory-shortages/amd-and-nvidia-taiwan-investment-plans-tighten-ai-supply-chain-competition",
+      "snippet": "Home > Memory Shortages > AMD and Nvidia Taiwan Investment Plans Tighten AI Supply Chain Competition. # AMD and Nvidia Taiwan Investment Plans Tighten AI Supply Chain Competition. AMD and Nvidia have outlined major investment plans in Taiwan that are set to increase demand for advanced semiconductor",
+      "impact_score": 60,
+      "matched_factors": [
+        "investment",
+        "taiwan",
+        "mega_buyer"
+      ],
+      "impacted_roles": [
+        "HBM / 記憶體"
+      ]
+    }
+  ]
+}

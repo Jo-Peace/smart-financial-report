@@ -1,0 +1,225 @@
+{
+  "date": "2026-05-28",
+  "index_action": "下跌 620 點 (-1.4%)",
+  "heavyweights_dumped": [
+    "群創 (-134.2億)",
+    "華通 (-87.4億)",
+    "華邦電 (-74.5億)"
+  ],
+  "safe_havens_bought": [
+    "南亞科 (+201.4億)",
+    "旺宏 (+130.6億)",
+    "力積電 (+97.4億)"
+  ],
+  "sectors": {
+    "AI記憶體與儲存": [
+      "南亞科",
+      "旺宏",
+      "力積電 (AI記憶體整合技術)",
+      "華邦電"
+    ],
+    "面板與先進封裝材料": [
+      "群創 (FOPLP)",
+      "友達",
+      "彩晶 (車用智聯)"
+    ],
+    "電路板 (PCB)": [
+      "華通"
+    ],
+    "晶圓代工": [
+      "聯電"
+    ]
+  },
+  "ai_data_picks": [
+    "南亞科 (外資暴力掃貨 201.4億)",
+    "力積電 (外資買超且量增比達 1.81倍)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "6770",
+      "name": "力積電",
+      "direction": "多",
+      "trigger": "成交量全台第3名，量增比 1.81 倍，外資/量/價三位一體共振，站穩所有均線",
+      "stop_loss_price": 71.5,
+      "stop_loss_desc": "收盤跌破 MA5"
+    }
+  ],
+  "prev_day_picks_result": [
+    "6770 力積電 (+7.89%, 預測成立，成交量排名第3)",
+    "2317 鴻海 (-0.38%, 預測未成立)",
+    "2337 旺宏 (+2.89%, 預測未成立，成交量排名第13)"
+  ],
+  "price_volume_divergence": [
+    "群創 (3481) 天量墜落：成交量與外資賣超皆居全台第一，資金撤離",
+    "南亞科 (2408) 影子建倉：外資買超 201.4億居第一，但成交量未進前 10 名"
+  ],
+  "commodities": [
+    "原油 $90.83 (+2.42%)",
+    "黃金 $4422.3 (-0.57%)"
+  ],
+  "conservative_strategy": "現金為王，避開遭重砍的面板與 PCB，縮減持倉，等待南亞科回測 MA5 守穩。",
+  "aggressive_strategy": "短線參與力積電 (6770) 動能，需嚴守今日高點 80.7 元作為觀察位。",
+  "validation_results": [
+    {
+      "id": "6770",
+      "name": "力積電",
+      "direction": "多",
+      "trigger": "外資單日買超冠軍且毛利率改善，成交量與買超金額共振，底部突破",
+      "stop_loss_price": 67.2,
+      "stop_loss_desc": "收盤跌破 MA5",
+      "price": 80.7,
+      "pct_change": 7.89,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 3,
+      "institutional_side": "buy",
+      "institutional_rank": 3,
+      "institutional_est_amount": 97.4,
+      "evidence": [
+        "收盤 80.7，漲跌 +7.89%",
+        "成交量排名第 3 名",
+        "外資買超第 3 名，+97.4 億",
+        "未觸發停損：收盤跌破 MA5"
+      ]
+    },
+    {
+      "id": "2317",
+      "name": "鴻海",
+      "direction": "多",
+      "trigger": "影子建倉 51.8 億，佈局下一波 AI 伺服器整機出貨潮",
+      "stop_loss_price": 246.4,
+      "stop_loss_desc": "跌破 MA20",
+      "price": 263.0,
+      "pct_change": -0.38,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": "buy",
+      "institutional_rank": 6,
+      "institutional_est_amount": 33.84,
+      "evidence": [
+        "收盤 263，漲跌 -0.38%",
+        "外資買超第 6 名，+33.8 億",
+        "未觸發停損：跌破 MA20"
+      ]
+    },
+    {
+      "id": "2337",
+      "name": "旺宏",
+      "direction": "空",
+      "trigger": "外資狂賣 71 億且高位放量不漲，主力撤出傳統儲存標的",
+      "stop_loss_price": null,
+      "stop_loss_desc": "外資反手回補超過 20 億元",
+      "price": 160.0,
+      "pct_change": 2.89,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": null,
+      "volume_rank": 13,
+      "institutional_side": "buy",
+      "institutional_rank": 2,
+      "institutional_est_amount": 130.61,
+      "evidence": [
+        "收盤 160，漲跌 +2.89%",
+        "成交量排名第 13 名",
+        "外資買超第 2 名，+130.6 億"
+      ]
+    }
+  ],
+  "editorial_frame": {
+    "frame": "validation_day",
+    "label": "驗收日",
+    "confidence": 82,
+    "reasons": [
+      "昨日驗收有 1 命中、2 失準，可建立連續追蹤。"
+    ],
+    "allowed_tones": [
+      "驗收",
+      "命中",
+      "失準",
+      "修正假說"
+    ],
+    "prohibited_tones": [
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "真空吸籌",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報"
+    ],
+    "title_fatigue_report": "# 近期標題疲勞檢查\n- 檢查最近 5 支影片標題。\n- 避免連續重複用詞：真空吸籌。\n- 若今日數據不是同一條故事的延續，標題應換成驗收、事件、整理日或明日確認條件。"
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD commits $10B to Taiwan AI packaging push | AI Weekly",
+      "url": "https://aiweekly.co/alerts/amd-commits-10b-to-taiwan-ai-packaging-push",
+      "snippet": "* AMD is investing $10B+ in Taiwan packaging partnerships with ASE and SPIL to secure capacity for its MI450X and EPYC Venice chips. * The MI450X GPU inside AMD's Helios rack-scale platform is confirmed on track, with multi-gigawatt deployments targeted for late 2026. Advanced packaging is now a pri",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "AI 伺服器 / 機架系統",
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD投資台灣逾100億美元：先進封裝、AI伺服器與供應鏈擴產效應 ...",
+      "url": "https://readmo.cmoney.tw/article/05e7b31b-563f-46b9-867a-ad3c3186425a",
+      "snippet": "更重要的是，AMD投資台灣供應鏈逾100億美元，傳遞的是AI基礎設施仍在擴張初期，且競爭焦點已從晶片延伸到封裝、散熱、供電與系統整合。對讀者而言，觀察重點不只是「誰受惠」，",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "AI 伺服器 / 機架系統"
+      ]
+    },
+    {
+      "event": "AMD宣布於台灣產業體系投資逾100億美元，加速建置AI基礎設施",
+      "url": "https://www.amd.com/zh-tw/newsroom/press-releases/2026-5-20-amd-announces-more-than-10-billion-in-taiwan-ecos.html",
+      "snippet": "###### 伺服器處理器. ###### 商用系統. ###### 個人與遊戲. ###### 嵌入式產品. ###### 加速器. ###### DPU 加速器. ###### 乙太網配接器. ###### 桌上型電腦. ###### FPGA 與自適應 SoC 工具. ###### 系統模組 (SOM). ###### 開發者資源. ###### 評估板與套件. ###### 處理器工具. ###### 顯示卡工具與應用程式. ###### IP 與應用. ###### GPU 加速器工具與應用程式. ###### 乙太網路轉接器工具. ###### 適用於資料中心與雲端. ######",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD (AMD) Stock; Edges Higher on Massive Taiwan AI Supply Chain Investment Plan | MEXC News",
+      "url": "https://www.mexc.co/news/1107283",
+      "snippet": "# AMD (AMD) Stock; Edges Higher on Massive Taiwan AI Supply Chain Investment Plan. AMD shares posted modest gains after the company revealed a sweeping plan to invest more than $10 billion into Taiwan’s AI supply chain ecosystem. At the core of the announcement is AMD’s effort to secure manufacturin",
+      "impact_score": 75,
+      "matched_factors": [
+        "investment",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": []
+    }
+  ]
+}

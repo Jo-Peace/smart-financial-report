@@ -1,270 +1,445 @@
-import os
-import google.generativeai as genai
+"""
+NotebookLM *director* prompts (how to speak).
+
+Daily/weekend prompts are local templates. They intentionally do NOT re-dump full
+leaderboards (those live in notebooklm_source). Prompt owns: hosts, mainline,
+must-cover / must-not, segment order, TTS hygiene.
+"""
+
+from __future__ import annotations
+
 import datetime
+import os
+import re
 
-def generate_notebooklm_prompt(api_key, structured_data, date_str=None, current_theme=""):
-    """
-    Generates a NotebookLM Podcast Prompt based on the EXTRACTED STRUCTURED DATA.
-    Uses a detective storytelling approach: find the anomaly, investigate, reveal.
-    """
-    genai.configure(api_key=api_key)
-    model_name = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
-    model = genai.GenerativeModel(model_name)
 
-    if not date_str:
-        date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+def _as_list(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, tuple):
+        return list(value)
+    if isinstance(value, str):
+        return [value] if value.strip() else []
+    return [value]
 
-    # Calculate Day of Week Context
+
+def _first_str(items, fallback=""):
+    for item in _as_list(items):
+        if isinstance(item, dict):
+            label = " ".join(
+                str(item.get(k) or "").strip()
+                for k in ("id", "ticker", "name", "theme")
+                if item.get(k)
+            ).strip()
+            if label:
+                return label
+            continue
+        text = str(item).strip()
+        if text:
+            return text
+    return fallback
+
+
+def _stock_short(text: str) -> str:
+    text = str(text or "").strip()
+    # "聯電 (+37.6億)" -> "聯電"
+    text = re.sub(r"\s*[\(（].*?[\)）]\s*", "", text).strip()
+    return text or "焦點股"
+
+
+def _prompt_mode() -> str:
+    raw = os.getenv("NOTEBOOKLM_PROMPT_MODE", "local").strip().lower()
+    if raw in {"off", "0", "false", "no", "skip", "none"}:
+        return "off"
+    return "local"
+
+
+def _editorial_label(structured_data: dict) -> str:
+    frame = structured_data.get("editorial_frame") or {}
+    if isinstance(frame, dict):
+        return str(frame.get("label") or frame.get("frame") or "").strip()
+    return ""
+
+
+def _validation_placement(structured_data: dict) -> str:
+    frame = structured_data.get("editorial_frame") or {}
+    if isinstance(frame, dict) and frame.get("validation_placement"):
+        return str(frame.get("validation_placement")).strip().lower()
+    return "brief"
+
+
+def _skill_block(skill_context: str, max_chars: int = 500) -> str:
+    text = (skill_context or "").strip()
+    if not text:
+        return ""
+    if len(text) > max_chars:
+        text = text[:max_chars].rstrip() + "…"
+    return f"\n## 本地技能提示（語氣/重點；不得改寫數字）\n\n{text}\n"
+
+
+def _build_mainline(structured_data: dict) -> str:
+    """One-sentence daily spine for the hosts."""
+    frame = _editorial_label(structured_data) or "盤後主線"
+    index_action = str(structured_data.get("index_action") or "").strip()
+    buy = _stock_short(_first_str(structured_data.get("safe_havens_bought")))
+    sell = _stock_short(_first_str(structured_data.get("heavyweights_dumped")))
+    div = _first_str(structured_data.get("price_volume_divergence"))
+    target = _first_str(structured_data.get("prediction_targets") or structured_data.get("ai_data_picks"))
+
+    bits = [f"框架「{frame}」"]
+    if index_action:
+        bits.append(f"大盤{index_action}")
+    if buy and sell:
+        bits.append(f"對照 {buy} 買超 vs {sell} 賣超")
+    elif buy:
+        bits.append(f"買超焦點 {buy}")
+    elif sell:
+        bits.append(f"賣超壓力 {sell}")
+    if div:
+        short_div = div if len(div) <= 36 else div[:33] + "…"
+        bits.append(f"矛盾點：{short_div}")
+    if target:
+        bits.append(f"收尾盯 {_stock_short(target)}")
+    return "；".join(bits)
+
+
+def _must_cover_lines(structured_data: dict, placement: str) -> list[str]:
+    lines = []
+    if placement == "lead":
+        val = _first_str(structured_data.get("prev_day_picks_result") or structured_data.get("validation_results"))
+        if val:
+            lines.append(f"開場驗收：{val}")
+    elif placement == "brief":
+        val = _first_str(structured_data.get("prev_day_picks_result") or structured_data.get("validation_results"))
+        if val:
+            lines.append(f"中段一句驗收即可：{val}")
+
+    # Prefer quantitative focus_ranking (title_priority) over raw buy-list order
+    ranking = structured_data.get("focus_ranking") or []
+    if not ranking:
+        try:
+            from modules.role_scorer import rank_focus_stocks
+
+            ranking = rank_focus_stocks(structured_data, limit=3)
+        except Exception:
+            ranking = []
+    if ranking:
+        lines.append("主角排序（依 title_priority，優先講這些）：")
+        for i, row in enumerate(ranking[:3], start=1):
+            lines.append(
+                f"  {i}. {row.get('ticker', '')} {row.get('name', '')} "
+                f"— {row.get('role_label') or row.get('base_role')}；"
+                f"P{row.get('title_priority')}/E{row.get('elasticity')}/F{row.get('foreign_buy_strength')}/"
+                f"V{row.get('volume_confirmation')}；證據：{row.get('source_text', '')}"
+            )
+            if row.get("base_role") == "direction_indicator":
+                lines.append("     （方向股：當對照，不要講成最大彈性飆股）")
+    else:
+        buy = _first_str(structured_data.get("safe_havens_bought"))
+        sell = _first_str(structured_data.get("heavyweights_dumped"))
+        if buy:
+            lines.append(f"買超證據：{buy}")
+        if sell:
+            lines.append(f"賣超證據：{sell}")
+        for div in _as_list(structured_data.get("price_volume_divergence"))[:2]:
+            lines.append(f"矛盾：{div}")
+
+    targets = _as_list(structured_data.get("prediction_targets"))[:1]
+    for t in targets:
+        if isinstance(t, dict):
+            stop = t.get("stop_loss_desc") or t.get("stop_loss_price") or ""
+            lines.append(
+                f"明日條件：{t.get('id', '')} {t.get('name', '')}（{t.get('direction', '觀察')}）；失效：{stop}"
+            )
+        else:
+            lines.append(f"明日條件：{t}")
+    return lines or ["依資料源挑 2～3 個最有數字的證據即可"]
+
+
+def _must_not_lines(structured_data: dict, placement: str) -> list[str]:
+    lines = [
+        "不要唸完整法人榜或完整族群清單",
+        "不要說「資金輪動」空話；要講誰買誰賣與金額",
+        "不要把短線標的講成長線必漲",
+        "不要捏造資料源沒有的數字",
+        "極端報酬（例如單週 +40% 以上）若資料源已標註異常，只可當背景不可當主線",
+    ]
+    if placement != "lead":
+        lines.append("不要用長段「先驗收再分析」當開場儀式")
+    if placement == "omit":
+        lines.append("標題式口吻不要出現「驗收日／驗收現場」")
+    # If long-term looks extreme, call it out.
+    for pick in _as_list(structured_data.get("long_term_picks"))[:2]:
+        blob = str(pick)
+        if re.search(r"\+?\d{2,}(?:\.\d+)?%", blob):
+            m = re.search(r"([+-]?\d{2,}(?:\.\d+)?)%", blob)
+            if m and abs(float(m.group(1))) >= 40:
+                lines.append("長線背景若含極端漲幅，禁止當「必漲主線」朗讀")
+                break
+    return lines
+
+
+def _opening_hook_block(structured_data: dict, placement: str) -> str:
+    """Director notes for a data-backed sensational cold open."""
+    mainline = _build_mainline(structured_data)
+    div = _first_str(structured_data.get("price_volume_divergence"))
+    buy = _first_str(structured_data.get("safe_havens_bought"))
+    sell = _first_str(structured_data.get("heavyweights_dumped"))
+    index_action = str(structured_data.get("index_action") or "").strip()
+
+    if div:
+        hook_line = div
+    elif buy and sell:
+        hook_line = f"買超 {buy} 對上 賣超 {sell}"
+    elif buy:
+        hook_line = f"{index_action or '今日盤面'}，外資卻先鎖 {buy}"
+    else:
+        hook_line = mainline
+
+    if placement == "lead":
+        return f"""## 開場鉤子（lead：可先驗收，但仍要聳動）
+
+- 0～8 秒：先丟一個可驗證數字（建議：{_first_str(structured_data.get("prev_day_picks_result") or structured_data.get("validation_results")) or hook_line}）
+- 8～20 秒：接「上集說了什麼 → 今天數字怎麼走」
+- 20～40 秒：轉入今日主線：{mainline}
+- 禁止空泛恐嚇；每個聳動句子後面都要有資料源數字
+"""
+
+    mid_note = (
+        "中段才用 1 句帶過昨日結果"
+        if placement == "brief"
+        else "昨日結果最多一句，不要獨立段"
+    )
+    return f"""## 開場鉤子（{placement}：前 30 秒先矛盾，不要先驗收）
+
+- 0～8 秒：最大矛盾（股名 + 金額/漲跌 + 反差）。建議素材：{hook_line}
+- 8～20 秒：阿明用一句散戶問句接住（例如「這是續航還是假突破？」「為什麼量這麼冷？」）
+- 20～40 秒：博士定調今日主線：{mainline}
+- {mid_note}
+- 禁止用「先跟大家驗收上集」當開場儀式
+- 禁止沒有數字的「崩盤／逃命／毀屍」空話；恐懼必須接失效條件或明日觀察
+"""
+
+
+def _program_order_block(placement: str) -> str:
+    if placement == "lead":
+        return """## 節目順序（驗收 lead）
+
+1. 開場鉤子：可驗證數字 → 昨日預測結果 — 約 20%
+2. 今日一句主線 — 約 15%
+3. 2～3 個證據股（法人/量價）— 約 40%
+4. 明日條件與失效 — 約 20%
+5. 收尾：不叫買賣 — 約 5%
+"""
+    if placement == "omit":
+        return """## 節目順序（略過驗收主鉤子）
+
+1. 開場鉤子：今日最大矛盾 + 問句 — 約 20%
+2. 2～3 個證據股 — 約 50%
+3. 明日條件與失效 — 約 25%
+4. 收尾 — 約 5%
+（資料源若有昨日結果，最多一句，不開獨立段）
+"""
+    return """## 節目順序（驗收 brief，預設）
+
+1. 開場鉤子：今日最大矛盾 + 問句 — 約 20%
+2. 中段 1～2 句帶過昨日預測結果 — 約 10%
+3. 2～3 個證據股（法人/量價）— 約 45%
+4. 明日條件與失效 — 約 20%
+5. 收尾 — 約 5%
+"""
+
+
+def _short_date_label(date_str: str) -> str:
     try:
-        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-        weekday_idx = date_obj.weekday()
+        dt = datetime.datetime.strptime(str(date_str)[:10], "%Y-%m-%d")
+        return f"{dt.month}/{dt.day} 台股盤後"
     except ValueError:
-        weekday_idx = datetime.datetime.now().weekday()
+        return f"{date_str} 台股盤後"
 
-    weekday_context = ""
-    if weekday_idx == 0:  # Monday
-        weekday_context = "今天是週一。開場加入：「大家週一剛開工，我們快速講重點」，節奏要更精簡。"
-    elif weekday_idx >= 4:  # Friday or Weekend
-        weekday_context = "今天是週末。焦點微調為「本週盤勢回顧與下週推演」，主持人進行宏觀覆盤。"
-    else:
-        weekday_context = "這是平常日，維持高節奏、活潑的日常盤後分析。"
 
-    # Setup Thursday Ad Context
-    if weekday_idx == 3:  # Thursday
-        ad_instruction = "\n- **工商服務（必須由 A 以自然閒聊口吻念出）**：「插播一下！如果你覺得每天這個客製化的 AI 財經報告對你有幫助，這套系統現在開放免費測試中！免費試用連結已經放在說明欄。另外提醒，網站功能還在 Beta 階段，分析結果僅供參考，不構成投資建議喔！」"
-    else:
-        ad_instruction = ""
+def _cover_alignment_block(
+    date_str: str,
+    *,
+    visual_theme: str = "",
+    title_a: str = "",
+    title_b: str = "",
+) -> str:
+    """
+    NotebookLM Video Overview first-slide alignment.
+    Role names match channel pack: 張博士 / 阿明（封面可用博士與散戶角色感）。
+    """
+    if not any([visual_theme, title_a, title_b]):
+        return ""
+    main = title_a or "（請使用當日 YouTube 標題 A）"
+    sub = title_b or "（可空；勿自行發明聳動副標）"
+    theme = visual_theme or "（沿用當日 /2 視覺主題；未指定則深色高對比財經風）"
+    return f"""
+## 封面投影片對齊（Video Overview 第一張）
 
-    # Setup Theme Context
-    theme_context = ""
-    if current_theme:
-        theme_context = (
-            f"\n**【目前市場核心主題】：{current_theme}**\n"
-            f"- 請 A 在分析法人買賣與成交量證據時，嘗試連結此主題（但只在有數據支持時）。\n"
-            f"- 請 B 針對此主題提出散戶的質疑：「這題材吵太久了吧？」或「現在進場是不是接隕石？」\n"
-        )
-
-    # Format the sectors for the prompt
-    sectors_formatted = ""
-    for sector, stocks in structured_data.get("sectors", {}).items():
-        sectors_formatted += f"  - [族群: {sector}]: {', '.join(stocks)}\n"
-
-    # 防呆機制：確保 prev_day_picks_result 與 price_volume_divergence 確實是陣列
-    prev_picks = structured_data.get('prev_day_picks_result', [])
-    if isinstance(prev_picks, str):
-        prev_picks = [prev_picks]
-    prev_picks_str = ', '.join(prev_picks) if prev_picks else '無前日明牌可驗收'
-
-    price_div = structured_data.get('price_volume_divergence', [])
-    if isinstance(price_div, str):
-        price_div = [price_div]
-    price_div_str = ', '.join(price_div) if price_div else '無明顯背離'
-
-    prompt = f"""你是一個台股財經節目的 Podcast 腳本設計師。
-你的任務是：根據以下的驗證數據，產出一個 Google NotebookLM 的音頻概述提示詞（Audio Overview Prompt）。
-這個 Prompt 將用來指揮兩位 AI 主持人錄製今日盤後分析 Podcast。
-
---- 今日已驗證數據（不得偏離或捏造）---
-日期：{structured_data.get('date', date_str)}
-大盤狀況：{structured_data.get('index_action', 'N/A')}
-法人賣超或弱勢標的：{', '.join(structured_data.get('heavyweights_dumped', []))}
-法人買超或強勢板塊：{', '.join(structured_data.get('safe_havens_bought', []))}
-商品行情：{', '.join(structured_data.get('commodities', []))}
-AI 數據觀察焦點：{', '.join(structured_data.get('ai_data_picks', []))}
-昨日預測驗收結果：{prev_picks_str}
-籌碼與量價背離現象：{price_div_str}
-
-族群與個股（必須嚴格對應，不得混淆）：
-{sectors_formatted}
-
-穩健策略：{structured_data.get('conservative_strategy', 'N/A')}
-波段策略：{structured_data.get('aggressive_strategy', 'N/A')}
------------------------------------------------------------
-
-動態語境指引：
-- 時間考量：{weekday_context}
-{theme_context}
-
-請根據以上數據，產出以下格式的 NotebookLM Podcast 提示詞（僅輸出最終 Markdown 內容）：
-
----
-
-# NotebookLM Podcast Prompt：{date_str} 台股盤後深度調查
-
-你正在製作每日台股財經 Podcast。語氣活潑、有懸念感，數據必須精準，絕不憑空捏造。全程繁體中文，英文專有名詞直接念出。
-
----
-
-## 🎙️ 主持人設定
-
-**主持人 A（數據張博士・偵探派）**
-- 風格：冷靜中帶有「查案興奮感」。擅長從數字找矛盾，不確定時主動承認「這個我也不確定原因」。
-- 口頭禪：「數字告訴我們...」、「奇怪的事情出現了...」、「等等，這裡有個矛盾」
-
-**主持人 B（熱血阿明・散戶代言人）**
-- 風格：代表「今天散戶的真實心理狀態」，每集根據盤面情緒量身設計：
-  - 大漲盤 → FOMO：「我要不要追？！」
-  - 大跌盤 → 恐慌：「完蛋了，我要不要跑？」
-  - 盤整縮量 → 茫然：「博士，這種盤你叫我怎麼辦...」
-- **每集 B 的情緒反應必須不同，禁止固定說「哇！這也太猛了吧！」**
-
----
-
-## 🎬 節目結構（故事主線：從異常發現，到解答結束）
-
-### 全集用語限制
-- 不要使用「資金輪動」這種空泛說法。
-- 核心任務是抓出「三大法人與成交量之間的主力買賣邏輯」。
-- 如果要談買賣方向，必須說清楚：誰買、誰賣、金額或成交量、哪個榜單支持、隔日要驗收什麼。
-
-### 【段落 0】昨日預測驗收（誠信時刻——任何情況不得省略）
-- A：「在今天的分析開始前，先驗收昨天的預測。」
-- 根據「昨日預測驗收結果」誠實播報。如果有具體驗證數據，A **必須逐一念出標的名稱與精確數字**（如漲跌幅或成交量）：
-  - 命中 → A「昨天說XXX，今天漲了X%，預測成立。」B「博士這次沒騙我，四個全中！」
-  - 失準 → A「昨天說XXX，今天跌了X%，分析失準，原因推測是...[據實說]」B「說錯了你敢說，這樣我才信你！」
-  - 若明確標示無明牌 → A「昨天沒有明確推薦，今天無可驗收，直接進分析。」
-- **這段的目的是建立信譽。說錯就說錯，命中就必須把數字講清楚。**
-
-### 【段落 1】今日最大異常：一句話吊住聽眾
-- **開場白（必要）**：A：「Welcome to『AI帶你看股市』，只看數據，不看情緒。」
-- **立刻切入今日最強異常**——從數據中找最反直覺的現象：
-  - 成交量前幾名和外資買超是否矛盾？
-  - 大盤漲/跌，但某個現象違反直覺？
-  - 族群內部有沒有逆勢個股分歧？
-- A 用一句話點出矛盾（30秒以內），後面所有分析圍繞它展開。
-- B 根據今日盤面情緒真實回應（不是制式「哇」）。
-
-### 【段落 2】偵探展開：成交量帶路 → 法人對比 → 一致或矛盾
-- A 帶著 B 一起「調查」：
-  1. 今日成交量前幾名是誰？（只舉 2-3 支，不要唸清單）
-  2. 外資買賣超說什麼？和成交量一致嗎？
-  3. **強制檢查「籌碼與量價背離現象」**：若數據中提到有背離（例如某股股價大漲但外資大賣），A 必須點出這件「奇怪的事情」並深入探討矛盾點，引導出「短線追高、外資趁機出貨」或「外資逢低建倉」等警示。
-- B 問出散戶最想問的問題（根據今日異常量身設計，不套公版）
-- 族群分析：只在有 3 支以上同向數據時說「族群性」，否則說「部分個股」。每族群最多舉 1-2 支例子。
-
-### 【段落 3】今日唯一重要結論 + AI 數據觀察焦點
-- A 說出今集「唯一重要結論」——一句話，讓聽眾明天起床還記得。
-- B：「博士，今天有沒有什麼是我明天值得特別盯著看的？」
-- AI 觀察焦點（最多 1 支，嚴格門檻）：
-  - 條件：外資連續多日買超 OR 爆量突破（vol_ratio > 2x）OR 跌深有籌碼保護
-  - 禁止：台積電（2330）、鴻海（2317）、聯發科（2454）
-  - 若無符合 → A「今天數據沒有安全標的，現金為王，等訊號。」
-  - 若有推薦 → A 說停損點（「跌破MA20就出場」）
-
-### 【段落 4】操作建議 + 心態結尾
-- 穩健型：[填入穩健策略]
-- 波段型：[填入波段策略]
-- A 說一句根據今日盤面、散戶最容易犯的錯（追高？砍底？）{ad_instruction}
-- **結語（必要）**：「記住：AI帶你看股市，只看數據，不看情緒。覺得有收穫就訂閱分享，留言告訴我們你今天在關注什麼！下次見！」
-
----
-
-## 🚫 絕對規則（違反 = 失敗）
-1. 數字必須與驗證數據完全一致，不得捏造
-2. 大數字與股票代號語音防呆：對於超過百萬的龐大數字或股票代號，必須強制寫出正確的中文發音括號（如：1,200,000 (一百二十萬)，2317 (二三一七)）以防語音念錯。
-3. 族群歸屬不得混淆（一支股票跌 ≠ 整族群跌）
-4. 每族群最多舉 1-2 支個股，不要唸清單
-5. **B 的情緒反應每集必須根據今天盤面量身設計，禁止固定台詞**
-6. 商品（黃金、油）解讀必須加「可能原因之一」，不得直接下定論
-7. **PHONETIC：2409 必須念「友達」，9910 必須念「豐泰」等重要正音**
-8. **嚴格語言與口音限制：全程必須使用繁體中文，且發音必須是標準的台灣國語口音（Taiwanese Mandarin）。嚴禁出現中國大陸用語與兒化音。**
-
+請將影片第一張投影片設計成封面頁，不要直接進入內容。
+- 封面主標題請使用：「{main}」
+- 封面副標題請使用：「{sub}」
+- 左上角小字日期請使用：「{_short_date_label(date_str)}」
+- 封面視覺主題請與 YouTube 封面一致：{theme}
+- 請保留「張博士 + 阿明/散戶」角色感，高對比深色背景、白/黃大字、紅綠 K 線元素。
+- 請不要自行改寫主標題與副標題。
+（NotebookLM 未必精準還原封面；以資料正確為先，視覺對齊為輔。）
 """
 
-    try:
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        return f"Error generating NotebookLM prompt: {e}"
 
-
-def generate_weekend_special_prompt(api_key, structured_data, date_str=None):
-    """
-    Generates a NotebookLM Podcast Prompt for the Weekend Special (US Market & Macro Impact).
-    Hosts speak in Traditional Chinese. Uses detective storytelling format.
-    """
-    genai.configure(api_key=api_key)
-    model_name = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
-    model = genai.GenerativeModel(model_name)
-
+def build_compact_notebooklm_prompt(
+    structured_data,
+    date_str=None,
+    current_theme="",
+    skill_context="",
+    visual_theme="",
+    title_a="",
+    title_b="",
+):
+    """Director card for NotebookLM hosts — not a second copy of the source table."""
+    structured_data = structured_data or {}
     if not date_str:
-        date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        date_str = structured_data.get("date") or datetime.datetime.now().strftime("%Y-%m-%d")
 
-    # Format sectors locally
-    sectors_formatted_ws = ""
-    for sector, stocks in structured_data.get("sectors", {}).items():
-        sectors_formatted_ws += f"  - [族群: {sector}]: {', '.join(stocks)}\n"
+    placement = _validation_placement(structured_data)
+    frame = _editorial_label(structured_data) or "依資料源"
+    mainline = _build_mainline(structured_data)
+    must_cover = "\n".join(f"- {x}" for x in _must_cover_lines(structured_data, placement))
+    must_not = "\n".join(f"- {x}" for x in _must_not_lines(structured_data, placement))
+    theme = visual_theme or current_theme or ""
+    theme_line = f"- 外部視覺/主題（若有）：{theme}" if theme else "- 外部主題：無"
+    skill_section = _skill_block(skill_context)
+    order_block = _program_order_block(placement)
+    opening_block = _opening_hook_block(structured_data, placement)
+    cover_block = _cover_alignment_block(
+        date_str,
+        visual_theme=theme,
+        title_a=title_a,
+        title_b=title_b,
+    )
 
-    prompt = f"""你是一個台股財經 Podcast 腳本設計師，專為週末特別節目撰寫提示詞。
+    return f"""# NotebookLM 主持人導演卡：{date_str} 台股盤後
 
---- 本週驗證數據 ---
-日期：{structured_data.get('date', date_str)}
-大盤狀況：{structured_data.get('index_action', 'N/A')}
-法人賣超或弱勢標的：{', '.join(structured_data.get('heavyweights_dumped', []))}
-法人買超或強勢板塊：{', '.join(structured_data.get('safe_havens_bought', []))}
-商品行情：{', '.join(structured_data.get('commodities', []))}
-AI 觀察焦點：{', '.join(structured_data.get('ai_data_picks', []))}
+請**只根據已上傳的「NotebookLM 乾淨資料源」**生成繁體中文音頻/影片摘要。
+本檔是導演卡（怎麼講），不是第二份數據表；**所有數字必須來自資料源**，此卡若與資料源衝突，以資料源為準。
 
-族群與個股：
-{sectors_formatted_ws}
-穩健策略：{structured_data.get('conservative_strategy', 'N/A')}
-波段策略：{structured_data.get('aggressive_strategy', 'N/A')}
------------------------------------------------------------
+## 主持人
 
-請根據以上數據，產出週末特別版提示詞（僅輸出最終 Markdown 內容）：
+- A：數據張博士 — 冷靜、只講有數字的證據。
+- B：阿明 — 代表散戶追問，反應自然，不要固定驚嘆句。
+- 不要加第三位主持人或長篇人設。
+{cover_block}
+## 今日唯一主線（請整集繞它轉）
 
----
+{mainline}
 
-# 週末特別版 NotebookLM Prompt：{date_str} 本週台股深度覆盤
+- 編輯框架：{frame}
+- 驗收使用：{placement}（lead=可開場；brief=中段一句；omit=不要當主鉤子）
+{theme_line}
 
-你正在製作週末特別版台股財經 Podcast。重點：本週盤勢是什麼故事？下週要注意什麼？全程繁體中文。
+## 必講
 
----
+{must_cover}
 
-## 🎙️ 主持人設定
+## 禁止
 
-**主持人 A（數據張博士・偵探派）**：冷靜分析，找本週最大的主力買賣邏輯，帶出「下週觀察方向」。
+{must_not}
 
-**主持人 B（熱血阿明・散戶代言人）**：代表散戶「這週被市場整了嗎？」的心理，情緒根據本週盤面決定。
+{opening_block}
+{order_block}
+## 口播注意
 
----
+- 股票代號可用中文讀法輔助（如 2303 → 二三零三），但不要發明公司故事。
+- 大金額講「X 點 Y 億」，不要快速掃完整榜單。
+- 英文新聞標題只講重點（誰、做了什麼），不要整句朗讀。
+- 優先講資料源「主角股卡片」裡的 2～3 檔，不要平均分配全榜。
+- 前 30 秒必須先兌現標題承諾的矛盾，再展開分析。
+- 不要寫成逐字劇本；給可臨場發揮的段落重點即可。
+{skill_section}
+## 輸出期望
 
-## 🎬 週末特別版結構
-
-### 【段落 1】本週盤面最大故事
-- 不要逐日回顧，直接找本週「最反直覺的數據現象」當開場：
-  - 哪個族群本週最強？成交量支持嗎？
-  - 本週外資行為和盤面一致嗎？
-- B 的反應根據本週盤面情緒設計（大漲週 vs 大跌週 vs 詭異盤整週）
-
-### 【段落 2】主力買賣邏輯：三大法人 vs 成交量
-- 用成交量與三大法人買賣超數據說話，不用主觀敘事
-- 族群分析：只在有 3 支以上同向數據時說「族群性」，否則說「部分個股」
-
-### 【段落 3】下週前瞻：一個具體觀察方向
-- A 提出下週最值得關注的ONE個變數（事件、技術位、或數據）
-- B 問：「那我週一開盤第一件事要做什麼？」A 給出具體建議。
-
-### 【段落 4】週末作業 + 結語
-- 穩健策略：[填入穩健建議]
-- 波段策略：[填入波段建議]
-- **結語**：「記住：AI帶你看股市，只看數據，不看情緒。週末好好休息，下週見！」
-
----
-
-## 🚫 絕對規則
-1. 數字必須與驗證數據完全一致
-2. 不要使用「資金輪動」四字；必須改講具體的法人買賣、成交量與驗收條件。
-2. 族群歸屬不得混淆
-3. 每族群最多舉 1-2 支個股
-4. B 的情緒必須根據本週真實盤面設計
-5. 商品解讀必須加「可能原因之一」
-6. **嚴格語言與口音限制：全程必須使用繁體中文，且發音必須是標準的台灣國語口音（Taiwanese Mandarin）。嚴禁出現中國大陸用語與兒化音。**
-
+清楚、可信、可追蹤；聽完要記得：今天主線是什麼、誰買誰賣、明天盯什麼、什麼條件失效。
+開場要聳動但有數字；中後段要可驗收、可追蹤。
 """
 
-    try:
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        return f"Error generating weekend NotebookLM prompt: {e}"
+
+def build_weekend_notebooklm_prompt(structured_data, date_str=None, skill_context=""):
+    """Weekend director card (local, no Gemini)."""
+    structured_data = structured_data or {}
+    if not date_str:
+        date_str = structured_data.get("date") or datetime.datetime.now().strftime("%Y-%m-%d")
+
+    us_hook = structured_data.get("us_market_hook") or structured_data.get("index_action") or "見資料源"
+    geo = structured_data.get("geopolitical_impact") or "見資料源"
+    defense = structured_data.get("taiwan_monday_defense") or structured_data.get("conservative_strategy") or "見資料源"
+    vulture = structured_data.get("taiwan_monday_vulture") or structured_data.get("aggressive_strategy") or "見資料源"
+    skill_section = _skill_block(skill_context)
+
+    return f"""# 週末特別版導演卡：{date_str}
+
+請根據已上傳的週末資料源，生成繁體中文週末覆盤摘要。本檔是導演卡；數字以資料源為準。
+
+## 主持人
+
+- A：數據張博士
+- B：阿明
+
+## 本週唯一主線
+
+- 美股/盤面 hook：{us_hook}
+- 宏觀/地緣：{geo}
+- 週一防守：{defense}
+- 週一積極：{vulture}
+
+## 節目順序
+
+1. 本週最大故事 1 條（不要逐日流水帳）
+2. 法人 vs 成交量的一致或矛盾（2～3 檔）
+3. 下週只盯 1 個變數 + 失效條件
+4. 穩健 / 波段各一句；不叫買賣
+
+## 禁止
+
+- 不要「資金輪動」空話
+- 不要平均分配每天新聞
+- 不要捏造數字
+{skill_section}
+"""
+
+
+def generate_notebooklm_prompt(
+    api_key,
+    structured_data,
+    date_str=None,
+    current_theme="",
+    skill_context="",
+    visual_theme="",
+    title_a="",
+    title_b="",
+):
+    """Daily NotebookLM prompt. ``api_key`` unused in local mode (compat)."""
+    if _prompt_mode() == "off":
+        return None
+    return build_compact_notebooklm_prompt(
+        structured_data,
+        date_str=date_str,
+        current_theme=current_theme,
+        skill_context=skill_context,
+        visual_theme=visual_theme,
+        title_a=title_a,
+        title_b=title_b,
+    )
+
+
+def generate_weekend_special_prompt(api_key, structured_data, date_str=None, skill_context=""):
+    """Weekend NotebookLM prompt. ``api_key`` unused in local mode (compat)."""
+    if _prompt_mode() == "off":
+        return None
+    return build_weekend_notebooklm_prompt(
+        structured_data,
+        date_str=date_str,
+        skill_context=skill_context,
+    )

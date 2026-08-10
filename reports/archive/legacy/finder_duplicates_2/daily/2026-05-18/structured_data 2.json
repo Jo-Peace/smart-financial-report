@@ -1,0 +1,139 @@
+{
+  "date": "2026-05-18",
+  "index_action": "下跌 280.54 點",
+  "heavyweights_dumped": [
+    "台積電 (-213.3億)",
+    "聯電 (-51.0億)",
+    "0050 (-41.0億)",
+    "廣達 (-26.9億)",
+    "華邦電 (-25.0億)"
+  ],
+  "safe_havens_bought": [
+    "華通 (+34.3億)",
+    "敬鵬 (+6.0億)",
+    "兆赫 (+5.9億)",
+    "萬海 (+5.4億)",
+    "大成鋼 (+2.6億)"
+  ],
+  "sectors": {
+    "AI 核心晶圓代工": [
+      "台積電"
+    ],
+    "AI 伺服器輔助晶片": [
+      "聯電"
+    ],
+    "AI 先進封裝材料": [
+      "群創 (FOPLP題材)",
+      "力成"
+    ],
+    "AI 邊緣人機介面": [
+      "友達"
+    ],
+    "AI 邊緣運算記憶體": [
+      "華邦電"
+    ],
+    "AI 記憶體關鍵材料": [
+      "南亞科"
+    ],
+    "低軌衛星與高密度PCB": [
+      "華通"
+    ],
+    "AI 伺服器被動元件": [
+      "國巨"
+    ],
+    "車用高可靠度硬板": [
+      "敬鵬"
+    ],
+    "網通設備": [
+      "兆赫"
+    ],
+    "AI 伺服器系統整合": [
+      "廣達"
+    ],
+    "航運": [
+      "萬海"
+    ],
+    "美基建關鍵材料": [
+      "大成鋼"
+    ]
+  },
+  "ai_data_picks": [
+    "華通 (外資買超第一名且強勢漲停)",
+    "群創 (神祕主力攔截外資賣壓)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2313",
+      "name": "華通",
+      "direction": "多",
+      "trigger": "外資買超第一名(34.3億)，毛利率連續三季改善，強勢突破 MA20。",
+      "stop_loss_price": 245.6,
+      "stop_loss_desc": "收盤跌破 MA20"
+    },
+    {
+      "id": "2355",
+      "name": "敬鵬",
+      "direction": "多",
+      "trigger": "外資買超第二名，股價站上 MA20，疑似影子建倉階段。",
+      "stop_loss_price": 52.5,
+      "stop_loss_desc": "收盤跌破 MA20"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2881 富邦金 (-0.94%, 預測未成立)",
+    "6239 力成 (+0.81%, 預測成立)"
+  ],
+  "price_volume_divergence": [
+    "群創 (外資賣超 10.3 億，賣出 2,650 萬股，股價反而暴漲 7.2%)",
+    "聯電 (外資賣超 51 億，收盤仍守住 MA20)"
+  ],
+  "commodities": [
+    "黃金 (反映避險情緒)"
+  ],
+  "conservative_strategy": "觀察台積電止跌訊號，暫避高權重 ETF，維持現金流。",
+  "aggressive_strategy": "鎖定低位階、外資逆勢掃貨且剛突破 MA20 之族群，如低軌衛星與車用硬板。",
+  "validation_results": [
+    {
+      "id": "2881",
+      "name": "富邦金",
+      "direction": "多",
+      "trigger": "量增比2.56x，外資買超58億，機構級吸籌",
+      "stop_loss_price": 91.3,
+      "stop_loss_desc": "收盤跌破 MA20",
+      "price": 95.2,
+      "pct_change": -0.94,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 95.2，漲跌 -0.94%",
+        "未觸發停損：收盤跌破 MA20"
+      ]
+    },
+    {
+      "id": "6239",
+      "name": "力成",
+      "direction": "多",
+      "trigger": "量增比2.32x，外資買超38億，逆勢大漲獲法人認可",
+      "stop_loss_price": 230.0,
+      "stop_loss_desc": "收盤跌破二百三十元",
+      "price": 250.0,
+      "pct_change": 0.81,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 250，漲跌 +0.81%",
+        "未觸發停損：收盤跌破二百三十元"
+      ]
+    }
+  ]
+}

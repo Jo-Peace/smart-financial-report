@@ -1,14 +1,13 @@
 import os
 import json
 import time
-import google.generativeai as genai
+from modules.gemini_client import default_model_name, generate_text
 
 class StockDatabaseUpdater:
     def __init__(self, api_key):
-        genai.configure(api_key=api_key)
+        self.api_key = api_key
         # 預設使用 Flash，因為做分類標籤速度快且成本低
-        model_name = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
-        self.model = genai.GenerativeModel(model_name)
+        self.model_name = default_model_name()
         
         self.db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "stock_db.json")
         self.stock_db = self._load_stock_db()
@@ -202,8 +201,13 @@ class StockDatabaseUpdater:
         wait_times = [5, 10, 20]
         for attempt in range(3):
             try:
-                response = self.model.generate_content(prompt)
-                text = response.text.strip()
+                text = generate_text(
+                    self.api_key,
+                    prompt,
+                    task_name="stock_db_classification",
+                    model_name=self.model_name,
+                    response_mime_type="application/json",
+                ).strip()
                 if text.startswith("```json"):
                     text = text[7:]
                 if text.startswith("```"):

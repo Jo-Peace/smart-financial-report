@@ -13,10 +13,10 @@
 # ============================================
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-LOG_FILE="$SCRIPT_DIR/reports/run_$(date +%Y-%m-%d).log"
+LOG_DIR="$SCRIPT_DIR/reports/archive/misc"
+LOG_FILE="$LOG_DIR/run_$(date +%Y-%m-%d).log"
 
-# Ensure reports directory exists
-mkdir -p "$SCRIPT_DIR/reports"
+mkdir -p "$LOG_DIR"
 
 echo "========================================" >> "$LOG_FILE"
 echo "執行時間: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"

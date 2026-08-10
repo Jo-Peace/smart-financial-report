@@ -1,15 +1,14 @@
 import os
-import google.generativeai as genai
 import datetime
 import time
 import json
+from modules.gemini_client import default_model_name, generate_text
 
 class MarketAnalyzer:
     def __init__(self, api_key):
-        genai.configure(api_key=api_key)
+        self.api_key = api_key
         # 讀取環境變數，本地端預設可設為 gemini-pro-latest，網站端若未設定則預設使用 gemini-flash-latest
-        model_name = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
-        self.model = genai.GenerativeModel(model_name)
+        self.model_name = default_model_name()
         self.stock_db = self._load_stock_db()
 
     def _load_stock_db(self):
@@ -24,31 +23,85 @@ class MarketAnalyzer:
 
     def _call_gemini_with_retry(self, prompt, max_retries=3):
         """
-        Calls Gemini with exponential backoff retry on 429/5xx errors.
-        Retries: 10s, 30s, 60s
+        Calls Gemini with exponential backoff retry using tenacity.
         """
-        wait_times = [10, 30, 60]
+        from modules.api_retry import get_api_retry_decorator
         
-        for attempt in range(max_retries + 1):
-            try:
-                response = self.model.generate_content(prompt)
-                return response.text
-            except Exception as e:
-                error_str = str(e)
-                is_retryable = "429" in error_str or "500" in error_str or "503" in error_str
-                
-                if is_retryable and attempt < max_retries:
-                    wait = wait_times[attempt]
-                    print(f"  [Retry] Gemini API 錯誤 (嘗試 {attempt + 1}/{max_retries})，等待 {wait} 秒後重試...")
-                    time.sleep(wait)
-                else:
-                    return f"Error generating report: {e}"
+        @get_api_retry_decorator(max_attempts=max_retries + 1, min_wait=5, max_wait=60)
+        def _do_call():
+            return generate_text(
+                self.api_key,
+                prompt,
+                task_name="market_report",
+                model_name=self.model_name,
+            )
+            
+        try:
+            return _do_call()
+        except Exception as e:
+            return f"Error generating report: {e}"
 
-    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None, previous_prediction_targets=None, previous_validation_summary=None):
+    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None, previous_prediction_targets=None, previous_validation_summary=None, editorial_frame=None):
         """
         Generates a Markdown report using Gemini with enhanced data.
         """
         date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        editorial_frame = editorial_frame or {}
+        validation_placement = str(editorial_frame.get("validation_placement") or "brief").strip().lower()
+        frame_label = str(editorial_frame.get("label") or editorial_frame.get("frame") or "").strip()
+        if validation_placement == "lead":
+            validation_step_block = """================================================================
+STEP 0【昨日預測驗收】今日可當開場主軸（placement=lead）
+================================================================
+優先使用「本機正式驗收結果」逐一寫入每一檔，不得自行刪減、替換或把非正式提醒混成正式標的；只有本機驗收結果為空時，才從「昨日正式 prediction_targets」或前日報告補抓：
+- 命中：寫「✅ 昨日預測 XXX，今日實際 +X%，預測成立。」
+- 失準：寫「❌ 昨日預測 XXX，今日實際 -X%，預測失敗。原因推測：[具體分析]」
+- 無可驗收：寫「本日無昨日預測標的可驗收。」
+此段建立信譽後，必須立刻銜接今日盤面主線，不要停在驗收儀式感。
+"""
+            validation_output_block = """## 〔0〕昨日預測驗收
+（今日 placement=lead：可放開頭，逐一寫清數字；寫完立刻進今日主軸。）
+
+---
+"""
+        elif validation_placement == "omit":
+            validation_step_block = """================================================================
+STEP 0【昨日預測結果】今日不要當主鉤子（placement=omit）
+================================================================
+若有本機驗收結果：最多用 1～2 句寫在「量價對比」或「主軸」段內，不要獨立成長段開場。
+標題/主軸標籤禁止用「驗收日」「驗收現場」「上集點名驗收」當主鉤子。
+若無驗收資料：完全跳過。
+"""
+            validation_output_block = """## 〔0〕昨日預測結果（短句即可，可併入主軸）
+（placement=omit：不要長段驗收開場；有數字就一句帶過。）
+
+---
+"""
+        else:
+            validation_step_block = """================================================================
+STEP 0【昨日預測結果】短段可信度（placement=brief，預設）
+================================================================
+不要用長段「先驗收再分析」當每日固定開場。
+優先使用「本機正式驗收結果」：
+- 有結果：用 2～4 句寫清命中/失準與數字，放在今日主軸之後或量價段之前。
+- 無可驗收：寫「本日無昨日預測標的可驗收。」一句即可。
+禁止把微小漲跌包裝成「史詩級驗收日」。整篇主軸必須以本地主軸分類為準，不要因有驗收就改寫成驗收日。
+"""
+            validation_output_block = """## 〔0〕昨日預測結果（短段）
+（placement=brief：2～4 句寫清數字即可，不要佔前半篇。）
+
+---
+"""
+        frame_hint = frame_label or "依本地主軸分類 / 數據判斷"
+        editorial_rule = f"""
+================================================================
+【本地主軸分類——最高優先，不得自行升級】
+================================================================
+- 今日主軸標籤：{frame_hint}
+- 驗收使用方式：{validation_placement}（lead=可開場；brief=短段；omit=勿當主鉤子）
+- 若上方 signal_summary 已給主軸分類，正文「今日主軸」必須使用該標籤，不要改回「驗收日」除非 placement=lead。
+- 禁用/慎用語氣以 signal_summary 的 prohibited 為準。
+"""
         
         # === Stock Data Summary ===
         data_summary = ""
@@ -273,27 +326,18 @@ class MarketAnalyzer:
 - 如果今天的數據「延續」了記憶庫裡的趨勢，請在報告中點出這個連貫性（例如「正如我們此前的觀察...」）。
 - 如果今天的數據「打破或反轉」了過去的敘事，這就是今日「最強異常」的絕佳題材！
 {wiki_str}
-
+{editorial_rule}
+{validation_step_block}
 ================================================================
-STEP 0【昨日預測驗收】最高優先，必須第一個出現，不得省略
+STEP 1【找出今日的最強異常 / 主線】整集的靈魂，只選一個現象
 ================================================================
-優先使用「本機正式驗收結果」逐一寫入每一檔，不得自行刪減、替換或把非正式提醒混成正式標的；只有本機驗收結果為空時，才從「昨日正式 prediction_targets」或前日報告的「AI 數據抓漏」段落補抓預測標的，與今日實際表現誠實比對：
-- 命中：寫「✅ 昨日預測 XXX，今日實際 +X%，預測成立。」
-- 失準：寫「❌ 昨日預測 XXX，今日實際 -X%，預測失敗。原因推測：[具體分析]」
-- 無可驗收：寫「本日無昨日預測標的可驗收。」
-若另有 ETF 過熱、風險提醒或非正式觀察，請獨立標為「風險提醒驗證」，不得取代正式 prediction_targets。
-此段是頻道信譽的命脈。失準時不得省略或美化。
-
-================================================================
-STEP 1【找出今日的最強異常】整集的靈魂，只選一個現象
-================================================================
-優先使用「本地量化訊號包」標示的最強異常。除非原始數據明顯反駁，否則不要自行改選主題。
-從以下類型找出最反直覺、最有衝突感的數據現象：
+優先使用「本地量化訊號包」與「本地主軸分類」。除非原始數據明顯反駁，否則不要自行改選主題。
+從以下類型找出最反直覺、最有衝突感的數據現象（若主軸是整理日，就誠實寫訊號普通）：
 A) 量價矛盾：大成交量但股價小漲（分配訊號）？縮量但大漲（假突破）？
 B) 法人 vs 市場矛盾：外資大買的股票，成交量排名卻在20名以外？
 C) 族群內部分歧：多支同族群個股同向，但關鍵個股逆勢？（需3支以上才能說「族群」）
 D) 技術位攻防：MA20、月線有無被突破或失守？
-E) 昨日預測 vs 今日現實的反差
+E) 昨日預測 vs 今日現實的反差（僅在 placement=lead 或反差極大時當主線）
 
 選出最值得追問的ONE個。所有後續分析圍繞它展開。
 
@@ -365,6 +409,25 @@ STEP 3【偵探式展開——成交量帶路，法人對比，新聞輔助】
 4. 詞彙每週各限一次：「史詩級修復」「板塊重新定價」「機構級建倉」「主升段點火」
 5. 股價剛從MA20下站上→用「跌深強彈」「底部成型」；已站穩且持續創高→才能用「主升段確認」
 6. 禁用空泛套話：正文不得出現「資金輪動」四字；「資金脈絡」不得作為段落標題。請改為抓出「三大法人與成交量之間的主力買賣邏輯」，每次談買賣方向，都必須具體寫出「誰買、誰賣、金額/成交量、哪個榜單支持、明天驗收條件」。
+7. 禁止每天硬套警報語氣：不是每天都有「最強異常」「退潮警報」「資金續航」。若今日沒有足夠數據支持，必須誠實寫成「整理日 / 觀察日 / 訊號普通」，不要把常態買賣包裝成重大警訊。
+
+================================================================
+STEP 3.5【每日主軸選擇——先判斷今天是哪一種日子】
+================================================================
+在寫正文前先選一個主軸，整篇只能圍繞這個主軸，不要每天固定套同一種故事。
+
+主軸選擇：
+- **最高優先**使用本地主軸分類標籤：{frame_hint}（勿因「有驗收資料」就改成驗收日）。
+- 僅當本地標籤就是驗收日且 placement=lead 時，才以驗收當開場主軸。
+- 否則優先：重大事件日 → 異常日 → 續航日 → 主題日 → 整理日。
+- 例行小幅命中/失準只做短段，不升級整篇為驗收日。
+
+可用詞彙必須符合主軸：
+- 驗收日（僅 lead）：命中、失準、修正假說；勿連日重複「驗收現場」。
+- 異常日：背離、反直覺、換手、誰接手，但必須有數字。
+- 續航日：續買、續量、守住關鍵位。
+- 整理日：觀察、等待確認、訊號普通、不要追強。
+- 「資金輪動」不得作為主軸；它是市場常態，只能改寫成具體買賣行為。
 
 ================================================================
 STEP 4【今日唯一重要結論——觀眾明天還記得的那句話】
@@ -396,12 +459,9 @@ STEP 6【技術位與商品——簡短補充，不是主角】
 【輸出格式——Markdown，繁體中文，正文數字加中文讀音括號，表格內不需要】
 ================================================================
 
-## 〔0〕昨日預測驗收
-
----
-
-## 〔今日最強異常〕[直接把勾魂問題當標題]
-（1-2段，150字以內）
+{validation_output_block}
+## 〔今日主軸〕[必須標明本地主軸：{frame_hint}]
+（1-2段，150字以內；不要因有驗收就改寫成驗收日，除非 placement=lead）
 
 ---
 

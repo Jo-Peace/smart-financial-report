@@ -1,14 +1,22 @@
 import os
 import datetime
 import json
+import logging
 from dotenv import load_dotenv
 from modules.data_fetcher import DataFetcher
+from modules.fetch_result import unwrap_fetch_result
 from modules.analyzer import MarketAnalyzer
 from modules.notebooklm_generator import generate_weekend_special_prompt
 from modules.data_extractor import extract_weekend_structured_data
+from modules.project_skill_registry import format_skill_context, format_skill_summary, select_skills
 
 # Load environment variables
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -34,6 +42,23 @@ def main():
     if not TAVILY_API_KEY or not GEMINI_API_KEY:
         print("[Error] 請在 .env 檔案中設定 TAVILY_API_KEY 和 GEMINI_API_KEY")
         return
+
+    try:
+        active_skills = select_skills(
+            [
+                "weekly_special",
+                "macro",
+                "commodity",
+                "taiwan_stock",
+                "market_analysis",
+            ],
+            base_dir=os.path.dirname(os.path.abspath(__file__)),
+        )
+        print(f"\n🧩 Project skills loaded: {format_skill_summary(active_skills)}")
+    except Exception as e:
+        print(f"\n⚠️  Project skills registry unavailable: {e}")
+        active_skills = []
+    skill_context = format_skill_context(active_skills)
     
     fetcher = DataFetcher(TAVILY_API_KEY)
     analyzer = MarketAnalyzer(GEMINI_API_KEY)
@@ -42,7 +67,7 @@ def main():
     market_data = {}
     print("\n📊 正在獲取美股與避險指標一週動態數據 (S&P500, Nasdaq, VIX, NVDA, TSM)...")
     for symbol in US_SYMBOLS:
-        data = fetcher.get_weekly_stock_data(symbol)
+        data = unwrap_fetch_result(fetcher.get_weekly_stock_data(symbol), default={})
         if data:
             market_data[symbol] = data
             print(f"  ✅ {symbol}: 週收盤 ${data['week_close']} (本週漲跌 {data['week_pct_change']:+.2f}%)")
@@ -51,16 +76,16 @@ def main():
             
     # 2. Fetch Commodities
     print("\n🛢️  正在獲取國際商品行情 (黃金、原油、白銀)...")
-    commodity_data = fetcher.get_commodity_data()
+    commodity_data = unwrap_fetch_result(fetcher.get_commodity_data(), default={})
     
     # 3. Fetch Macro Events
-    macro_events = fetcher.get_macro_events()
+    macro_events = unwrap_fetch_result(fetcher.get_macro_events(), default=[])
     
     # 4. Fetch Targeted News (War & US Drop)
     news_data = []
     print("\n📰 正在獲取國際總經與戰爭地緣政治新聞...")
     for topic in US_TOPICS:
-        results = fetcher.get_news(f"{topic} latest news")
+        results = unwrap_fetch_result(fetcher.get_news(f"{topic} latest news"), default=[])
         if results:
             news_data.extend(results)
             print(f"  ✅ {topic[:25]}... : 找到 {len(results)} 篇")
@@ -98,7 +123,12 @@ def main():
     
     # 7. Generate NotebookLM Prompt for the Weekend
     print("\n🎧 正在生成 NotebookLM 週末特輯 Podcast 腳本指令...")
-    podcast_prompt = generate_weekend_special_prompt(GEMINI_API_KEY, structured_data, date_str)
+    podcast_prompt = generate_weekend_special_prompt(
+        GEMINI_API_KEY,
+        structured_data,
+        date_str,
+        skill_context=skill_context,
+    )
     
     nl_filename = f"weekend_notebooklm_prompt_{date_str.replace('-', '')}.md"
     nl_filepath = os.path.join(REPORTS_DIR, nl_filename)

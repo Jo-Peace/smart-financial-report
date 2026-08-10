@@ -1,0 +1,83 @@
+{
+  "date": "2026-07-10",
+  "topic_id": "typhoon_30d_capital_flow",
+  "title": "颱風假休市：下個月資金先往哪？3 個預測 + 失效線",
+  "content_type": "special_topic",
+  "horizon_days": 30,
+  "review_date_target": "2026-08-10",
+  "thesis": "下個月主線不是再全面追高熱AI權值，而是錢離開擁擠方向燈後，先停在可驗證的承接／停泊／材料兌現段。",
+  "market_context": "typhoon_holiday_market_closed",
+  "predictions": [
+    {
+      "id": 1,
+      "label": "影子買超要補量",
+      "role": "elastic_confirmation",
+      "sentence": "下個月會反覆交易榜外／縮量買超能否補量站穩；先動的是成熟製程與低位階承接段，不是再追高位權值敘事。",
+      "tickers": [
+        {"id": "2303", "name": "聯電", "role": "primary"},
+        {"id": "2344", "name": "華邦電", "role": "contrast_risk"},
+        {"id": "2330", "name": "台積電", "role": "direction_outflow_only"}
+      ],
+      "watch": [
+        "外資是否延續",
+        "量能否跟上",
+        "關鍵均線或缺口是否守住"
+      ],
+      "invalidation": "外資轉賣且放量破位；或持續大買但股價連弱",
+      "packaging_line": "錢先進場的地方，下個月要比的是：會不會補量。"
+    },
+    {
+      "id": 2,
+      "label": "防禦停泊",
+      "role": "defensive_parking",
+      "sentence": "若波動仍大，一部分資金會續停在金融防禦／高息工具；這是風險偏好溫度計，不是新主升段引擎。",
+      "tickers": [
+        {"id": "2883", "name": "凱基金", "role": "primary"},
+        {"id": "00919", "name": "群益台灣精選高息", "role": "primary"},
+        {"id": "0050", "name": "元大台灣50", "role": "contrast_outflow"}
+      ],
+      "watch": [
+        "急殺時是否相對抗跌",
+        "高息是否無量崩跌",
+        "與權值提款是否同步惡化"
+      ],
+      "invalidation": "防禦與高息與大盤同步崩、無量殺",
+      "packaging_line": "躲雨的地方要認得出來，但別把雨傘當飛機。"
+    },
+    {
+      "id": 3,
+      "label": "材料漲價兌現",
+      "role": "theme_confirmation",
+      "sentence": "若半導體主線要上修，確認段會出現在滿載＋漲價能否落地的材料鏈（矽晶圓為可觀察支線），而不是再講AI口號。",
+      "tickers": [
+        {"id": "6488", "name": "環球晶", "role": "primary"},
+        {"id": "6182", "name": "合晶", "role": "optional_elastic"}
+      ],
+      "watch": [
+        "漲價協商進展",
+        "營收或稼動率是否跟上股價",
+        "是否只有題材輪動"
+      ],
+      "invalidation": "漲價跳票、稼動率下滑、價漲量空或營收跟不上",
+      "packaging_line": "不是否認矽晶圓，是給它一個月驗收單。"
+    }
+  ],
+  "evidence_window": {
+    "from": "2026-06-25",
+    "to": "2026-07-08",
+    "notes": [
+      "7/3 聯電影子買超級特徵；台積電等遭大賣",
+      "7/7 大盤重挫；金融避風；欣興利多出盡教材",
+      "7/8 反彈；聯電縮量買超；00685L 天量卻跌；凱基金命中"
+    ]
+  },
+  "conservative_strategy": "先認清錢從哪流出；防禦是停泊不是績效保證；失效線沒觸發再提高觀察權重。",
+  "aggressive_strategy": "預測①補量確認後再提高彈性部位權重；③只當驗證題，不在敘事最高點無腦追。",
+  "do_not": [
+    "假盤後朗讀",
+    "完整法人榜",
+    "2330當彈性主角",
+    "保證會漲",
+    "長段日報驗收儀式"
+  ]
+}

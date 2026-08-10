@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.shenghan.stockyoutube.review-reminder</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/shenghanchou/Desktop/AntiGravity專案/stock-youtube/smart_financial_report/automation/run_review_reminder.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/shenghanchou/Desktop/AntiGravity專案/stock-youtube/smart_financial_report</string>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>9</integer>
+    <key>Minute</key>
+    <integer>5</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/stock-youtube-review-reminder.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/stock-youtube-review-reminder.err.log</string>
+</dict>
+</plist>

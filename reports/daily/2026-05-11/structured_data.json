@@ -1,0 +1,165 @@
+{
+  "date": "2026-05-11",
+  "index_action": "盤面執行權值股換血手術，資金從台積電流向低位階與記憶體族群",
+  "heavyweights_dumped": [
+    "台積電 (-396.8億)",
+    "緯創 (-74.7億)",
+    "京元電子 (-54.7億)",
+    "華通 (-39.9億)",
+    "國巨 (-35.5億)",
+    "元大台灣50 (-26億)"
+  ],
+  "safe_havens_bought": [
+    "南亞科 (+51.9億)",
+    "主動統一台股增長 (+25.9億)",
+    "鴻海 (+23.7億)",
+    "聯電 (+22.8億)",
+    "光寶科 (+21.3億)",
+    "康舒 (外資買超第8名)"
+  ],
+  "sectors": {
+    "AI 核心晶圓代工": [
+      "台積電 (外資提款轉出)"
+    ],
+    "AI 記憶體關鍵材料": [
+      "南亞科 (外資買超冠軍，強勢漲停)"
+    ],
+    "AI 記憶體整合技術": [
+      "力積電 (外資賣內資接)"
+    ],
+    "AI 伺服器垂直整合": [
+      "鴻海 (外資影子建倉)"
+    ],
+    "AI 伺服器輔助晶片": [
+      "聯電 (爆量突破 MA20)"
+    ],
+    "AI 運算模組核心": [
+      "緯創 (外資重砍，失守 MA20)"
+    ],
+    "AI 晶片測試": [
+      "京元電子 (外資賣超第三)"
+    ],
+    "AI 伺服器電源管理": [
+      "光寶科 (外資買超第五)",
+      "康舒 (低位階轉強噴出)"
+    ],
+    "AI 先進封裝材料": [
+      "群創 (成交量第一，法人與散戶共振)"
+    ],
+    "AI 邊緣人機介面": [
+      "友達 (成交量第三，隨族群強彈)"
+    ],
+    "AI 伺服器基礎設施": [
+      "金寶 (量增價強)"
+    ],
+    "低軌衛星與高密度 PCB": [
+      "華通 (外資賣超第四)"
+    ],
+    "AI 伺服器被動元件": [
+      "國巨 (外資賣超第五)"
+    ]
+  },
+  "ai_data_picks": [
+    "南亞科 (外資買超冠軍且強勢漲停)",
+    "鴻海 (外資買超23.7億之影子建倉)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2408",
+      "name": "南亞科",
+      "direction": "多",
+      "trigger": "外資買超第一且營收年增噴發，籌碼高度集中並站上所有均線",
+      "stop_loss_price": 280,
+      "stop_loss_desc": "收盤跌破二百八十元"
+    },
+    {
+      "id": "2317",
+      "name": "鴻海",
+      "direction": "多",
+      "trigger": "外資連續暗室建倉，買超金額巨大但成交量尚未失控",
+      "stop_loss_price": null,
+      "stop_loss_desc": "回跌破 MA20"
+    }
+  ],
+  "prev_day_picks_result": [
+    "3450 聯鈞 (+4.39%, 預測成立)",
+    "2881 富邦金 (-1.24%, 預測未成立)",
+    "6770 力積電 (+1.79%, 預測未成立，成交量排名第4)"
+  ],
+  "price_volume_divergence": [
+    "鴻海外資買超23.7億卻消失在成交量前20名 (影子建倉)",
+    "南亞科成交量僅第13名卻位居外資買超第1名 (資金精準轉移)",
+    "面板雙雄群創與友達成交量逼近8億股但法人買超排名不突出 (散戶與當沖熱度高)"
+  ],
+  "commodities": [
+    "黃金續強"
+  ],
+  "conservative_strategy": "關注鴻海之影子建倉進度，待量能溫和放大後再行介入。",
+  "aggressive_strategy": "追蹤南亞科多頭強勢，若明日不回補今日跳空缺口，可隨多頭慣性操作。",
+  "validation_results": [
+    {
+      "id": "3450",
+      "name": "聯鈞",
+      "direction": "多",
+      "trigger": "外資單日灌頂 38 億，且股價近乎漲停但成交量未過熱，RSI 尚有空間",
+      "stop_loss_price": 380.0,
+      "stop_loss_desc": "收盤跌破 380 元",
+      "price": 428.0,
+      "pct_change": 4.39,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 428，漲跌 +4.39%",
+        "未觸發停損：收盤跌破 380 元"
+      ]
+    },
+    {
+      "id": "2881",
+      "name": "富邦金",
+      "direction": "多",
+      "trigger": "外資買超第三名且站穩 MA20，確認條件為明日成交量進前二十且突破 98 元",
+      "stop_loss_price": 94.0,
+      "stop_loss_desc": "無量跌破 94 元",
+      "price": 95.5,
+      "pct_change": -1.24,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 95.5，漲跌 -1.24%",
+        "未觸發停損：無量跌破 94 元"
+      ]
+    },
+    {
+      "id": "6770",
+      "name": "力積電",
+      "direction": "空",
+      "trigger": "成交量第三名但外資大賣，若反彈無量且站不回 MA5 則偏空",
+      "stop_loss_price": null,
+      "stop_loss_desc": "爆量收復今日跌幅一半",
+      "price": 62.5,
+      "pct_change": 1.79,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": null,
+      "volume_rank": 4,
+      "institutional_side": "sell",
+      "institutional_rank": 7,
+      "institutional_est_amount": -15.36,
+      "evidence": [
+        "收盤 62.5，漲跌 +1.79%",
+        "成交量排名第 4 名",
+        "外資賣超第 7 名，-15.4 億"
+      ]
+    }
+  ]
+}

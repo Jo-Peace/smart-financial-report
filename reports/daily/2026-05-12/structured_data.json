@@ -1,0 +1,118 @@
+{
+  "date": "2026-05-12",
+  "index_action": "市場大規模控盤權轉移，內資與外資爆發籌碼肉搏戰",
+  "heavyweights_dumped": [
+    "京元電子 (-36.3 億)",
+    "00403A 主動統一升級50 (-35.4 億)",
+    "旺宏 (-19.9 億)",
+    "至上 (-19.7 億)",
+    "中信金 (-13.9 億)"
+  ],
+  "safe_havens_bought": [
+    "南亞科 (+82.1 億)",
+    "鴻海 (+79.2 億)",
+    "華通 (+77.9 億)",
+    "光寶科 (+63.9 億)",
+    "聯電 (+36.9 億)"
+  ],
+  "sectors": {
+    "AI 記憶體": [
+      "南亞科 (關鍵材料/多頭總司令)",
+      "華邦電 (邊緣運算補漲)",
+      "力積電 (整合技術/爆量不漲)",
+      "旺宏 (儲存基礎設施/弱勢)",
+      "至上 (供應鏈)"
+    ],
+    "AI 伺服器與電源": [
+      "鴻海 (垂直整合龍頭)",
+      "聯電 (伺服器輔助晶片/強攻漲停)",
+      "光寶科 (電源管理)",
+      "京元電子 (晶片測試)"
+    ],
+    "面板與先進封裝": [
+      "群創 (FOPLP 轉型/瘋狂追價)",
+      "友達 (邊緣人機介面/族群性發動)"
+    ],
+    "PCB 與低軌衛星": [
+      "華通 (影子建倉/高密度 PCB)"
+    ],
+    "車用與工控顯示": [
+      "彩晶 (智聯顯示/低位階轉強)"
+    ]
+  },
+  "ai_data_picks": [
+    "2408 南亞科 (外資買超冠軍)",
+    "2313 華通 (影子建倉特徵)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2313",
+      "name": "華通",
+      "direction": "多",
+      "trigger": "外資暴買 77.9 億但市場尚未放量，具備影子建倉爆發潛力且營收年增強勢",
+      "stop_loss_price": 248.9,
+      "stop_loss_desc": "收盤跌破 MA20"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2408 南亞科 (+6.64%, 預測成立，成交量排名第8)",
+    "2317 鴻海 (-0.79%, 預測未成立)"
+  ],
+  "price_volume_divergence": [
+    "00403A 爆 42.04 億股天量大漲 5.88%，但外資反手賣超 35.4 億，由內資接盤",
+    "2313 華通外資買超 77.9 億高居第三名，但成交量未進全市場前 20 名 (影子建倉)",
+    "6770 力積電爆量不漲，收盤下跌 0.64% 面臨 MA20 攻防"
+  ],
+  "commodities": [
+    "黃金 (Gold) 收 4708",
+    "原油 (Crude Oil) 大漲 3.23% 至 101.2"
+  ],
+  "conservative_strategy": "市場情緒過熱，建議現金為王不宜追價，關注南亞科回測 MA5 支撐",
+  "aggressive_strategy": "追蹤華通量能變化，若爆量突破今日高點可參與影子建倉發動行情",
+  "validation_results": [
+    {
+      "id": "2408",
+      "name": "南亞科",
+      "direction": "多",
+      "trigger": "外資買超第一且營收年增噴發，籌碼高度集中並站上所有均線",
+      "stop_loss_price": 280.0,
+      "stop_loss_desc": "收盤跌破二百八十元",
+      "price": 321.0,
+      "pct_change": 6.64,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 8,
+      "institutional_side": "buy",
+      "institutional_rank": 1,
+      "institutional_est_amount": 82.09,
+      "evidence": [
+        "收盤 321，漲跌 +6.64%",
+        "成交量排名第 8 名",
+        "外資買超第 1 名，+82.1 億",
+        "未觸發停損：收盤跌破二百八十元"
+      ]
+    },
+    {
+      "id": "2317",
+      "name": "鴻海",
+      "direction": "多",
+      "trigger": "外資連續暗室建倉，買超金額巨大但成交量尚未失控",
+      "stop_loss_price": null,
+      "stop_loss_desc": "回跌破 MA20",
+      "price": 250.0,
+      "pct_change": -0.79,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": null,
+      "volume_rank": null,
+      "institutional_side": "buy",
+      "institutional_rank": 2,
+      "institutional_est_amount": 79.21,
+      "evidence": [
+        "收盤 250，漲跌 -0.79%",
+        "外資買超第 2 名，+79.2 億"
+      ]
+    }
+  ]
+}

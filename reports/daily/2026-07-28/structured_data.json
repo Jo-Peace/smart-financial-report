@@ -1,0 +1,505 @@
+{
+  "sectors": {
+    "AI 供應鏈高價值物流族群": [
+      "長榮航 (逆勢加碼)"
+    ],
+    "AI 雲端算力基礎建設族群": [
+      "中華電 (防禦型資金)"
+    ],
+    "AI 高權重權值族群": [
+      "元大台灣50 (外資大賣)",
+      "台積電 (史詩級提款)"
+    ],
+    "AI 邊緣人機介面族群": [
+      "友達 (維持平盤)"
+    ],
+    "AI 伺服器輔助晶片族群": [
+      "聯電 (昨日買超今日跌停)"
+    ],
+    "AI 記憶體整合技術族群": [
+      "力積電 (跌破支撐)"
+    ],
+    "航空貨運服務族群": [
+      "華航 (逆勢英雄)",
+      "長榮航 (外資買超冠軍)"
+    ],
+    "AI 邊緣運算記憶體族群": [
+      "華邦電 (跌停觸發停損)"
+    ]
+  },
+  "ai_data_picks": [
+    "長榮航 (外資買超第1)",
+    "中華電 (防禦型資金)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2618",
+      "name": "長榮航",
+      "direction": "多",
+      "trigger": "外資買超第 1 名，逆勢量增收紅且守住 MA20，具基本面改善與避險屬性",
+      "stop_loss_price": 41.25,
+      "stop_loss_desc": "收盤跌破 41.25 元"
+    },
+    {
+      "id": "2412",
+      "name": "中華電",
+      "direction": "多",
+      "trigger": "外資買超第 2 名，典型防禦性建倉，技術面站穩 MA20",
+      "stop_loss_price": 136.0,
+      "stop_loss_desc": "收盤跌破 136 元"
+    }
+  ],
+  "price_volume_divergence": [
+    "2618 長榮航: 在大盤崩跌 2030 點時逆勢上漲 1.91%，且為外資買超金額之冠，展現極強避險韌性",
+    "2409 友達: 大盤暴跌 4.65% 下以平盤收場，外資小買 9.5 億，低基期撐盤效應顯著",
+    "0050 元大台灣50: 成交量放大至 2.86 倍但伴隨外資 143 億史詩級拋售，反映系統性多殺多恐慌"
+  ],
+  "conservative_strategy": "保持 70% 以上現金，僅觀察具備實體獲利支撐的航空貨運服務族群，強烈建議現金為王。",
+  "aggressive_strategy": "避開與權值高度相關的 AI 族群，等待 0050 縮量止跌，僅針對防禦性高的物流與算力基建族群進行配置。",
+  "date": "2026-07-28",
+  "index_action": "下跌 2030.8點（-4.65%）",
+  "heavyweights_dumped": [
+    "台積電 (-334.2億)",
+    "元大台灣50 (-143.9億)",
+    "華邦電 (-25.9億)",
+    "京元電子 (-24.4億)",
+    "主動統一升級50 (-21.0億)"
+  ],
+  "safe_havens_bought": [
+    "長榮航 (+14.7億)",
+    "中華電 (+13.7億)",
+    "華航 (+11.5億)",
+    "友達 (+9.5億)",
+    "台泥 (+4.4億)"
+  ],
+  "commodities": [
+    "黃金 (收$4097.7, -1.19%)",
+    "原油 (收$80.63, -2.40%)",
+    "白銀 (收$57.62, -1.46%)"
+  ],
+  "prev_day_picks_result": [
+    "2344 華邦電 (-10.00%, 預測未成立)"
+  ],
+  "short_term_horizon": "1~5日",
+  "long_term_horizon": "2~6週 / 1~3個月",
+  "short_term_validation_window": "1D / 3D / 5D",
+  "long_term_validation_window": "20D / 60D",
+  "short_term_picks": [
+    {
+      "ticker": "2618",
+      "name": "長榮航",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資買超第 1 名，逆勢量增收紅且守住 MA20，具基本面改善與避險屬性",
+      "invalidation": "收盤跌破 41.25 元"
+    },
+    {
+      "ticker": "2412",
+      "name": "中華電",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資買超第 2 名，典型防禦性建倉，技術面站穩 MA20",
+      "invalidation": "收盤跌破 136 元"
+    }
+  ],
+  "long_term_picks": [
+    {
+      "theme": "0050 元大台灣50",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "5D -1.36%、10D -5.48%",
+      "evidence": "5D -1.36%、10D -5.48%"
+    }
+  ],
+  "long_term_thesis": "長線主軸應優先看供應鏈與族群是否有多日驗證延續，而不是單日爆量。",
+  "long_term_evidence": [
+    "多日回測命中率與平均超額報酬，應作為長線可信度基準。",
+    "事件雷達與族群同步性，應優先高於單日籌碼雜訊。"
+  ],
+  "timeframe_history": {
+    "horizon_performance": [
+      {
+        "horizon_days": 1,
+        "samples": 95,
+        "hit_rate": 0.49473684210526314,
+        "avg_return": 0.30264869012918466,
+        "avg_excess": 0.024458906417065465
+      },
+      {
+        "horizon_days": 3,
+        "samples": 77,
+        "hit_rate": 0.4675324675324675,
+        "avg_return": 0.9496193384121996,
+        "avg_excess": 0.26220552950886533
+      },
+      {
+        "horizon_days": 5,
+        "samples": 70,
+        "hit_rate": 0.4857142857142857,
+        "avg_return": 3.371025203875734,
+        "avg_excess": 2.4240062503839788
+      },
+      {
+        "horizon_days": 20,
+        "samples": 61,
+        "hit_rate": 0.639344262295082,
+        "avg_return": 12.237197900862698,
+        "avg_excess": 11.76965691725614
+      }
+    ],
+    "recent_results": [
+      {
+        "prediction_date": "2026-07-24",
+        "ticker": "3231",
+        "name": "緯創",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-07-27",
+        "return_pct": -1.1173184357541899,
+        "index_return_pct": -0.05,
+        "excess_return_pct": -1.0673184357541898,
+        "hit": 0,
+        "result_desc": "1日驗收: -1.12% -> 失準"
+      },
+      {
+        "prediction_date": "2026-07-24",
+        "ticker": "3231",
+        "name": "緯創",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-07-27",
+        "return_pct": -1.1173184357541899,
+        "index_return_pct": -0.05,
+        "excess_return_pct": -1.0673184357541898,
+        "hit": 0,
+        "result_desc": "3日驗收: -1.12% -> 失準"
+      },
+      {
+        "prediction_date": "2026-07-24",
+        "ticker": "8039",
+        "name": "台虹",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-07-27",
+        "return_pct": -10.0,
+        "index_return_pct": -0.05,
+        "excess_return_pct": -9.95,
+        "hit": 0,
+        "result_desc": "1日驗收: -10.00% -> 失準"
+      },
+      {
+        "prediction_date": "2026-07-24",
+        "ticker": "8039",
+        "name": "台虹",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-07-27",
+        "return_pct": -10.0,
+        "index_return_pct": -0.05,
+        "excess_return_pct": -9.95,
+        "hit": 0,
+        "result_desc": "3日驗收: -10.00% -> 失準"
+      },
+      {
+        "prediction_date": "2026-07-23",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "空",
+        "horizon_days": 3,
+        "evaluated_date": "2026-07-27",
+        "return_pct": -0.6211180124223602,
+        "index_return_pct": -0.05,
+        "excess_return_pct": -0.5711180124223602,
+        "hit": 1,
+        "result_desc": "3日驗收: -0.62% -> 命中"
+      },
+      {
+        "prediction_date": "2026-07-23",
+        "ticker": "3231",
+        "name": "緯創",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-07-27",
+        "return_pct": 2.0172910662824206,
+        "index_return_pct": -0.05,
+        "excess_return_pct": 2.0672910662824204,
+        "hit": 1,
+        "result_desc": "3日驗收: +2.02% -> 命中"
+      },
+      {
+        "prediction_date": "2026-07-22",
+        "ticker": "3231",
+        "name": "緯創",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-07-27",
+        "return_pct": 7.926829268292683,
+        "index_return_pct": -0.05,
+        "excess_return_pct": 7.976829268292683,
+        "hit": 1,
+        "result_desc": "3日驗收: +7.93% -> 命中"
+      },
+      {
+        "prediction_date": "2026-07-22",
+        "ticker": "3231",
+        "name": "緯創",
+        "direction": "多",
+        "horizon_days": 5,
+        "evaluated_date": "2026-07-27",
+        "return_pct": 7.926829268292683,
+        "index_return_pct": -0.05,
+        "excess_return_pct": 7.976829268292683,
+        "hit": 1,
+        "result_desc": "5日驗收: +7.93% -> 命中"
+      }
+    ],
+    "recent_trends": {
+      "2409": {
+        "latest_date": "2026-07-13",
+        "latest_price": 29.25,
+        "latest_pct_change": -7.0,
+        "trends": {}
+      },
+      "0050": {
+        "latest_date": "2026-07-24",
+        "latest_price": 101.7,
+        "latest_pct_change": -2.12,
+        "trends": {
+          "5D": {
+            "from_date": "2026-06-26",
+            "to_date": "2026-07-24",
+            "base_price": 103.1,
+            "latest_price": 101.7,
+            "pct_change": -1.357904946653726
+          },
+          "10D": {
+            "from_date": "2026-06-03",
+            "to_date": "2026-07-24",
+            "base_price": 107.6,
+            "latest_price": 101.7,
+            "pct_change": -5.4832713754646765
+          }
+        }
+      },
+      "2618": {
+        "latest_date": "2026-07-14",
+        "latest_price": 40.8,
+        "latest_pct_change": 0.12,
+        "trends": {}
+      },
+      "2412": {
+        "latest_date": "2026-05-20",
+        "latest_price": 139.0,
+        "latest_pct_change": -2.46,
+        "trends": {}
+      }
+    },
+    "tickers": [
+      "0050",
+      "2030",
+      "2409",
+      "2412",
+      "2618",
+      "4097"
+    ]
+  },
+  "validation_results": [
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資賣超第 1 名但股價逆勢走強，且成交量進入前 10 名，具備強大博弈與換手動能",
+      "stop_loss_price": 154.0,
+      "stop_loss_desc": "收盤跌破 154 元",
+      "price": 144.0,
+      "pct_change": -10.0,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": true,
+      "volume_rank": null,
+      "institutional_side": "sell",
+      "institutional_rank": 3,
+      "institutional_est_amount": -25.94,
+      "evidence": [
+        "收盤 144，漲跌 -10.00%",
+        "外資賣超第 3 名，-25.9 億",
+        "觸發停損：收盤跌破 154 元"
+      ]
+    }
+  ],
+  "validation_policy": {
+    "source_date": "2026-07-27",
+    "trading_days_gap": 1,
+    "onair_validation_eligible": true,
+    "skip_reason": "",
+    "max_trading_gap": 1
+  },
+  "editorial_frame": {
+    "frame": "validation_day",
+    "label": "驗收日",
+    "confidence": 86,
+    "reasons": [
+      "驗收本身夠強（score=85）且近期標題未過度使用「驗收」，可當主軸。",
+      "今日有重大事件或跨市場線索，應由事件帶出台股影響。",
+      "昨日驗收有 0 命中、1 失準；2344 華邦電 觸發停損；2344 華邦電 波動 10.0%（預設只作短段可信度，不自動佔主軸）。"
+    ],
+    "allowed_tones": [
+      "驗收",
+      "命中",
+      "失準",
+      "修正假說",
+      "明日條件"
+    ],
+    "prohibited_tones": [
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "狂砍",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報"
+    ],
+    "title_fatigue_report": "# 近期包裝疲勞檢查\n- 檢查最近 7 支影片標題。\n- 檢查最近 10 份縮圖 Prompt。\n- 封面避免再用的 scenario：強彈追蹤, 榜外吸籌, 量價異常。\n- 封面題型家族已連續出現：anomaly, off_board, other；今日必須換另一種問法。\n- 若資料支持換手，請改問：為什麼逆勢、量價哪裡矛盾、明日失效條件是什麼。\n- 連續 3 天內不得重複「榜外吸籌 + 資金換手」A/B 配對。",
+    "validation_placement": "lead",
+    "validation_story_score": 85,
+    "validation_fatigued": false,
+    "validation_hits": 0,
+    "validation_misses": 1
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD投資台灣逾100億美元！「10大供應鏈」名單曝，日月光3711、英業達2356、緯創3231入列 | 魏甫丞 | 風生活 - 風傳媒",
+      "url": "https://www.storm.mg/lifestyle/11134285",
+      "snippet": "## AMD投資台灣「供應鏈名單」曝！日月光投控（3711）、力成（6239）、欣興（3037）入列\n\nAMD 董事長暨執行長蘇姿丰表示，隨著 AI 應用持續加速普及，全球客戶正迅速擴展 AI 基礎設施，以滿足不斷增長的運算需求。透過結合 AMD 在高效能運算領域的技術、台灣產業體系及全球策略合作夥伴，公司正推動整合式、機架級 AI 基礎設施，協助客戶加速部署下一代 AI 系統。此次合作也串聯日月光投控（3711）旗下日月光、矽品，以及力成（6239）、欣興（3037）、南亞電路板（8046）、景碩（3189）、緯穎（6669）、緯創（3231）、英業達（2356）與營邦（3693）等台灣供應",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "AI 伺服器 / 機架系統"
+      ]
+    },
+    {
+      "event": "AMD and Nvidia Taiwan Investment Plans Tighten AI Supply Chain Competition - Astute Group",
+      "url": "https://www.astutegroup.com/news/memory-shortages/amd-and-nvidia-taiwan-investment-plans-tighten-ai-supply-chain-competition",
+      "snippet": "According to Yole Group, AMD announced more than US$10 billion in investments across Taiwan’s technology ecosystem to support AI infrastructure development. The programme covers semiconductor manufacturing, advanced packaging, system integration and supply chain collaboration. [...] AMD and Nvidia h",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    },
+    {
+      "event": "AMD Announces More Than $10 Billion in Taiwan Ecosystem Investments to Accelerate AI Infrastructure :: Advanced Micro Devices, Inc. (AMD)",
+      "url": "https://ir.amd.com/news-events/press-releases/detail/1286/amd-announces-more-than-10-billion-in-taiwan-ecosystem-investments-to-accelerate-ai-infrastructure",
+      "snippet": "“Nan Ya PCB values its collaboration with AMD and is committed to supporting advanced packaging growth through high-quality substrate technology, manufacturing excellence and resilient supply chain execution,” said Jack Lu, President, Nan Ya PCB.\n\n“Kinsus is proud to support AMD’s advanced packaging",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "基板 / 載板"
+      ]
+    },
+    {
+      "event": "AMD砸百億美金加碼台灣 供應鏈解讀：劍指先進封裝產能",
+      "url": "https://tw.stock.yahoo.com/news/amd%E7%A0%B8%E7%99%BE%E5%84%84%E7%BE%8E%E9%87%91%E5%8A%A0%E7%A2%BC%E5%8F%B0%E7%81%A3-%E4%BE%9B%E6%87%89%E9%8F%88%E8%A7%A3%E8%AE%80-%E5%8A%8D%E6%8C%87%E5%85%88%E9%80%B2%E5%B0%81%E8%A3%9D%E7%94%A2%E8%83%BD-081921666.html",
+      "snippet": "台股類股查詢\n\n升級VIP\n\n打開App\n\n廣告\n\n# AMD砸百億美金加碼台灣 供應鏈解讀：劍指先進封裝產能\n\n柳名耕\n\n加入為 Google 偏好來源\n\n（另開新視窗）\n\nAMD\n\n494.95(5.17%)\n\nAMD董事長暨執行長蘇姿丰20日已入境台灣，21日宣布將在台灣投資超過百億美元，擴大與供應鏈合作。（圖／報系資料照）\n\nAMD董事長暨執行長蘇姿丰20日已入境台灣，21日宣布將在台灣投資超過百億美元，擴大與供應鏈合作。（圖／報系資料照）\n\nAI晶片巨頭超微（AMD）21日拋出市場震撼彈，宣布為了滿足全球暴增的AI基礎設施需求，將在台灣產業體系投資超過100億美元（約合新台幣3200",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    }
+  ],
+  "focus_ranking": [
+    {
+      "ticker": "2409",
+      "name": "友達",
+      "base_role": "elastic_attack",
+      "role_label": "彈性攻擊股",
+      "elasticity": 78,
+      "foreign_buy_strength": 82,
+      "volume_confirmation": 72,
+      "validation_credibility": 60,
+      "title_priority": 93,
+      "source_text": "友達 (+9.5億)"
+    },
+    {
+      "ticker": "2618",
+      "name": "長榮航",
+      "base_role": "indirect_infrastructure",
+      "role_label": "間接受惠基建股",
+      "elasticity": 45,
+      "foreign_buy_strength": 100,
+      "volume_confirmation": 72,
+      "validation_credibility": 40,
+      "title_priority": 76,
+      "source_text": "長榮航 (+14.7億)"
+    },
+    {
+      "ticker": "2412",
+      "name": "中華電",
+      "base_role": "theme_confirmation",
+      "role_label": "題材確認股",
+      "elasticity": 58,
+      "foreign_buy_strength": 100,
+      "volume_confirmation": 25,
+      "validation_credibility": 40,
+      "title_priority": 69,
+      "source_text": "中華電 (+13.7億)"
+    },
+    {
+      "ticker": "2610",
+      "name": "華航",
+      "base_role": "theme_confirmation",
+      "role_label": "theme_confirmation",
+      "elasticity": 58,
+      "foreign_buy_strength": 91,
+      "volume_confirmation": 25,
+      "validation_credibility": 40,
+      "title_priority": 58,
+      "source_text": "華航 (+11.5億)"
+    },
+    {
+      "ticker": "2344",
+      "name": "華邦電",
+      "base_role": "elastic_attack",
+      "role_label": "彈性攻擊股",
+      "elasticity": 86,
+      "foreign_buy_strength": 0,
+      "volume_confirmation": 25,
+      "validation_credibility": 73,
+      "title_priority": 49,
+      "source_text": "華邦電 (-25.9億)"
+    }
+  ]
+}

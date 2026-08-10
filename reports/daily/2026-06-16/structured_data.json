@@ -1,0 +1,483 @@
+{
+  "date": "2026-06-16",
+  "index_action": "多空交戰，權值ETF微幅上揚",
+  "heavyweights_dumped": [
+    "6770 力積電 (-52.5億)",
+    "3231 緯創 (-14.2億)",
+    "5871 中租-KY (-8.3億)"
+  ],
+  "safe_havens_bought": [
+    "2408 南亞科 (+199.5億)",
+    "2344 華邦電 (+69.2億)",
+    "2303 聯電 (+40.9億)"
+  ],
+  "sectors": {
+    "AI 記憶體關鍵材料": [
+      "2408 南亞科 (漲7.46%, 外資大舉掃貨)",
+      "2344 華邦電 (漲4.23%, 站穩MA20)"
+    ],
+    "AI 記憶體整合技術": [
+      "6770 力積電 (跌3.14%, 外資撤退)"
+    ],
+    "AI 伺服器輔助晶片": [
+      "2303 聯電 (小跌0.35%, 外資買超但壓力重)"
+    ],
+    "AI 先進封裝材料": [
+      "3481 群創 (漲3.70%, FOPLP題材認同度高)"
+    ],
+    "面板人機介面": [
+      "2409 友達 (跌0.83%, 漲多冷卻)"
+    ]
+  },
+  "ai_data_picks": [
+    "2408 南亞科 (外資近200億重金建倉)",
+    "2344 華邦電 (外資再度狂砸69.2億)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2408",
+      "name": "南亞科",
+      "direction": "多",
+      "trigger": "外資百億級掃貨，量增比健康，基本面強力翻轉",
+      "stop_loss_price": 373.5,
+      "stop_loss_desc": "收盤跌破 MA5"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2344 華邦電 (+4.23%, 預測成立，成交量排名第2)"
+  ],
+  "price_volume_divergence": [
+    "2303 聯電 (外資大買40.9億但股價小跌0.35%, 存在強大內資調節壓力)",
+    "3481 群創 (外資賣超6.5億但股價強漲3.70%, 本土資金強行沒收籌碼)"
+  ],
+  "commodities": [
+    "原油大跌 4.04%"
+  ],
+  "conservative_strategy": "觀察華邦電能否縮量回測 MA20 不破作為進場點",
+  "aggressive_strategy": "跟隨外資布局南亞科，目標挑戰 500 元大關，需防範短線獲利回吐",
+  "short_term_horizon": "1~5日",
+  "long_term_horizon": "2~6週 / 1~3個月",
+  "short_term_validation_window": "1D / 3D / 5D",
+  "long_term_validation_window": "20D / 60D",
+  "short_term_picks": [
+    {
+      "ticker": "2408",
+      "name": "南亞科",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資百億級掃貨，量增比健康，基本面強力翻轉",
+      "invalidation": "收盤跌破 MA5"
+    }
+  ],
+  "long_term_picks": [
+    {
+      "theme": "2344 華邦電",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "5D +6.48%、10D +34.04%、20D +120.54%",
+      "evidence": "5D +6.48%、10D +34.04%、20D +120.54%"
+    },
+    {
+      "theme": "2408 南亞科",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "5D +20.06%、10D +57.81%",
+      "evidence": "5D +20.06%、10D +57.81%"
+    }
+  ],
+  "long_term_thesis": "長線主軸應優先看供應鏈與族群是否有多日驗證延續，而不是單日爆量。",
+  "long_term_evidence": [
+    "多日回測命中率與平均超額報酬，應作為長線可信度基準。",
+    "事件雷達與族群同步性，應優先高於單日籌碼雜訊。"
+  ],
+  "timeframe_history": {
+    "horizon_performance": [
+      {
+        "horizon_days": 1,
+        "samples": 56,
+        "hit_rate": 0.5,
+        "avg_return": 1.517011476815874,
+        "avg_excess": 1.1238323794471001
+      },
+      {
+        "horizon_days": 3,
+        "samples": 45,
+        "hit_rate": 0.5333333333333333,
+        "avg_return": 1.70541486812473,
+        "avg_excess": 0.8569512395568026
+      },
+      {
+        "horizon_days": 5,
+        "samples": 40,
+        "hit_rate": 0.575,
+        "avg_return": 6.063115510100012,
+        "avg_excess": 5.10983234148944
+      },
+      {
+        "horizon_days": 20,
+        "samples": 25,
+        "hit_rate": 0.8,
+        "avg_return": 20.352219629296233,
+        "avg_excess": 20.116219629296232
+      }
+    ],
+    "recent_results": [
+      {
+        "prediction_date": "2026-06-12",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-06-15",
+        "return_pct": 9.883720930232558,
+        "index_return_pct": 2.78,
+        "excess_return_pct": 7.103720930232559,
+        "hit": 1,
+        "result_desc": "1日驗收: +9.88% -> 命中"
+      },
+      {
+        "prediction_date": "2026-06-12",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-06-15",
+        "return_pct": 9.883720930232558,
+        "index_return_pct": 2.78,
+        "excess_return_pct": 7.103720930232559,
+        "hit": 1,
+        "result_desc": "3日驗收: +9.88% -> 命中"
+      },
+      {
+        "prediction_date": "2026-06-11",
+        "ticker": "2313",
+        "name": "華通",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-06-15",
+        "return_pct": -6.363636363636363,
+        "index_return_pct": 2.78,
+        "excess_return_pct": -9.143636363636363,
+        "hit": 0,
+        "result_desc": "3日驗收: -6.36% -> 失準"
+      },
+      {
+        "prediction_date": "2026-06-10",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-06-15",
+        "return_pct": 26.845637583892618,
+        "index_return_pct": 2.78,
+        "excess_return_pct": 24.065637583892617,
+        "hit": 1,
+        "result_desc": "3日驗收: +26.85% -> 命中"
+      },
+      {
+        "prediction_date": "2026-06-10",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "多",
+        "horizon_days": 5,
+        "evaluated_date": "2026-06-15",
+        "return_pct": 26.845637583892618,
+        "index_return_pct": 2.78,
+        "excess_return_pct": 24.065637583892617,
+        "hit": 1,
+        "result_desc": "5日驗收: +26.85% -> 命中"
+      },
+      {
+        "prediction_date": "2026-06-08",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "多",
+        "horizon_days": 5,
+        "evaluated_date": "2026-06-15",
+        "return_pct": 22.727272727272727,
+        "index_return_pct": 2.78,
+        "excess_return_pct": 19.947272727272725,
+        "hit": 1,
+        "result_desc": "5日驗收: +22.73% -> 命中"
+      },
+      {
+        "prediction_date": "2026-05-26",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "多",
+        "horizon_days": 20,
+        "evaluated_date": "2026-06-15",
+        "return_pct": 34.04255319148936,
+        "index_return_pct": 2.78,
+        "excess_return_pct": 31.26255319148936,
+        "hit": 1,
+        "result_desc": "20日驗收: +34.04% -> 命中"
+      },
+      {
+        "prediction_date": "2026-05-25",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "多",
+        "horizon_days": 20,
+        "evaluated_date": "2026-06-15",
+        "return_pct": 47.081712062256805,
+        "index_return_pct": 2.78,
+        "excess_return_pct": 44.301712062256804,
+        "hit": 1,
+        "result_desc": "20日驗收: +47.08% -> 命中"
+      }
+    ],
+    "recent_trends": {
+      "6770": {
+        "latest_date": "2026-06-10",
+        "latest_price": 64.4,
+        "latest_pct_change": -9.93,
+        "trends": {
+          "5D": {
+            "from_date": "2026-05-25",
+            "to_date": "2026-06-10",
+            "base_price": 67.6,
+            "latest_price": 64.4,
+            "pct_change": -4.733727810650871
+          }
+        }
+      },
+      "2409": {
+        "latest_date": "2026-06-01",
+        "latest_price": 23.8,
+        "latest_pct_change": 3.48,
+        "trends": {}
+      },
+      "2303": {
+        "latest_date": "2026-06-12",
+        "latest_price": 133.5,
+        "latest_pct_change": 6.8,
+        "trends": {
+          "5D": {
+            "from_date": "2026-06-04",
+            "to_date": "2026-06-12",
+            "base_price": 125.0,
+            "latest_price": 133.5,
+            "pct_change": 6.800000000000001
+          },
+          "10D": {
+            "from_date": "2026-05-25",
+            "to_date": "2026-06-12",
+            "base_price": 125.0,
+            "latest_price": 133.5,
+            "pct_change": 6.800000000000001
+          }
+        }
+      },
+      "3481": {
+        "latest_date": "2026-06-04",
+        "latest_price": 55.8,
+        "latest_pct_change": -6.06,
+        "trends": {
+          "5D": {
+            "from_date": "2026-05-26",
+            "to_date": "2026-06-04",
+            "base_price": 45.7,
+            "latest_price": 55.8,
+            "pct_change": 22.100656455142218
+          }
+        }
+      },
+      "2344": {
+        "latest_date": "2026-06-15",
+        "latest_price": 189.0,
+        "latest_pct_change": 9.88,
+        "trends": {
+          "5D": {
+            "from_date": "2026-06-03",
+            "to_date": "2026-06-15",
+            "base_price": 177.5,
+            "latest_price": 189.0,
+            "pct_change": 6.478873239436619
+          },
+          "10D": {
+            "from_date": "2026-05-26",
+            "to_date": "2026-06-15",
+            "base_price": 141.0,
+            "latest_price": 189.0,
+            "pct_change": 34.04255319148936
+          },
+          "20D": {
+            "from_date": "2026-04-20",
+            "to_date": "2026-06-15",
+            "base_price": 85.7,
+            "latest_price": 189.0,
+            "pct_change": 120.53675612602099
+          }
+        }
+      },
+      "3231": {
+        "latest_date": "2026-06-05",
+        "latest_price": 171.0,
+        "latest_pct_change": -2.84,
+        "trends": {
+          "5D": {
+            "from_date": "2026-05-11",
+            "to_date": "2026-06-05",
+            "base_price": 139.0,
+            "latest_price": 171.0,
+            "pct_change": 23.021582733812952
+          }
+        }
+      },
+      "2408": {
+        "latest_date": "2026-06-12",
+        "latest_price": 374.0,
+        "latest_pct_change": 10.0,
+        "trends": {
+          "5D": {
+            "from_date": "2026-05-15",
+            "to_date": "2026-06-12",
+            "base_price": 311.5,
+            "latest_price": 374.0,
+            "pct_change": 20.064205457463885
+          },
+          "10D": {
+            "from_date": "2026-05-04",
+            "to_date": "2026-06-12",
+            "base_price": 237.0,
+            "latest_price": 374.0,
+            "pct_change": 57.80590717299579
+          }
+        }
+      }
+    },
+    "tickers": [
+      "2303",
+      "2344",
+      "2408",
+      "2409",
+      "3231",
+      "3481",
+      "5871",
+      "6770"
+    ]
+  },
+  "validation_results": [
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資連買、進入成交量前10名，且AMD百億投資利多發酵，收復MA20",
+      "stop_loss_price": 172.0,
+      "stop_loss_desc": "收盤跌破今日低點",
+      "price": 197.0,
+      "pct_change": 4.23,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 2,
+      "institutional_side": "buy",
+      "institutional_rank": 2,
+      "institutional_est_amount": 69.16,
+      "evidence": [
+        "收盤 197，漲跌 +4.23%",
+        "成交量排名第 2 名",
+        "外資買超第 2 名，+69.2 億",
+        "未觸發停損：收盤跌破今日低點"
+      ]
+    }
+  ],
+  "editorial_frame": {
+    "frame": "validation_day",
+    "label": "驗收日",
+    "confidence": 82,
+    "reasons": [
+      "昨日驗收有 1 命中、0 失準，可建立連續追蹤。"
+    ],
+    "allowed_tones": [
+      "驗收",
+      "命中",
+      "失準",
+      "修正假說"
+    ],
+    "prohibited_tones": [
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報"
+    ],
+    "title_fatigue_report": "# 近期標題疲勞檢查\n- 檢查最近 5 支影片標題。\n- 未偵測到明顯疲勞詞；仍需避免無數據支撐的警報語氣。"
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD commits $10B to Taiwan AI packaging push | AI Weekly",
+      "url": "https://aiweekly.co/alerts/amd-commits-10b-to-taiwan-ai-packaging-push",
+      "snippet": "* AMD is investing $10B+ in Taiwan packaging partnerships with ASE and SPIL to secure capacity for its MI450X and EPYC Venice chips. * The MI450X GPU inside AMD's Helios rack-scale platform is confirmed on track, with multi-gigawatt deployments targeted for late 2026. Advanced packaging is now a pri",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "AI 伺服器 / 機架系統",
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD commits over US$10 billion to Taiwan ecosystem to expand AI packaging and infrastructure capacity",
+      "url": "https://www.digitimes.com/news/a20260521PR202/amd-packaging-capacity-taiwan-infrastructure.html",
+      "snippet": "# AMD commits over US$10 billion to Taiwan ecosystem to expand AI packaging and infrastructure capacity. AMD said on May 21 that it plans to invest more than US$10 billion across Taiwan's semiconductor ecosystem to deepen strategic partnerships and expand advanced packaging capacity for next-generat",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    },
+    {
+      "event": "AMD宣布於台灣產業體系投資逾100億美元，加速建置AI基礎設施",
+      "url": "https://www.amd.com/zh-tw/newsroom/press-releases/2026-5-20-amd-announces-more-than-10-billion-in-taiwan-ecos.html",
+      "snippet": "###### 伺服器處理器. ###### 商用系統. ###### 個人與遊戲. ###### 嵌入式產品. ###### 加速器. ###### DPU 加速器. ###### 乙太網配接器. ###### 桌上型電腦. ###### FPGA 與自適應 SoC. ###### 系統模組 (SOM). ###### 開發者資源. ###### 評估板與套件. ###### 處理器工具. ###### 顯示卡工具與應用程式. ###### IP 與應用. ###### GPU 加速器工具與應用程式. ###### 乙太網路轉接器工具. ###### 適用於資料中心與雲端. ###### 適用",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "投資網誌",
+      "url": "https://readmo.cmoney.tw/article/d9f79b8c-e2c5-4243-9f74-014787074374",
+      "snippet": "# AMD投資先進封裝，力成(6239)的合作延續性怎麼看？. Answer / Powered by Readmo.ai. AMD宣布在台灣加碼先進封裝與AI基礎設施投資後，市場最先反映的不是單一股價，而是封測產業鏈的重新定價。對力成(6239)而言，外界關注的核心不只是「是否切入」，而是這次2.5D面板級先進封裝驗證，能否從技術測試延伸到更穩定的量產合作。若專案推進順利，代表公司在AI封裝鏈中的角色可能不只是短期題材，而是逐步進入高附加價值製程的實際供應環節。. Go Back to Original Article'%3e%3cpath%20d='M7%2019V17H14.1C15.1",
+      "impact_score": 80,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    }
+  ]
+}

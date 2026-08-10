@@ -1,0 +1,187 @@
+{
+  "date": "2026-06-01",
+  "index_action": "上漲 604 點",
+  "heavyweights_dumped": [
+    "力積電 (-137.6億)",
+    "華通 (-38.7億)",
+    "友達 (-26.3億)"
+  ],
+  "safe_havens_bought": [
+    "南亞科 (+103.1億)",
+    "群創 (+45.3億)",
+    "緯創 (+43.0億)"
+  ],
+  "sectors": {
+    "AI 記憶體整合技術": [
+      "力積電"
+    ],
+    "AI 邊緣人機介面": [
+      "友達",
+      "群創"
+    ],
+    "AI 邊緣運算記憶體": [
+      "華邦電",
+      "南亞科"
+    ],
+    "AI 伺服器輔助晶片": [
+      "聯電"
+    ],
+    "AI 伺服器 ODM": [
+      "英業達",
+      "緯創"
+    ],
+    "主動型基金與權值ETF": [
+      "主動統一升級50",
+      "主動統一台股增長",
+      "元大台灣50正2",
+      "凱基台灣TOP50"
+    ],
+    "PCB/CCL": [
+      "華通"
+    ]
+  },
+  "ai_data_picks": [
+    "南亞科 (外資百億買超第一名)",
+    "華邦電 (噴發續航)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "2408",
+      "name": "南亞科",
+      "direction": "多",
+      "trigger": "外資百億買超第一名，且毛利率轉正具備強大基本面修復動能",
+      "stop_loss_price": 305.8,
+      "stop_loss_desc": "收盤跌破 MA20"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2344 華邦電 (+6.33%, 預測成立，成交量排名第5)"
+  ],
+  "price_volume_divergence": [
+    "南亞科: 外資狂掃103.1億(買超第1)但成交量僅第20名，屬隱形建倉",
+    "友達: 外資砍26.3億(賣超第3)但股價逆勢漲3.48%，成交量5.6億股，內資強行承接",
+    "力積電: 成交量全台第1但下跌，外資賣超137.6億，法人高位調節"
+  ],
+  "commodities": [
+    "黃金 (價格維持高位)"
+  ],
+  "conservative_strategy": "關注外資連買且基期低之AI記憶體標的，保留30%現金部位。",
+  "aggressive_strategy": "友達(2409)若能縮量守穩今日紅K實體，可視為內資控盤轉強訊號。",
+  "validation_results": [
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資買超第3名，股價底部站上MA20，具備補漲空間",
+      "stop_loss_price": 145.0,
+      "stop_loss_desc": "收盤跌破 MA5",
+      "price": 168.0,
+      "pct_change": 6.33,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 5,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 168，漲跌 +6.33%",
+        "成交量排名第 5 名",
+        "未觸發停損：收盤跌破 MA5"
+      ]
+    }
+  ],
+  "editorial_frame": {
+    "frame": "validation_day",
+    "label": "驗收日",
+    "confidence": 82,
+    "reasons": [
+      "昨日驗收有 1 命中、0 失準，可建立連續追蹤。"
+    ],
+    "allowed_tones": [
+      "驗收",
+      "命中",
+      "失準",
+      "修正假說"
+    ],
+    "prohibited_tones": [
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報"
+    ],
+    "title_fatigue_report": "# 近期標題疲勞檢查\n- 檢查最近 5 支影片標題。\n- 未偵測到明顯疲勞詞；仍需避免無數據支撐的警報語氣。"
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD Announces More Than $10 Billion in Taiwan Ecosystem Investments to Accelerate AI Infrastructure :: Advanced Micro Devices, Inc. (AMD)",
+      "url": "https://ir.amd.com/news-events/press-releases/detail/1286/amd-announces-more-than-10-billion-in-taiwan-ecosystem-investments-to-accelerate-ai-infrastructure",
+      "snippet": "SANTA CLARA, Calif., May 21, 2026 (GLOBE NEWSWIRE) -- To meet the growing demand for AI infrastructure, AMD (NASDAQ: AMD) today announced more than $10 billion in investments across the Taiwan ecosystem to expand strategic partnerships and scale advanced packaging manufacturing for next-generation A",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    },
+    {
+      "event": "AMD百億投資台灣代表什麼訊號？AI封裝布局、供應鏈影響與基本面觀察",
+      "url": "https://readmo.cmoney.tw/article/bfc50432-eead-42ff-b0a6-9930987afedd?title=AMD%E7%99%BE%E5%84%84%E6%8A%95%E8%B3%87%E5%8F%B0%E7%81%A3%E4%BB%A3%E8%A1%A8%E4%BB%80%E9%BA%BC%E8%A8%8A%E8%99%9F%EF%BC%9FAI%E5%B0%81%E8%A3%9D%E5%B8%83%E5%B1%80%E3%80%81%E4%BE%9B%E6%87%89%E9%8F%88%E5%BD%B1%E9%9F%BF%E8%88%87%E5%9F%BA%E6%9C%AC%E9%9D%A2%E8%A7%80%E5%AF%9F",
+      "snippet": "## AMD 百億投資台灣，代表什麼訊號？. AMD 對台灣供應鏈投資 100 億美元，重點不只是金額本身，而是它把 AI 晶片的關鍵環節，進一步綁定在台灣的製造與封裝能力上。對關注 AMD 的讀者來說，這通常意味著公司正在為資料中心、AI GPU 與先進封裝擴產做更長線的準備，而不是只看短期營收波動。若你在意的是「這是否代表基本面更強」，答案是：它提升了供應鏈穩定性與合作深度，但真正能否轉化成業績，仍要看出貨、需求與良率表現。. ## AMD AI 封裝布局，對產業與股價有何影響？. AMD 與台灣封測廠的合作，尤其是 2.5D 面板級 EFB 互連技術驗證，反映出 AI 晶片競爭已從單純算",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD commits over US$10 billion to Taiwan ecosystem to expand AI packaging and infrastructure capacity",
+      "url": "https://www.digitimes.com/news/a20260521PR202/amd-packaging-capacity-taiwan-infrastructure.html",
+      "snippet": "# AMD commits over US$10 billion to Taiwan ecosystem to expand AI packaging and infrastructure capacity. AMD said on May 21 that it plans to invest more than US$10 billion across Taiwan's semiconductor ecosystem to deepen strategic partnerships and expand advanced packaging capacity for next-generat",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    },
+    {
+      "event": "AMD宣布於台灣產業體系投資逾100億美元，加速建置AI基礎設施",
+      "url": "https://www.amd.com/zh-tw/newsroom/press-releases/2026-5-20-amd-announces-more-than-10-billion-in-taiwan-ecos.html",
+      "snippet": "###### 伺服器處理器. ###### 商用系統. ###### 個人與遊戲. ###### 嵌入式產品. ###### 加速器. ###### DPU 加速器. ###### 乙太網配接器. ###### 桌上型電腦. ###### FPGA 與自適應 SoC 工具. ###### 系統模組 (SOM). ###### 開發者資源. ###### 評估板與套件. ###### 處理器工具. ###### 顯示卡工具與應用程式. ###### IP 與應用. ###### GPU 加速器工具與應用程式. ###### 乙太網路轉接器工具. ###### 適用於資料中心與雲端. ######",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "GPU / CPU 平台"
+      ]
+    }
+  ]
+}

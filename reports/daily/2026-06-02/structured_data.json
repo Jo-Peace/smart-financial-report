@@ -1,0 +1,195 @@
+{
+  "date": "2026-06-02",
+  "index_action": "上漲 219 點",
+  "heavyweights_dumped": [
+    "群創 (-117.2億)",
+    "廣達 (-58.4億)",
+    "0050 元大台灣50 (-35.8億)"
+  ],
+  "safe_havens_bought": [
+    "緯創 (+175.5億)",
+    "聯電 (+90.0億)",
+    "鴻海 (+76.9億)"
+  ],
+  "sectors": {
+    "AI 先進封裝材料": [
+      "群創 (天量滯漲)"
+    ],
+    "AI 邊緣人機介面": [
+      "友達 (噴發補漲)"
+    ],
+    "AI 伺服器輔助晶片": [
+      "聯電 (量價背離)"
+    ],
+    "AI 伺服器 ODM 族群": [
+      "英業達 (高位震盪)"
+    ],
+    "AI 運算模組核心": [
+      "緯創 (外資總攻)"
+    ],
+    "AI 伺服器代工": [
+      "泰金寶-DR (低價投機)"
+    ],
+    "AI 邊緣運算記憶體": [
+      "華邦電 (主升段噴發)",
+      "南亞科 (漲停鎖死)"
+    ],
+    "內資主導權風向球": [
+      "00403A (資金回吐)"
+    ],
+    "被動資金調節": [
+      "00981A"
+    ],
+    "槓桿買盤": [
+      "00631L (猶豫)"
+    ]
+  },
+  "ai_data_picks": [
+    "緯創 (外資買超 175.5 億)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "3231",
+      "name": "緯創",
+      "direction": "多",
+      "trigger": "AMD 百億投資利多，量增比 2.5 倍，外資買超金額第一，籌碼與技術位共振",
+      "stop_loss_price": 162.6,
+      "stop_loss_desc": "收盤跌破 MA5"
+    }
+  ],
+  "prev_day_picks_result": [
+    "2408 南亞科 (+9.96%, 預測成立，成交量排名第19)"
+  ],
+  "price_volume_divergence": [
+    "群創 (3481) 爆出 11.6 億股天量但股價僅微漲 0.18%，且外資賣超 117.2 億，疑為主利用利多出貨",
+    "聯電 (2303) 外資買超 90 億但股價重挫 3.08%，投信反向拋售 11.5 萬張，發生法人內鬥換手失敗"
+  ],
+  "commodities": [
+    "黃金 (Gold) 4565.8",
+    "原油 (Crude Oil) 90.65"
+  ],
+  "conservative_strategy": "避開聯電與群創等籌碼混亂、法人互毆標的，等待換手完成，現金為王。",
+  "aggressive_strategy": "鎖定 AI 核心族群（如緯創、鴻海），在續量的前提下分批進場，嚴守 MA5 支撐。",
+  "validation_results": [
+    {
+      "id": "2408",
+      "name": "南亞科",
+      "direction": "多",
+      "trigger": "外資百億買超第一名，且毛利率轉正具備強大基本面修復動能",
+      "stop_loss_price": 305.8,
+      "stop_loss_desc": "收盤跌破 MA20",
+      "price": 419.5,
+      "pct_change": 9.96,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": 19,
+      "institutional_side": "buy",
+      "institutional_rank": 4,
+      "institutional_est_amount": 76.86,
+      "evidence": [
+        "收盤 419.5，漲跌 +9.96%",
+        "成交量排名第 19 名",
+        "外資買超第 4 名，+76.9 億",
+        "未觸發停損：收盤跌破 MA20"
+      ]
+    }
+  ],
+  "editorial_frame": {
+    "frame": "validation_day",
+    "label": "驗收日",
+    "confidence": 82,
+    "reasons": [
+      "昨日驗收有 1 命中、0 失準，可建立連續追蹤。"
+    ],
+    "allowed_tones": [
+      "驗收",
+      "命中",
+      "失準",
+      "修正假說"
+    ],
+    "prohibited_tones": [
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報"
+    ],
+    "title_fatigue_report": "# 近期標題疲勞檢查\n- 檢查最近 5 支影片標題。\n- 未偵測到明顯疲勞詞；仍需避免無數據支撐的警報語氣。"
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "AMD Plans US Billion Taiwan Investment to Expand AI Packaging Capacity | PACKNODE Packaging",
+      "url": "https://www.packnode.org/en/innovation/amd-taiwan-ai-packaging-investment",
+      "snippet": "# AMD Plans US$10 Billion Taiwan Investment to Expand AI Packaging Capacity. ## AMD plans to invest more than US$10 billion in Taiwan’s semiconductor ecosystem to expand advanced packaging capacity and strengthen infrastructure for next-generation AI systems. **AMD plans to invest more than US$10 bi",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D"
+      ]
+    },
+    {
+      "event": "AMD commits $10B to Taiwan AI packaging push | AI Weekly",
+      "url": "https://aiweekly.co/alerts/amd-commits-10b-to-taiwan-ai-packaging-push",
+      "snippet": "* AMD is investing $10B+ in Taiwan packaging partnerships with ASE and SPIL to secure capacity for its MI450X and EPYC Venice chips. * The MI450X GPU inside AMD's Helios rack-scale platform is confirmed on track, with multi-gigawatt deployments targeted for late 2026. Advanced packaging is now a pri",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "AI 伺服器 / 機架系統",
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD百億投資台灣代表什麼訊號？AI封裝布局、供應鏈影響與基本面觀察",
+      "url": "https://readmo.cmoney.tw/article/bfc50432-eead-42ff-b0a6-9930987afedd?title=AMD%E7%99%BE%E5%84%84%E6%8A%95%E8%B3%87%E5%8F%B0%E7%81%A3%E4%BB%A3%E8%A1%A8%E4%BB%80%E9%BA%BC%E8%A8%8A%E8%99%9F%EF%BC%9FAI%E5%B0%81%E8%A3%9D%E5%B8%83%E5%B1%80%E3%80%81%E4%BE%9B%E6%87%89%E9%8F%88%E5%BD%B1%E9%9F%BF%E8%88%87%E5%9F%BA%E6%9C%AC%E9%9D%A2%E8%A7%80%E5%AF%9F",
+      "snippet": "## AMD 百億投資台灣，代表什麼訊號？. AMD 對台灣供應鏈投資 100 億美元，重點不只是金額本身，而是它把 AI 晶片的關鍵環節，進一步綁定在台灣的製造與封裝能力上。對關注 AMD 的讀者來說，這通常意味著公司正在為資料中心、AI GPU 與先進封裝擴產做更長線的準備，而不是只看短期營收波動。若你在意的是「這是否代表基本面更強」，答案是：它提升了供應鏈穩定性與合作深度，但真正能否轉化成業績，仍要看出貨、需求與良率表現。. ## AMD AI 封裝布局，對產業與股價有何影響？. AMD 與台灣封測廠的合作，尤其是 2.5D 面板級 EFB 互連技術驗證，反映出 AI 晶片競爭已從單純算",
+      "impact_score": 100,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "GPU / CPU 平台"
+      ]
+    },
+    {
+      "event": "AMD宣布於台灣產業體系投資逾100億美元，加速建置AI基礎設施",
+      "url": "https://www.amd.com/zh-tw/newsroom/press-releases/2026-5-20-amd-announces-more-than-10-billion-in-taiwan-ecos.html",
+      "snippet": "###### 伺服器處理器. ###### 商用系統. ###### 個人與遊戲. ###### 嵌入式產品. ###### 加速器. ###### DPU 加速器. ###### 乙太網配接器. ###### 桌上型電腦. ###### FPGA 與自適應 SoC 工具. ###### 系統模組 (SOM). ###### 開發者資源. ###### 評估板與套件. ###### 處理器工具. ###### 顯示卡工具與應用程式. ###### IP 與應用. ###### GPU 加速器工具與應用程式. ###### 乙太網路轉接器工具. ###### 適用於資料中心與雲端. ######",
+      "impact_score": 95,
+      "matched_factors": [
+        "investment",
+        "ai_server",
+        "taiwan",
+        "mega_buyer",
+        "large_amount"
+      ],
+      "impacted_roles": [
+        "GPU / CPU 平台"
+      ]
+    }
+  ]
+}

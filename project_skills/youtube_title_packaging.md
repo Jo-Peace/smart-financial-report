@@ -18,7 +18,64 @@ Do not generate C titles. Three-way testing creates too much noise for the curre
 - 24-hour data is directional.
 - 48-hour data is the default evaluation point.
 
+## Browse-First Packaging Rule
+
+If recent channel analytics show most discovery comes from YouTube Browse features
+(Home / recommendations), title A must optimize for homepage stopping power before
+search keywords.
+
+For browse-first packaging:
+
+- Title A should be instantly understandable while scrolling.
+- Use one core stock, one large number, and one contradiction.
+- Prioritize "why is this happening?" over a complete market summary.
+- Do not average multiple stocks, sectors, and macro ideas into one title.
+- Keep the title promise aligned with the video opening; high CTR with weak early
+  retention means the hook was too broad or the intro did not answer quickly enough.
+
+Recommended title A structure (2026-07-07):
+
+```text
+今日最大已驗證大數字 + 反直覺矛盾 + 核心股名 + 觀眾想知道的答案
+```
+
+Title lead rules:
+
+- Do not start with `【驗收】` or `驗收上集點名：`.
+- Put a verified number in the first 20 characters when possible.
+- Number priority: strongest daily contradiction > top foreign buy > top foreign sell > volume anomaly.
+- Validation/continuity may appear in the middle or end, not at the opening.
+
+Examples:
+
+```text
+外資狂砸60.2億買聯電，成交量卻沒進榜？｜AI帶你看股市
+群創30萬張成交王卻跌！外資賣38億誰在跑？｜AI帶你看股市
+外資買超第一竟然查無此人？2313 華通80.9億真空吸籌｜AI帶你看股市
+```
+
 ## High-Weight Formulas
+
+## Daily Editorial Frame
+
+Before choosing a formula, decide which kind of day the video is covering.
+Do not force every episode into capital rotation, divergence, or warning language.
+
+Use one frame only:
+
+- Validation day: prior prediction or named stock has a clear hit/miss.
+- Major event day: macro, US market, ADR, Nvidia, Fed, tariff, FX, holiday, or earnings event is the real hook.
+- Anomaly day: price/volume/institutional flow contradict each other with specific numbers.
+- Continuation day: the same stock/sector has 2-3 days of flow, volume, and price support.
+- Theme day: at least three related stocks move with consistent evidence.
+- Quiet setup day: signals are ordinary; package the video around confirmation conditions, not alarm.
+
+Rules:
+
+- "資金輪動" is not a frame. It is a market default.
+- Use warning words only when the data supports a warning.
+- If the report is a quiet setup day, title A should admit that the market needs confirmation.
+- Avoid repeating the same emotional grammar across consecutive videos.
 
 ## Priority Order
 
@@ -29,7 +86,9 @@ Priority:
 1. Major news leverage.
 2. Continuity / validation from prior videos.
 3. Daily market data contradiction.
-4. Hidden institutional buying/selling logic.
+4. Multi-day continuation.
+5. Quiet setup / confirmation conditions.
+6. Hidden institutional buying/selling logic.
 
 If there is a strong current-event hook, title A should use it. Daily stock data should support the current-event claim, not replace it.
 
@@ -131,5 +190,7 @@ Why it works:
 2. Record the exact title variant used.
 3. After 24 hours, record early metrics.
 4. After 48 hours, record evaluation metrics.
-5. If views are below 900, keep the record but do not judge.
-6. If views are 900 or above, compare CTR, views, retention, and comments.
+5. Record whether traffic source is mainly Browse features, Suggested videos, or Search.
+6. If Browse features dominate, compare CTR and first 30 seconds retention before search performance.
+7. If views are below 900, keep the record but do not judge.
+8. If views are 900 or above, compare CTR, views, retention, and comments.

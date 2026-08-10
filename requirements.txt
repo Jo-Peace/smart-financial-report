@@ -1,5 +1,9 @@
-google-generativeai
+# Primary Gemini SDK (production modules use modules/gemini_client.py)
 google-genai
+
+# Legacy only: scripts/legacy/* still import this; safe to remove after those scripts are dropped
+google-generativeai
+
 tavily-python
 yfinance
 python-dotenv
@@ -7,3 +11,4 @@ fastapi
 uvicorn
 requests
 openai
+tenacity
