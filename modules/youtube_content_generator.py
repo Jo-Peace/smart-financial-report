@@ -191,6 +191,20 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
     local_market_memory = packaging_context.get("local_market_memory", "")
     stock_role_taxonomy = packaging_context.get("stock_role_taxonomy", "")
     audience_profile = packaging_context.get("audience_profile", "")
+    compounding_brief = packaging_context.get("compounding_brief", "")
+    if not compounding_brief:
+        try:
+            brief_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "reports",
+                "shared",
+                "weekly_compounding_brief.md",
+            )
+            if os.path.exists(brief_path):
+                with open(brief_path, "r", encoding="utf-8") as bf:
+                    compounding_brief = bf.read()[:3500]
+        except Exception:
+            compounding_brief = ""
     placement = _validation_placement(structured_data, packaging_context)
     opening_hook = build_opening_hook(structured_data)
     chapter_markers = "\n".join(build_chapter_markers(structured_data, packaging_context))
@@ -247,6 +261,10 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 ===近期標題疲勞檢查（避免連續使用同一套情緒公式）===
 {title_fatigue_report if title_fatigue_report else '（無標題疲勞檢查）'}
 
+===複利閉環簡報（自動；禁止/可複製/命中率 watchlist）===
+{compounding_brief if compounding_brief else '（尚無 weekly_compounding_brief；請先跑 preflight-views 或 compounding-brief）'}
+規則：若簡報有 BLOCK 開場，標題A禁止該 token 開場；優先金額+股名+矛盾+問句。
+
 {title_packaging_rules if title_packaging_rules else ''}
 
 ===YouTube 包裝複利 Playbook（高權重，需延續有效縮圖/標題版型）===
@@ -272,6 +290,10 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
   範例格式：「上集說XX是地雷，但外資今天砸了XX億進去！這是接刀還是提前卡位？｜{short_date} AI帶你看股市」
 - 標題B：探索替換版。使用不同角度的好奇心缺口或數據衝擊，作為 48 小時後可替換版本。
   範例格式：「XX億！外資狂砍權值股，卻反手鎖定這兩檔記憶體｜{short_date} AI帶你看股市」
+
+===複利閉環（自動簡報，高權重）===
+若下方有「本週禁止／可複製」內容：標題A必須遵守禁止開場；優先模仿可複製樣本的金額+矛盾+問句。
+BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣本模板。
 
 ===已驗證較有效的頻道標題公式（高權重參考）===
 學習門檻：觀看數低於 900 的影片只能視為觀察樣本，不可作為 A/B Test 勝負依據。只有 900 觀看以上的案例，才視為可強化的標題/封面公式。

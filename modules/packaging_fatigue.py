@@ -572,26 +572,70 @@ def _ensure_brand_suffix(title, short_date=""):
     return f"{text}{BRAND_SUFFIX}"
 
 
+def _still_uses_blocked_opener(title, fatigue_state=None):
+    """True if title still cold-opens with the BLOCK opener token."""
+    opener = (fatigue_state or {}).get("opener_streak") or {}
+    if not opener.get("block"):
+        return False
+    label = opener.get("trailing_label")
+    if not label:
+        return False
+    return _opener_hook_label(title) == label
+
+
 def guard_youtube_titles(titles, fatigue_state=None, local_candidates=None, short_date=""):
     """
     Post-process Gemini/fallback titles: soft-replace fatigued terms, keep two distinct angles.
-    Falls back to local_candidates only when a line is empty or still unusable.
+
+    When opener streak is BLOCK: prefer sanitized local high-sample templates first.
+    Gemini titles often re-introduce the same cold-open formula even after soft strip;
+    local templates are amount+stock+contradiction by construction.
+
+    Otherwise: Gemini first; fall back to local_candidates only when a line is empty/unusable.
     """
     fatigue_state = fatigue_state or build_fatigue_state()
     locals_pool = list(local_candidates or [])
-    guarded = []
+    opener = fatigue_state.get("opener_streak") or {}
+    prefer_local = bool(opener.get("block"))
 
-    for idx, raw in enumerate(titles or []):
+    def _prep(raw):
         line = sanitize_title(raw, fatigue_state)
         if not line or len(line) < 12:
-            line = locals_pool.pop(0) if locals_pool else line
-        if line:
-            line = _ensure_brand_suffix(line, short_date=short_date)
-            guarded.append(line)
+            return ""
+        if _still_uses_blocked_opener(line, fatigue_state):
+            return ""
+        return _ensure_brand_suffix(line, short_date=short_date)
 
-    for extra in locals_pool:
-        candidate = _ensure_brand_suffix(sanitize_title(extra, fatigue_state), short_date=short_date)
-        if candidate and candidate not in guarded:
-            guarded.append(candidate)
+    guarded = []
+    seen = set()
+
+    def _push(raw):
+        line = _prep(raw)
+        if not line or line in seen:
+            return False
+        seen.add(line)
+        guarded.append(line)
+        return True
+
+    if prefer_local:
+        # BLOCK day: local high-sample templates first, Gemini fills gaps only.
+        for raw in locals_pool:
+            _push(raw)
+            if len(guarded) >= 4:
+                break
+        for raw in titles or []:
+            if len(guarded) >= 4:
+                break
+            _push(raw)
+    else:
+        for raw in titles or []:
+            if _push(raw):
+                continue
+            # empty / still-blocked after sanitize → try one local
+            while locals_pool:
+                if _push(locals_pool.pop(0)):
+                    break
+        for extra in locals_pool:
+            _push(extra)
 
     return select_diverse_titles(guarded, num_titles=2, fatigue_state={})

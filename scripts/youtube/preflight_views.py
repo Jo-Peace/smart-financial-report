@@ -157,6 +157,22 @@ def print_report(rows, recent_n: int = 15) -> dict:
     except Exception as exc:
         print(f"  ## 標題開場疲勞\n  - 檢查失敗：{exc}")
 
+    # Closed-loop brief for humans + /2
+    print()
+    try:
+        from modules.compounding_loop import write_weekly_compounding_brief, DEFAULT_BRIEF
+
+        brief_path = write_weekly_compounding_brief(log_path=str(DEFAULT_LOG))
+        print(f"  ## 複利閉環簡報")
+        print(f"  - 已更新：{Path(brief_path).relative_to(BASE_DIR)}")
+        # Print first actionable section heads
+        text = Path(brief_path).read_text(encoding="utf-8")
+        for line in text.splitlines():
+            if line.startswith("## ") or line.startswith("- BLOCK") or line.startswith("- WARN"):
+                print(f"  {line}")
+    except Exception as exc:
+        print(f"  ## 複利閉環簡報\n  - 更新失敗：{exc}")
+
     print("\n  ## /2 決策摘要（請寫進今日包裝）")
     print(f"  - 可複製高樣本：{high['date']} / {high['views']} views / {(high['visual'] or '')[:40]}")
     print(f"    標題感：{(high['title'] or '')[:60]}")
@@ -164,7 +180,8 @@ def print_report(rows, recent_n: int = 15) -> dict:
     print(f"    標題感：{(low['title'] or '')[:60]}")
     print(f"  - 近 3 支視覺已用：{' ｜ '.join((v or '')[:24] for v in avoid_visuals)}")
     print("  - 下一步：定 1 個標題主鉤 + 1 個差異化視覺 → 再跑 regen-assets")
-    print("  - 若開場疲勞 BLOCK：禁止同一 token 開場；前 20 字改金額＋股名＋矛盾")
+    print("  - 若開場疲勞 BLOCK：禁止同一 token 開場；local 高樣本模板優先")
+    print("  - title_priority：n≥3 命中率會自動加減主角權重（見 role_scorer）")
     print("=" * 60 + "\n")
 
     return {

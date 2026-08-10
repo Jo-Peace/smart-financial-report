@@ -222,6 +222,47 @@ def score_validation_credibility(entry: dict | None) -> tuple[int, list[str]]:
     return _clamp(score), evidence
 
 
+# Closed-loop: only trust hit-rate after enough local predictions.
+HIT_RATE_MIN_SAMPLES = 3
+# mult = HIT_RATE_MULT_FLOOR + HIT_RATE_MULT_SPAN * rate  (rate 0.5 → ~1.0)
+HIT_RATE_MULT_FLOOR = 0.72
+HIT_RATE_MULT_SPAN = 0.56  # rate 1.0 → 1.28, then clamped
+HIT_RATE_MULT_MIN = 0.70
+HIT_RATE_MULT_MAX = 1.18
+
+
+def apply_hit_rate_title_discount(
+    title_priority: int,
+    entry: dict | None,
+    *,
+    min_samples: int = HIT_RATE_MIN_SAMPLES,
+) -> tuple[int, list[str]]:
+    """
+    Scale title_priority by historical prediction hit-rate from stock_db tracking.
+
+    - samples < min_samples: no change (avoid punishing new names)
+    - low hit-rate chronic misses: down-rank as title/cover lead
+    - high hit-rate with enough samples: mild boost
+    """
+    entry = entry or {}
+    tracking = entry.get("tracking") or {}
+    n = int(tracking.get("prediction_count") or 0)
+    if n < min_samples:
+        return int(title_priority), [f"hit_rate_track=skip samples={n}<{min_samples}"]
+
+    rate = _hit_rate_fraction(tracking)
+    if rate is None:
+        return int(title_priority), [f"hit_rate_track=skip samples={n} rate=unknown"]
+
+    mult = HIT_RATE_MULT_FLOOR + HIT_RATE_MULT_SPAN * float(rate)
+    mult = max(HIT_RATE_MULT_MIN, min(HIT_RATE_MULT_MAX, mult))
+    adjusted = _clamp(float(title_priority) * mult)
+    return adjusted, [
+        f"hit_rate_track samples={n} rate={rate:.0%} mult={mult:.2f} "
+        f"title_priority {int(title_priority)}→{adjusted}"
+    ]
+
+
 def compute_title_priority(
     *,
     base_role: str,
@@ -236,8 +277,8 @@ def compute_title_priority(
     Direction indicators and ETFs are down-ranked as lead stars.
     """
     evidence = []
-    # Weighted: elasticity + flow matter most for packaging
-    raw = elasticity * 0.35 + foreign_buy * 0.30 + volume * 0.25 + validation * 0.10
+    # Weighted: elasticity + flow still lead; validation (hit-rate based) denser than before.
+    raw = elasticity * 0.32 + foreign_buy * 0.28 + volume * 0.22 + validation * 0.18
     evidence.append(f"weighted={raw:.1f}")
 
     sid_n = normalize_ticker(sid)
@@ -301,6 +342,8 @@ def score_ticker(
         validation=valid,
         sid=sid,
     )
+    title, e6 = apply_hit_rate_title_discount(title, entry)
+    e5 = list(e5) + list(e6)
     return {
         "ticker": normalize_ticker(sid),
         "base_role": base_role,

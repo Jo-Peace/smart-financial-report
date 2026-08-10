@@ -400,8 +400,9 @@ def _build_local_title_candidates(structured_data, date_label, fatigue_state):
             candidates.append(
                 f"外資狂砍{_stock_name_only(lead_sell_stock)}{lead_sell_amount}！資金往哪裡跑？"
             )
+        # Avoid hard-coding AMD openers; event names belong mid-title only when needed.
         candidates.append(
-            f"外資狂砍{_stock_name_only(lead_sell_stock)}{lead_sell_amount}！AMD利多竟成提款？"
+            f"外資狂砍{_stock_name_only(lead_sell_stock)}{lead_sell_amount}！利多竟成提款？"
         )
 
     if lead_buy_amount and lead_buy_stock and index_move:
