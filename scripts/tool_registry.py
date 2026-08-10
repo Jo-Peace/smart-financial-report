@@ -99,6 +99,14 @@ TOOL_SPECS: tuple[ToolSpec, ...] = (
         legacy_names=(),
     ),
     ToolSpec(
+        id="compare-institutional",
+        category="maintenance",
+        script="scripts/maintenance/compare_institutional_sources.py",
+        description="同日對照 TWSE vs FinMind 外資買賣超 top 名單",
+        legacy_names=(),
+    ),
+
+    ToolSpec(
         id="research-stock",
         category="maintenance",
         script="scripts/maintenance/research_stock.py",

@@ -128,16 +128,22 @@ def fetch_foreign_institutional_top(
     date: str,
     top_n: int = 10,
     timeout: float | None = None,
+    *,
+    force: bool = False,
 ) -> dict[str, Any] | None:
     """
     Same-day foreign net buy/sell ranking via FinMind.
 
     Returns None if disabled, missing token, or unavailable.
+    force=True: used by compare tooling; skips FINMIND_FALLBACK gate (token still required).
     """
-    if not finmind_fallback_enabled():
+    if not force and not finmind_fallback_enabled():
         return None
     if not finmind_token():
-        print("  [FinMind] FINMIND_FALLBACK=1 但未設定 FINMIND_TOKEN，略過備援。")
+        if force:
+            print("  [FinMind] 未設定 FINMIND_TOKEN，無法對照。")
+        else:
+            print("  [FinMind] FINMIND_FALLBACK=1 但未設定 FINMIND_TOKEN，略過備援。")
         return None
 
     timeout = float(timeout or os.getenv("FINMIND_TIMEOUT_SEC") or 30)

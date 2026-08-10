@@ -36,6 +36,12 @@ FINMIND_TOKEN=你的token
 - 設計說明：`docs/finmind_fallback_design.md`  
 - 未設 token 時不會報錯中斷，只會略過備援  
 
+同日對照（驗證 FinMind 與 TWSE 是否夠像）：
+
+```bash
+python3 cli.py maintenance compare-institutional --date 2026-08-07
+```
+
 ## 標題開場疲勞（/2 preflight）
 
 `python3 cli.py youtube preflight-views` 會檢查近窗標題是否連續以 `AMD`／`驗收` 開場：

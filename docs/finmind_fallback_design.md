@@ -103,8 +103,21 @@ class FinMindInstitutionalClient:
 |------|------|----------|
 | P0 | 本 design + TWSE 就緒重試 | ✅ |
 | P1 | `finmind_client` + 串 `get_institutional_data` opt-in | ✅ 需 `FINMIND_FALLBACK=1` + `FINMIND_TOKEN` |
-| P2 | 對照 TWSE 同日 top 名單腳本 | 待做 |
-| P3 | README runbook | 部分（見下方啟用方式） |
+| P2 | 對照 TWSE 同日 top 名單腳本 | ✅ `cli.py maintenance compare-institutional` |
+| P3 | README runbook | ✅ 見 README + 下方 |
+
+### 對照腳本
+
+```bash
+# 不需開 FINMIND_FALLBACK；有 TOKEN 就會打 FinMind
+python3 cli.py maintenance compare-institutional --date 2026-08-07
+python3 cli.py maintenance compare-institutional --date 2026-08-07 --top 10 --overlap 5 --min-jaccard 0.4
+python3 cli.py maintenance compare-institutional --date 2026-08-07 --json
+```
+
+- Exit `0`：TWSE OK 且 buy top-K Jaccard ≥ 門檻  
+- Exit `1`：FinMind 缺資料或低於門檻  
+- Exit `2`：TWSE 該日失敗（非交易日／未發布）
 
 ### 啟用方式
 
