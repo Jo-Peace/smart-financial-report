@@ -76,6 +76,18 @@ TERM_SOFT_REPLACEMENTS = {
 
 BRAND_SUFFIX = "｜AI帶你看股市"
 
+# Title *opener* hooks: consecutive days with the same lead token cause browse fatigue.
+# Measured as a trailing streak on the most recent titles (newest last in story log parse).
+OPENER_HOOK_PATTERNS = [
+    ("AMD", re.compile(r"^[\s🚀🚨📉📈]*AMD", re.I)),
+    ("驗收開場", re.compile(r"^[\s🚀🚨]*【?驗收")),
+    ("驗收上集", re.compile(r"^[\s🚀🚨]*驗收上集")),
+]
+
+# Soft limit: 2 consecutive same openers = warn; 3+ = block as fatigued opener.
+OPENER_WARN_STREAK = 2
+OPENER_BLOCK_STREAK = 3
+
 COMPOUND_REPLACEMENTS = [
     ("能接棒嗎", "誰在買"),
     ("能接棒", "誰在承接"),
@@ -95,8 +107,74 @@ def _parse_channel_story_titles(channel_story="", limit=7):
             continue
         cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
         if len(cells) >= 8 and cells[7]:
-            titles.append(cells[7])
+            title = cells[7]
+            if title in {"-", "待更新", ""}:
+                continue
+            titles.append(title)
     return titles[-limit:]
+
+
+def _opener_hook_label(title: str) -> str | None:
+    text = str(title or "").strip()
+    if not text:
+        return None
+    for label, pattern in OPENER_HOOK_PATTERNS:
+        if pattern.search(text):
+            return label
+    return None
+
+
+def analyze_title_opener_streaks(titles: list[str], lookback: int = 8) -> dict:
+    """
+    titles: chronological oldest→newest (as returned by _parse_channel_story_titles).
+    Returns trailing streak for known opener hooks on the newest titles.
+    """
+    window = list(titles or [])[-lookback:]
+    newest_first = list(reversed(window))
+    if not newest_first:
+        return {
+            "trailing_label": None,
+            "trailing_streak": 0,
+            "warn": False,
+            "block": False,
+            "recent_openers": [],
+            "advice": "",
+        }
+
+    recent_openers = []
+    for title in newest_first[:lookback]:
+        recent_openers.append({"title": title, "opener": _opener_hook_label(title)})
+
+    trailing_label = recent_openers[0]["opener"]
+    streak = 0
+    if trailing_label:
+        for row in recent_openers:
+            if row["opener"] == trailing_label:
+                streak += 1
+            else:
+                break
+
+    warn = bool(trailing_label and streak >= OPENER_WARN_STREAK)
+    block = bool(trailing_label and streak >= OPENER_BLOCK_STREAK)
+    advice = ""
+    if block:
+        advice = (
+            f"標題開場「{trailing_label}」已連續 {streak} 支（≥{OPENER_BLOCK_STREAK}）："
+            "今日禁止再用同一開場；前 20 字改放已驗證金額＋股名＋矛盾。"
+        )
+    elif warn:
+        advice = (
+            f"標題開場「{trailing_label}」已連續 {streak} 支（≥{OPENER_WARN_STREAK}）："
+            "建議今日換鉤；事件可放描述中後段，不要當第一鉤。"
+        )
+    return {
+        "trailing_label": trailing_label,
+        "trailing_streak": streak,
+        "warn": warn,
+        "block": block,
+        "recent_openers": recent_openers,
+        "advice": advice,
+    }
 
 
 def _parse_recent_thumbnail_prompts(youtube_assets_dir=YOUTUBE_ASSETS_DIR, limit=14):
@@ -140,14 +218,19 @@ def _family_for_scenario(scenario_name):
 
 def build_fatigue_state(channel_story="", youtube_assets_dir=YOUTUBE_ASSETS_DIR, title_limit=7, prompt_limit=10):
     youtube_assets_dir = youtube_assets_dir or YOUTUBE_ASSETS_DIR
-    recent_titles = _parse_channel_story_titles(channel_story, limit=title_limit)
+    # Need a slightly longer title window for opener streaks.
+    recent_titles = _parse_channel_story_titles(channel_story, limit=max(title_limit, 8))
     recent_prompts = _parse_recent_thumbnail_prompts(youtube_assets_dir, limit=prompt_limit)
+    opener_streak = analyze_title_opener_streaks(recent_titles, lookback=8)
 
     title_counts = Counter()
     for title in recent_titles:
         for term in TITLE_FORMULA_TERMS:
             if term in title:
                 title_counts[term] += 1
+        # Count opener brand tokens even if mid-title (soft), but streak is authoritative.
+        if "AMD" in title:
+            title_counts["AMD"] += 1
 
     scenario_counts = Counter(row["scenario"] for row in recent_prompts)
     overlay_counts = Counter()
@@ -173,6 +256,11 @@ def build_fatigue_state(channel_story="", youtube_assets_dir=YOUTUBE_ASSETS_DIR,
         family for family, count in family_counts.items() if count >= 2
     )
 
+    # Promote blocked opener token into fatigued terms for soft rewrite helpers.
+    if opener_streak.get("block") and opener_streak.get("trailing_label") == "AMD":
+        if "AMD" not in fatigued_title_terms:
+            fatigued_title_terms = sorted(set(fatigued_title_terms) | {"AMD"})
+
     return {
         "recent_titles": recent_titles,
         "recent_prompts": recent_prompts,
@@ -184,6 +272,7 @@ def build_fatigue_state(channel_story="", youtube_assets_dir=YOUTUBE_ASSETS_DIR,
         "fatigued_scenarios": fatigued_scenarios,
         "fatigued_overlay_patterns": fatigued_overlay_patterns,
         "fatigued_families": fatigued_families,
+        "opener_streak": opener_streak,
     }
 
 
@@ -229,12 +318,23 @@ def build_title_fatigue_report(channel_story="", youtube_assets_dir=YOUTUBE_ASSE
     if state["fatigued_families"]:
         lines.append(f"- 封面題型家族已連續出現：{', '.join(state['fatigued_families'])}；今日必須換另一種問法。")
 
+    opener = state.get("opener_streak") or {}
+    if opener.get("advice"):
+        lines.append(f"- 開場鉤子：{opener['advice']}")
+    elif opener.get("trailing_label"):
+        lines.append(
+            f"- 開場鉤子：最近 1 支以「{opener['trailing_label']}」開場"
+            f"（連續 {opener.get('trailing_streak', 1)}）；可延續但勿連打同一公式。"
+        )
+
     if not any(
         [
             state["fatigued_title_terms"],
             state["fatigued_scenarios"],
             state["fatigued_overlay_patterns"],
             state["fatigued_families"],
+            opener.get("warn"),
+            opener.get("block"),
         ]
     ):
         lines.append("- 未偵測到明顯疲勞；仍需依今日主軸選不同題型，不要預設套換手公式。")
@@ -243,9 +343,40 @@ def build_title_fatigue_report(channel_story="", youtube_assets_dir=YOUTUBE_ASSE
         [
             "- 若資料支持換手，請改問：為什麼逆勢、量價哪裡矛盾、明日失效條件是什麼。",
             "- 連續 3 天內不得重複「榜外吸籌 + 資金換手」A/B 配對。",
+            "- 同一開場關鍵字（如 AMD）連續 ≥3 支：禁止再開場；事件可放描述中後段。",
+            "- 標題前 20 字優先：已驗證金額 + 核心股名 + 反直覺矛盾（非品牌事件名）。",
         ]
     )
     return "\n".join(lines)
+
+
+def format_opener_streak_for_preflight(channel_story: str = "", log_path: str = "") -> list[str]:
+    """Lines for /2 preflight console output."""
+    text = channel_story
+    if not text and log_path and os.path.exists(log_path):
+        try:
+            with open(log_path, "r", encoding="utf-8") as f:
+                text = f.read()
+        except OSError:
+            text = ""
+    titles = _parse_channel_story_titles(text, limit=10)
+    streak = analyze_title_opener_streaks(titles, lookback=8)
+    lines = ["  ## 標題開場疲勞（連續鉤子）"]
+    if not titles:
+        lines.append("  - 尚無可用標題列可檢查")
+        return lines
+    label = streak.get("trailing_label") or "（無已知開場 token）"
+    lines.append(f"  - 目前 trailing 開場：{label} × {streak.get('trailing_streak', 0)}")
+    if streak.get("advice"):
+        level = "BLOCK" if streak.get("block") else "WARN"
+        lines.append(f"  - [{level}] {streak['advice']}")
+    else:
+        lines.append("  - 開場未達連續疲勞門檻；仍避免無必要的品牌事件連打。")
+    # show last 4 openers
+    for row in (streak.get("recent_openers") or [])[:4]:
+        op = row.get("opener") or "其他"
+        lines.append(f"    · {op}: {(row.get('title') or '')[:52]}")
+    return lines
 
 
 def pick_non_fatigued(candidates, fatigue_state, key="scenario_name", family_key="family", limit=2):

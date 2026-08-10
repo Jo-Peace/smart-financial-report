@@ -196,6 +196,7 @@ def main():
         print("\n  ⚠️  法人與成交量日期不一致，嘗試對齊到成交量交易日...")
         print(f"     三大法人資料日期：{institutional_date}")
         print(f"     成交量排行資料日期：{volume_date}")
+        # target_date path uses multi-attempt readiness waits inside data_fetcher.
         aligned = unwrap_fetch_result(
             fetcher.get_institutional_data(top_n=10, target_date=volume_date),
             default={"top_buy": [], "top_sell": [], "data_date": None},
@@ -204,6 +205,20 @@ def main():
             institutional_data = aligned
             institutional_date = aligned.get("data_date")
             print(f"  ✅ 已對齊法人資料日期：{institutional_date}")
+        if institutional_date != volume_date:
+            # One more long wait cycle for late TWSE publishes (common ~16:10–16:25).
+            import time as _time
+
+            print("  [Info] 對齊尚未成功，額外等待 60 秒後再試一次法人就緒…")
+            _time.sleep(60)
+            aligned = unwrap_fetch_result(
+                fetcher.get_institutional_data(top_n=10, target_date=volume_date),
+                default={"top_buy": [], "top_sell": [], "data_date": None},
+            )
+            if aligned.get("top_buy") or aligned.get("top_sell"):
+                institutional_data = aligned
+                institutional_date = aligned.get("data_date")
+                print(f"  ✅ 已對齊法人資料日期：{institutional_date}")
         if institutional_date != volume_date:
             print("\n  ❌ 仍無法對齊交易日，停止執行以避免跨日污染。")
             print("  💡 通常等 2～5 分鐘後重跑即可；證交所法人榜偶爾比成交量晚幾分鐘。")

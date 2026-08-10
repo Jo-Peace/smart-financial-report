@@ -147,6 +147,16 @@ def print_report(rows, recent_n: int = 15) -> dict:
     low = sorted(recent, key=lambda x: x["views"])[0]
     avoid_visuals = [r["visual"] for r in recent[:3] if r.get("visual")]
 
+    # Title opener fatigue (AMD / 驗收 continuous openers)
+    print()
+    try:
+        from modules.packaging_fatigue import format_opener_streak_for_preflight
+
+        for line in format_opener_streak_for_preflight(log_path=str(DEFAULT_LOG)):
+            print(line)
+    except Exception as exc:
+        print(f"  ## 標題開場疲勞\n  - 檢查失敗：{exc}")
+
     print("\n  ## /2 決策摘要（請寫進今日包裝）")
     print(f"  - 可複製高樣本：{high['date']} / {high['views']} views / {(high['visual'] or '')[:40]}")
     print(f"    標題感：{(high['title'] or '')[:60]}")
@@ -154,6 +164,7 @@ def print_report(rows, recent_n: int = 15) -> dict:
     print(f"    標題感：{(low['title'] or '')[:60]}")
     print(f"  - 近 3 支視覺已用：{' ｜ '.join((v or '')[:24] for v in avoid_visuals)}")
     print("  - 下一步：定 1 個標題主鉤 + 1 個差異化視覺 → 再跑 regen-assets")
+    print("  - 若開場疲勞 BLOCK：禁止同一 token 開場；前 20 字改金額＋股名＋矛盾")
     print("=" * 60 + "\n")
 
     return {

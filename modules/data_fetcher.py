@@ -543,10 +543,12 @@ class DataFetcher:
 
     def _fetch_institutional_payload(self, check_date, day_attempts=1, label=""):
         import time
+        import json as _json
 
         date_str = check_date.strftime("%Y%m%d")
         url = f"https://www.twse.com.tw/rwd/zh/fund/T86?date={date_str}&selectType=ALLBUT0999&response=json"
         for day_attempt in range(day_attempts):
+            resp = None
             for attempt in range(3):
                 try:
                     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=30)
@@ -562,14 +564,33 @@ class DataFetcher:
                         time.sleep(2)
                         continue
                     raise
-            result = resp.json()
-            if result.get("stat") == "OK" and result.get("data"):
+            if resp is None:
+                return None, None
+
+            # Empty body / HTML / "no data yet" are common right after market close.
+            text = (resp.text or "").strip()
+            result = None
+            if text:
+                try:
+                    result = resp.json()
+                except ValueError:
+                    try:
+                        result = _json.loads(text)
+                    except Exception:
+                        result = None
+
+            if isinstance(result, dict) and result.get("stat") == "OK" and result.get("data"):
                 return result, check_date.strftime("%Y-%m-%d")
 
             if day_attempt < day_attempts - 1:
-                wait_secs = 12 * (day_attempt + 1)
+                # 15s, 30s, 45s… — TWSE institutional table often lags volume by minutes.
+                wait_secs = 15 * (day_attempt + 1)
                 hint = label or check_date.strftime("%Y-%m-%d")
-                print(f"  [Info] {hint} 法人數據尚未就緒，{wait_secs} 秒後重試 ({day_attempt + 1}/{day_attempts - 1})...")
+                stat = (result or {}).get("stat") if isinstance(result, dict) else "empty/non-json"
+                print(
+                    f"  [Info] {hint} 法人數據尚未就緒（{stat}），"
+                    f"{wait_secs} 秒後重試 ({day_attempt + 1}/{day_attempts - 1})..."
+                )
                 time.sleep(wait_secs)
         return None, None
 
@@ -591,7 +612,7 @@ class DataFetcher:
                 check_date = datetime.datetime.strptime(str(target_date), "%Y-%m-%d")
                 data, data_date_str = self._fetch_institutional_payload(
                     check_date,
-                    day_attempts=6,
+                    day_attempts=8,
                     label=f"{target_date}",
                 )
             else:
@@ -601,7 +622,8 @@ class DataFetcher:
                     if check_date.weekday() >= 5:
                         continue
 
-                    attempts = 5 if days_back == 0 else 1
+                    # Today: more readiness waits (volume often arrives before T86).
+                    attempts = 8 if days_back == 0 else 1
                     try:
                         data, data_date_str = self._fetch_institutional_payload(
                             check_date,
@@ -613,7 +635,7 @@ class DataFetcher:
                                 print(f"  [Info] 使用 {data_date_str} 的法人數據（最近有資料的交易日）")
                             break
                         if days_back == 0:
-                            print("  [Info] 今日數據尚未發布，往前搜尋中...")
+                            print("  [Info] 今日數據尚未發布（已用盡就緒重試），往前搜尋中...")
                     except Exception as e:
                         if days_back == 0:
                             print(f"  [Info] 取得今日法人數據發生錯誤 ({e})，往前搜尋中...")

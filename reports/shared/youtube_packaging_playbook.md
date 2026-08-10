@@ -50,6 +50,7 @@ python3 cli.py youtube preflight-views --refresh --recent 15
 1. **標題主鉤**：優先模仿近窗「高樣本」的問法（金額＋矛盾＋可回答問題），避開低樣本公式（例如連打驗收開場、連續 AMD 開場疲乏時）。
 2. **視覺主題**：與近 3 支影片構圖有差異；可延續「金融感」，但不要連三日同一家族（例如連續亮色週刊頭版）。
 3. **樣本門檻**：views 低於 900 只作觀察；達 900 以上才較能當強化／淘汰依據。
+4. **開場 token 疲勞（2026-08-10）**：`preflight-views` 會印 trailing 開場（AMD／驗收）。連續 2 支 WARN、≥3 支 BLOCK——BLOCK 日禁止同一 token 開場；事件名可放描述中後段。
 
 決策回覆最少要寫四行：
 
@@ -58,6 +59,7 @@ python3 cli.py youtube preflight-views --refresh --recent 15
 高樣本可複製：日期 / views / 標題感或視覺
 低樣本避雷：日期 / views / 避免什麼
 今日視覺與主鉤：...（說明為何與近 3 日不同）
+開場疲勞：WARN|BLOCK|ok + token
 ```
 
 完成以上才呼叫 `regen-assets`。

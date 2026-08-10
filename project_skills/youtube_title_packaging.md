@@ -46,6 +46,35 @@ Title lead rules:
 - Number priority: strongest daily contradiction > top foreign buy > top foreign sell > volume anomaly.
 - Validation/continuity may appear in the middle or end, not at the opening.
 
+### Opener keyword fatigue (2026-08-10)
+
+Continuous same *opener* token burns browse CTR even when the rest of the title is fine.
+
+Tracked openers (title start after optional emoji):
+
+- `AMD…` / `🚀AMD…`
+- `【驗收】…` / `驗收上集…`
+
+Rules:
+
+- **2 consecutive** same opener → WARN: prefer a different hook today.
+- **≥3 consecutive** same opener → BLOCK: do not open with that token.
+- On BLOCK/WARN days: lead with **verified amount + core ticker + contradiction**.
+- Major-event names (AMD, Fed, 颱風) may appear in description / mid-title, not as the first hook when fatigued.
+- `/2` preflight prints trailing opener streak from `channel_story_log`; respect BLOCK before `regen-assets`.
+
+Bad (fatigued streak):
+
+```text
+AMD砸3200億利多！外資153億狂掃南亞科…
+```
+
+Good (same data, no opener burn):
+
+```text
+外資153億狂掃南亞科卻沒進量榜？華航爆量摔9%是利多陷阱嗎｜8/10 AI帶你看股市
+```
+
 Examples:
 
 ```text
