@@ -470,8 +470,39 @@ def enforce_packaging_title_rules(title):
     return text.strip()
 
 
+def enforce_opener_fatigue_on_title(title, fatigue_state=None):
+    """
+    When trailing opener is WARN/BLOCK, strip the repeated lead token so /2
+    does not ship another AMD… / 驗收… cold-open.
+    """
+    text = str(title or "").strip()
+    if not text:
+        return text
+    opener = (fatigue_state or {}).get("opener_streak") or {}
+    if not (opener.get("warn") or opener.get("block")):
+        return text
+    label = opener.get("trailing_label")
+    if label == "AMD":
+        # Drop "AMD…！" / "AMD砸3200億利多！" style leads in one pass.
+        text = re.sub(
+            r"^[\s🚀🚨📉📈🔥]*AMD[^｜\n]{0,40}?(?:[！!？?]|\s)+",
+            "",
+            text,
+            count=1,
+            flags=re.I,
+        )
+        text = re.sub(r"^[\s🚀🚨📉📈🔥]*AMD\s*", "", text, count=1, flags=re.I)
+    elif label in {"驗收開場", "驗收上集"}:
+        text = re.sub(r"^[\s🚀🚨]*【?驗收】?\s*", "", text)
+        text = re.sub(r"^驗收上集點名：\s*", "", text)
+        text = re.sub(r"^驗收上集\s*", "", text)
+    return text.strip(" ！!？?，,|｜")
+
+
 def sanitize_title(title, fatigue_state):
-    text = _soft_replace_fatigued_terms(title, fatigue_state)
+    # Opener strip first (whole lead token+phrase), then soft term replace, then CTR rules.
+    text = enforce_opener_fatigue_on_title(title, fatigue_state)
+    text = _soft_replace_fatigued_terms(text, fatigue_state)
     text = enforce_packaging_title_rules(text)
     return text or str(title or "")
 

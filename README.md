@@ -22,6 +22,27 @@
 - 關閉：`DATA_QUALITY_GATE=off`
 - 強制略過 fail：`ALLOW_DATA_QUALITY_FAIL=1`
 
+## 三大法人備援（可選）
+
+主路徑仍是證交所 T86。收盤後若 T86 尚未就緒，會自動等待重試；仍失敗且你有 FinMind token 時可開備援：
+
+```bash
+# .env
+FINMIND_FALLBACK=1
+FINMIND_TOKEN=你的token
+```
+
+- 僅允許**同日**備援，禁止與成交量跨日混用  
+- 設計說明：`docs/finmind_fallback_design.md`  
+- 未設 token 時不會報錯中斷，只會略過備援  
+
+## 標題開場疲勞（/2 preflight）
+
+`python3 cli.py youtube preflight-views` 會檢查近窗標題是否連續以 `AMD`／`驗收` 開場：
+
+- 連續 2 支：WARN  
+- 連續 ≥3 支：BLOCK（`/2` 產標題時會嘗試剝除疲勞開場）
+
 ## Knowledge Wiki 模式
 
 `/1` 寫入 `capital_rotation` / `macro_events` / `trading_strategies` 時：

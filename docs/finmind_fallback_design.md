@@ -1,7 +1,8 @@
 # FinMind Fallback 設計（尚未實作）
 
-狀態：**design only**（2026-08-10）  
-目的：在證交所（TWSE）法人／日線短暫不可用時，用 FinMind 作 **唯讀備援**，不取代現有主路徑。
+狀態：**P1 implemented（opt-in）**（2026-08-10）  
+實作：`modules/finmind_client.py` + `DataFetcher.get_institutional_data` 備援分支  
+目的：在證交所（TWSE）法人短暫不可用時，用 FinMind 作 **唯讀同日備援**，不取代現有主路徑。
 
 ## 1. 問題陳述
 
@@ -100,10 +101,23 @@ class FinMindInstitutionalClient:
 
 | 階段 | 內容 | 完成定義 |
 |------|------|----------|
-| P0 | 本 design + TWSE 就緒重試（已做） | 文件 + 重試行為 |
-| P1 | `finmind_client` + 單元測試（mock HTTP） | 不打真 API 可測 normalize |
-| P2 | 串 `get_institutional_data` opt-in | flag=1 時同日可完成 /1 |
-| P3 | 文件：README 備援說明、失敗 runbook | 操作者知道何時開 flag |
+| P0 | 本 design + TWSE 就緒重試 | ✅ |
+| P1 | `finmind_client` + 串 `get_institutional_data` opt-in | ✅ 需 `FINMIND_FALLBACK=1` + `FINMIND_TOKEN` |
+| P2 | 對照 TWSE 同日 top 名單腳本 | 待做 |
+| P3 | README runbook | 部分（見下方啟用方式） |
+
+### 啟用方式
+
+```bash
+# .env
+FINMIND_FALLBACK=1
+FINMIND_TOKEN=你的token
+# optional
+FINMIND_TIMEOUT_SEC=30
+```
+
+未設 token 時：印提示並略過，不影響 TWSE 主路徑。  
+免費帳號若 API 回 400「update user level」，需到 FinMind 提升額度後才能用籌碼表。
 
 ## 9. 風險
 

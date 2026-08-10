@@ -642,6 +642,34 @@ class DataFetcher:
                         continue
 
             if data is None:
+                # Optional same-day FinMind backup (never invent older-day mix with today's volume).
+                from modules.finmind_client import fetch_foreign_institutional_top, finmind_fallback_enabled
+
+                if finmind_fallback_enabled():
+                    # target_date path: only that session. Open path: only calendar today.
+                    fallback_date = (
+                        str(target_date)[:10]
+                        if target_date
+                        else datetime.datetime.now().strftime("%Y-%m-%d")
+                    )
+                    fm = fetch_foreign_institutional_top(fallback_date, top_n=top_n)
+                    if (
+                        fm
+                        and (fm.get("top_buy") or fm.get("top_sell"))
+                        and fm.get("data_date") == fallback_date
+                    ):
+                        print(f"  ✅ 使用 FinMind 備援法人資料（{fm.get('data_date')}）")
+                        return fetch_ok(
+                            {
+                                "top_buy": fm.get("top_buy") or [],
+                                "top_sell": fm.get("top_sell") or [],
+                                "data_date": fm.get("data_date"),
+                                "source": "finmind",
+                            },
+                            source="finmind",
+                            meta={"kind": "institutional", "top_n": top_n, "fallback": True},
+                        )
+
                 print("  [Warning] 無法取得三大法人數據（已搜尋近 14 天）")
                 return fetch_error(
                     "無法取得三大法人數據（已搜尋近 14 天）",
@@ -681,6 +709,8 @@ class DataFetcher:
             def _lookup_price(stock):
                 try:
                     hist = yf.Ticker(f"{stock['id']}.TW").history(period="5d")
+                    if hist.empty:
+                        hist = yf.Ticker(f"{stock['id']}.TWO").history(period="5d")
                     if not hist.empty:
                         close_price = float(hist['Close'].iloc[-1])
                         stock['close_price'] = close_price
@@ -717,7 +747,12 @@ class DataFetcher:
                 print(f"     {s['id']} {s['name']}: {s['foreign_net']:+,} 股 ({amt_str})")
 
             return fetch_ok(
-                {"top_buy": top_buy, "top_sell": top_sell, "data_date": data_date_str},
+                {
+                    "top_buy": top_buy,
+                    "top_sell": top_sell,
+                    "data_date": data_date_str,
+                    "source": "twse",
+                },
                 source="twse",
                 meta={"kind": "institutional", "top_n": top_n},
             )
@@ -725,6 +760,26 @@ class DataFetcher:
         except Exception as e:
             logger.exception("取得三大法人數據失敗")
             print(f"[Error] 取得三大法人數據失敗: {e}")
+            # Last-chance FinMind if explicitly enabled and a target date is known.
+            try:
+                from modules.finmind_client import fetch_foreign_institutional_top, finmind_fallback_enabled
+
+                if finmind_fallback_enabled() and target_date:
+                    fm = fetch_foreign_institutional_top(str(target_date)[:10], top_n=top_n)
+                    if fm and (fm.get("top_buy") or fm.get("top_sell")):
+                        print(f"  ✅ 例外後使用 FinMind 備援（{fm.get('data_date')}）")
+                        return fetch_ok(
+                            {
+                                "top_buy": fm.get("top_buy") or [],
+                                "top_sell": fm.get("top_sell") or [],
+                                "data_date": fm.get("data_date"),
+                                "source": "finmind",
+                            },
+                            source="finmind",
+                            meta={"kind": "institutional", "top_n": top_n, "fallback": True},
+                        )
+            except Exception:
+                logger.exception("FinMind fallback also failed")
             return fetch_error_from_exception(
                 e,
                 source="twse",

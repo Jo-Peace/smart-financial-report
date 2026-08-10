@@ -468,12 +468,27 @@ def build_fallback_youtube_package(structured_data, report_content, date_str, re
         hook = hook[:32].rstrip() + "..."
 
     from modules.packaging_fatigue import build_fatigue_state, guard_youtube_titles
+    from modules.report_paths import resolve_shared_artifact
+    import os as _os
 
-    fatigue_state = build_fatigue_state()
+    channel_story = ""
+    try:
+        story_path = resolve_shared_artifact(
+            _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "reports"),
+            "channel_story_log",
+        )
+        if story_path and _os.path.exists(story_path):
+            with open(story_path, "r", encoding="utf-8") as _f:
+                channel_story = _f.read()
+    except Exception:
+        channel_story = ""
+
+    fatigue_state = build_fatigue_state(channel_story=channel_story)
     local_candidates = generate_local_titles(
         structured_data,
         num_titles=4,
         date_label=short_date,
+        channel_story=channel_story,
     )
     fallback_titles = guard_youtube_titles(
         local_candidates,
