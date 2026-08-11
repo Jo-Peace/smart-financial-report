@@ -67,20 +67,9 @@ def _collect_tickers(structured_data):
 
 
 def _format_horizon_summary(horizon_rows):
-    if not horizon_rows:
-        return ["- 無"]
-    lines = []
-    for row in horizon_rows:
-        horizon = row.get("horizon_days")
-        samples = row.get("samples")
-        hit_rate = row.get("hit_rate")
-        avg_return = row.get("avg_return")
-        avg_excess = row.get("avg_excess")
-        hit_text = f"{float(hit_rate) * 100:.1f}%" if hit_rate is not None else "N/A"
-        ret_text = f"{float(avg_return):+.2f}%" if avg_return is not None else "N/A"
-        excess_text = f"{float(avg_excess):+.2f}%" if avg_excess is not None else "N/A"
-        lines.append(f"- {horizon}D：樣本 {samples}；命中率 {hit_text}；平均報酬 {ret_text}；超額報酬 {excess_text}")
-    return lines or ["- 無"]
+    from modules.horizon_reliability import format_horizon_summary_with_read
+
+    return format_horizon_summary_with_read(horizon_rows)
 
 
 def _format_recent_results(recent_results):
@@ -224,17 +213,39 @@ def enrich_structured_data_with_timeframes(structured_data):
     tickers = _collect_tickers(structured_data)
     recent_trends = store.get_recent_market_trends(tickers, windows=(5, 10, 20))
 
+    from modules.horizon_reliability import (
+        analyze_horizon_reliability,
+        natural_reliability_sentences,
+        reliability_one_liner,
+    )
+
+    reliability = analyze_horizon_reliability(horizon_rows)
+    reliability_lines = natural_reliability_sentences(horizon_rows)
+    one_liner = reliability_one_liner(horizon_rows)
+
     structured_data["short_term_horizon"] = "1~5日"
     structured_data["long_term_horizon"] = "2~6週 / 1~3個月"
     structured_data["short_term_validation_window"] = "1D / 3D / 5D"
     structured_data["long_term_validation_window"] = "20D / 60D"
     structured_data["short_term_picks"] = _build_short_term_picks(structured_data)
     structured_data["long_term_picks"] = _build_long_term_picks(structured_data, horizon_rows, recent_trends)
-    structured_data["long_term_thesis"] = (
-        "長線主軸應優先看供應鏈與族群是否有多日驗證延續，而不是單日爆量。"
-    )
-    structured_data["long_term_evidence"] = [
-        "多日回測命中率與平均超額報酬，應作為長線可信度基準。",
+    structured_data["horizon_reliability"] = {
+        "primary_leads": reliability.get("primary_leads"),
+        "primary_days": reliability.get("primary_days"),
+        "one_liner": one_liner,
+        "sentences": reliability_lines,
+    }
+    # Thesis: data-first sentence, then structural framing.
+    if one_liner:
+        structured_data["long_term_thesis"] = (
+            f"{one_liner}"
+            " 長線主軸仍應優先看供應鏈與族群是否有多日驗證延續，而不是單日爆量。"
+        )
+    else:
+        structured_data["long_term_thesis"] = (
+            "長線主軸應優先看供應鏈與族群是否有多日驗證延續，而不是單日爆量。"
+        )
+    structured_data["long_term_evidence"] = list(reliability_lines) + [
         "事件雷達與族群同步性，應優先高於單日籌碼雜訊。",
     ]
     structured_data["timeframe_history"] = {
@@ -242,13 +253,18 @@ def enrich_structured_data_with_timeframes(structured_data):
         "recent_results": recent_results,
         "recent_trends": recent_trends,
         "tickers": tickers,
+        "reliability_note": one_liner,
     }
     return structured_data
 
 
 def format_timeframe_history_for_prompt(structured_data):
     history = structured_data.get("timeframe_history") or {}
+    reliability = structured_data.get("horizon_reliability") or {}
     lines = []
+    if reliability.get("one_liner"):
+        lines.append(f"【時間窗可信度】{reliability['one_liner']}")
+        lines.append("")
     lines.extend(_format_horizon_summary(history.get("horizon_performance")))
     lines.extend(["", "最近驗收："])
     lines.extend(_format_recent_results(history.get("recent_results")))

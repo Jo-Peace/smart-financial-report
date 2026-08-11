@@ -150,6 +150,18 @@ def build_weekly_compounding_brief(
     med = sorted(views)[len(views) // 2] if views else None
     avg = sum(views) / len(views) if views else None
 
+    horizon_note = ""
+    try:
+        from modules.analytics_store import AnalyticsStore
+        from modules.horizon_reliability import format_reliability_brief, reliability_one_liner
+
+        horizon_rows = AnalyticsStore().get_horizon_performance_summary()
+        horizon_note = reliability_one_liner(horizon_rows)
+        horizon_brief = format_reliability_brief(horizon_rows)
+    except Exception:
+        horizon_rows = []
+        horizon_brief = "- （尚無時間窗回測）"
+
     lines = [
         "# 複利閉環簡報（自動）",
         "",
@@ -157,10 +169,24 @@ def build_weekly_compounding_brief(
         f"- 近窗影片：{len(rows)} 支"
         + (f"；中位觀看 {med}；平均 {avg:.0f}" if views else ""),
         f"- 命中率樣本門檻：n≥{HIT_RATE_MIN_SAMPLES} 才進 title_priority 折扣",
-        "",
-        "## 本週可複製（標題／選鉤）",
-        "",
     ]
+    if horizon_note:
+        lines.append(f"- 時間窗：{horizon_note}")
+    lines.extend(
+        [
+            "",
+            "## 時間窗可信度（本機回測）",
+            "",
+        ]
+    )
+    lines.extend(horizon_brief.splitlines() if horizon_brief else ["- （尚無）"])
+    lines.extend(
+        [
+            "",
+            "## 本週可複製（標題／選鉤）",
+            "",
+        ]
+    )
     lines.extend(copy_lessons or ["- （尚無可用觀看樣本）"])
     lines.extend(
         [
@@ -200,7 +226,8 @@ def build_weekly_compounding_brief(
             "",
             "1. `/1`：`role_scorer` 已對 n≥3 的標的套用命中率乘數（低命中降 title_priority）。",
             "2. `/2` preflight：讀開場疲勞；BLOCK 日 local 高樣本模板優先於 Gemini 開場。",
-            "3. 人工：標題 A 對齊「可複製」；勿用「禁止」開場 token。",
+            "3. 驗收尺子：本機樣本若顯示 20D 優於短線窗，成敗以 20D 為主、1D 只當節奏。",
+            "4. 人工：標題 A 對齊「可複製」；勿用「禁止」開場 token。",
             "",
             "---",
             "由 `modules/compounding_loop.py` 產生；可手動重跑：",

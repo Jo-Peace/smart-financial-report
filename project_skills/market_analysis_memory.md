@@ -42,15 +42,16 @@ Prefer research-stock + analytics over model memory for hit rates and past trigg
 
 ## Prediction Validation
 
+Time-scale rule (local sample): **≈20 trading days = trend / primary reliability**; **1D–5D = rhythm only**.
+
 Use these as recurring sections:
 
-- Yesterday prediction result.
-- 1-day validation.
-- 3-day validation when available.
-- 5-day validation when available.
-- Failure reason if prediction missed.
+- Yesterday result as **short-horizon rhythm** (not the system scoreboard).
+- 1-day / 3-day / 5-day when available — rhythm notes only.
+- **20D / multi-week trend** when available — primary hit/miss for “was the thesis right?”
+- Failure reason if prediction missed (separate rhythm miss vs trend miss when possible).
 
-The channel gains credibility by remembering misses, not only wins.
+The channel gains credibility by remembering misses, not only wins. Do not call the system broken solely because a 1D print missed.
 
 ## Main Operator Hypothesis
 

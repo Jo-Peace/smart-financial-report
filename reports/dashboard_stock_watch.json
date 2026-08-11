@@ -1,8 +1,12 @@
 {
-  "generatedAt": "2026-08-05 15:04:16",
-  "sourceDate": "2026-08-04",
-  "sourcePath": "reports/daily/2026-08-04/structured_data.json",
+  "generatedAt": "2026-08-11 16:19:59",
+  "sourceDate": "2026-08-10",
+  "sourcePath": "reports/daily/2026-08-10/structured_data.json",
   "recentStructuredDates": [
+    "2026-08-10",
+    "2026-08-07",
+    "2026-08-06",
+    "2026-08-05",
     "2026-08-04",
     "2026-07-31",
     "2026-07-30",
@@ -18,27 +22,33 @@
     "2026-07-14",
     "2026-07-13",
     "2026-07-08",
-    "2026-07-07",
-    "2026-07-03",
-    "2026-07-02",
-    "2026-07-01",
-    "2026-06-30"
+    "2026-07-07"
   ],
   "marketSummary": {
-    "indexAction": "上漲 240.9點（+0.56%）",
+    "indexAction": "上漲 702.9點（+1.59%）",
     "editorialFrame": "重大事件日",
     "shortTermHorizon": "1~5日",
     "longTermHorizon": "2~6週 / 1~3個月"
   },
   "currentTracking": [
     {
-      "ticker": "2301",
-      "name": "光寶科",
+      "ticker": "2408",
+      "name": "南亞科",
       "direction": "多",
       "horizon": "1~5日",
       "timeScale": "短線",
-      "reason": "外資買超第 2 名但市場熱度尚未過熱，法人吸籌跡象明顯，配合 AI 伺服器高階電源需求具補漲潛力",
-      "invalidation": "收盤跌破 MA5",
+      "reason": "AMD百億投資帶動DDR5需求，外資單日狂砸153億元進行掃盤式建倉",
+      "invalidation": "收盤跌破今日低點 460 元",
+      "source": "latest_short_term_pick"
+    },
+    {
+      "ticker": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "horizon": "1~5日",
+      "timeScale": "短線",
+      "reason": "外資買超第二名且剛站上 MA20，具備補漲空間與底部型態",
+      "invalidation": "收盤跌破 168 元",
       "source": "latest_short_term_pick"
     },
     {
@@ -47,17 +57,17 @@
       "direction": "觀察",
       "horizon": "2~6週",
       "timeScale": "中期",
-      "reason": "5D -4.75%、10D -5.65%、20D +56.34%",
+      "reason": "5D +2.58%、10D -4.19%、20D +42.37%",
       "invalidation": "需要 20D / 60D 持續驗證",
       "source": "latest_long_term_pick"
     },
     {
       "ticker": "",
-      "name": "2330 台積電",
+      "name": "2344 華邦電",
       "direction": "觀察",
       "horizon": "2~6週",
       "timeScale": "中期",
-      "reason": "5D +3.19%、10D -0.61%、20D +1.46%",
+      "reason": "5D +2.19%、10D -11.38%、20D -4.94%",
       "invalidation": "需要 20D / 60D 持續驗證",
       "source": "latest_long_term_pick"
     }
@@ -65,44 +75,44 @@
   "currentWarnings": [
     {
       "ticker": "",
-      "name": "台積電",
-      "direction": "注意",
-      "reason": "台積電 (-288.4億)",
-      "riskType": "外資賣超 / 權值撤退"
-    },
-    {
-      "ticker": "",
-      "name": "日月光投控",
-      "direction": "注意",
-      "reason": "日月光投控 (-77.0億)",
-      "riskType": "外資賣超 / 權值撤退"
-    },
-    {
-      "ticker": "",
       "name": "南亞",
       "direction": "注意",
-      "reason": "南亞 (-17.2億)",
+      "reason": "南亞 (-42.0億)",
       "riskType": "外資賣超 / 權值撤退"
     },
     {
       "ticker": "",
-      "name": "彰銀",
+      "name": "臻鼎-KY",
       "direction": "注意",
-      "reason": "彰銀 (-9.5億)",
+      "reason": "臻鼎-KY (-28.1億)",
+      "riskType": "外資賣超 / 權值撤退"
+    },
+    {
+      "ticker": "",
+      "name": "華航",
+      "direction": "注意",
+      "reason": "華航 (-16.0億)",
       "riskType": "外資賣超 / 權值撤退"
     },
     {
       "ticker": "",
       "name": "第一金",
       "direction": "注意",
-      "reason": "第一金 (-7.1億)",
+      "reason": "第一金 (-6.3億)",
       "riskType": "外資賣超 / 權值撤退"
     },
     {
-      "ticker": "2301",
-      "name": "光寶科",
+      "ticker": "",
+      "name": "兆豐金",
       "direction": "注意",
-      "reason": "2301 光寶科 (外資狂買但成交量未進前 20，典型機構吸籌)",
+      "reason": "兆豐金 (-5.4億)",
+      "riskType": "外資賣超 / 權值撤退"
+    },
+    {
+      "ticker": "",
+      "name": "南亞科：買超金額全台第一但成交量僅排第16，反映市場籌碼稀缺，大戶採掃盤建倉。",
+      "direction": "注意",
+      "reason": "南亞科：買超金額全台第一但成交量僅排第16，反映市場籌碼稀缺，大戶採掃盤建倉。",
       "riskType": "量價 / 籌碼背離"
     }
   ],
@@ -113,226 +123,281 @@
       "role": "彈性攻擊股",
       "titlePriority": 100,
       "foreignBuyStrength": 100,
+      "validationCredibility": 67
+    },
+    {
+      "ticker": "2344",
+      "name": "華邦電",
+      "role": "彈性攻擊股",
+      "titlePriority": 99,
+      "foreignBuyStrength": 100,
       "validationCredibility": 75
     },
     {
-      "ticker": "3231",
-      "name": "緯創",
+      "ticker": "2303",
+      "name": "聯電",
       "role": "彈性攻擊股",
-      "titlePriority": 88,
+      "titlePriority": 86,
       "foreignBuyStrength": 100,
-      "validationCredibility": 80
+      "validationCredibility": 57
     },
     {
-      "ticker": "2301",
-      "name": "光寶科",
-      "role": "theme_confirmation",
-      "titlePriority": 80,
-      "foreignBuyStrength": 100,
-      "validationCredibility": 40
-    },
-    {
-      "ticker": "2377",
-      "name": "微星",
+      "ticker": "3481",
+      "name": "群創",
       "role": "彈性攻擊股",
-      "titlePriority": 75,
-      "foreignBuyStrength": 74,
-      "validationCredibility": 40
+      "titlePriority": 83,
+      "foreignBuyStrength": 91,
+      "validationCredibility": 30
     },
     {
-      "ticker": "1216",
-      "name": "統一",
-      "role": "題材確認股",
-      "titlePriority": 56,
-      "foreignBuyStrength": 84,
+      "ticker": "4958",
+      "name": "臻鼎-KY",
+      "role": "彈性攻擊股",
+      "titlePriority": 45,
+      "foreignBuyStrength": 0,
       "validationCredibility": 40
     }
   ],
   "analytics": {
     "available": true,
+    "primaryHorizonDays": 20,
+    "interpretation": {
+      "primaryHorizonDays": 20,
+      "summary": "20D 是可信度主指標；1D/3D/5D 僅作短線節奏參考，噪音高，不單獨當勝負依據。",
+      "sentences": [],
+      "shortTerm": "1D / 3D / 5D → 內容節奏、隔日驗收用；命中率接近隨機時勿強化敘事。",
+      "primary": "20D → 選標、標題主角、中期追蹤的主要依據（目前 59.7%，n=67）",
+      "doNot": "不要用 1D 成敗定義系統準不準；本機樣本若顯示 20D 領先，尺子放在 20D。"
+    },
+    "primaryHorizon": {
+      "horizonDays": 20,
+      "samples": 67,
+      "hitRatePct": 59.7,
+      "avgReturnPct": 10.23,
+      "avgExcessPct": 9.8,
+      "role": "primary",
+      "roleLabel": "主指標",
+      "readAs": "可信度主指標：選標／標題主角／中期追蹤以 20D 為準",
+      "isPrimary": true
+    },
     "byHorizon": [
       {
         "horizonDays": 1,
-        "samples": 103,
-        "hitRatePct": 47.6,
+        "samples": 110,
+        "hitRatePct": 46.4,
         "avgReturnPct": 0.23,
-        "avgExcessPct": -0.07
+        "avgExcessPct": -0.09,
+        "role": "noise_ref",
+        "roleLabel": "短線參考",
+        "readAs": "短線節奏參考：噪音高，不宜單獨當勝負依據",
+        "isPrimary": false
       },
       {
         "horizonDays": 3,
-        "samples": 86,
-        "hitRatePct": 44.2,
-        "avgReturnPct": 0.25,
-        "avgExcessPct": -0.36
+        "samples": 93,
+        "hitRatePct": 46.2,
+        "avgReturnPct": 0.89,
+        "avgExcessPct": 0.27,
+        "role": "noise_ref",
+        "roleLabel": "短線參考",
+        "readAs": "短線節奏參考：噪音高，不宜單獨當勝負依據",
+        "isPrimary": false
       },
       {
         "horizonDays": 5,
-        "samples": 79,
-        "hitRatePct": 48.1,
-        "avgReturnPct": 2.78,
-        "avgExcessPct": 2.0
+        "samples": 86,
+        "hitRatePct": 48.8,
+        "avgReturnPct": 3.15,
+        "avgExcessPct": 2.39,
+        "role": "noise_ref",
+        "roleLabel": "短線參考",
+        "readAs": "短線節奏參考：噪音高，不宜單獨當勝負依據",
+        "isPrimary": false
       },
       {
         "horizonDays": 20,
-        "samples": 62,
-        "hitRatePct": 62.9,
-        "avgReturnPct": 12.02,
-        "avgExcessPct": 11.64
+        "samples": 67,
+        "hitRatePct": 59.7,
+        "avgReturnPct": 10.23,
+        "avgExcessPct": 9.8,
+        "role": "primary",
+        "roleLabel": "主指標",
+        "readAs": "可信度主指標：選標／標題主角／中期追蹤以 20D 為準",
+        "isPrimary": true
       }
     ],
     "recentResults": [
       {
-        "predictionDate": "2026-07-31",
-        "ticker": "00981A",
-        "name": "主動統一台股增長",
-        "direction": "多",
-        "horizonDays": 1,
-        "evaluatedDate": "2026-08-04",
-        "returnPct": 5.55,
-        "excessPct": 4.99,
-        "hit": true,
-        "trigger": "成交量全台第一且量增比1.83倍，主動型基金建倉潮湧現"
-      },
-      {
-        "predictionDate": "2026-07-31",
-        "ticker": "00981A",
-        "name": "主動統一台股增長",
-        "direction": "多",
-        "horizonDays": 3,
-        "evaluatedDate": "2026-08-04",
-        "returnPct": 5.55,
-        "excessPct": 4.99,
-        "hit": true,
-        "trigger": "成交量全台第一且量增比1.83倍，主動型基金建倉潮湧現"
-      },
-      {
-        "predictionDate": "2026-07-31",
-        "ticker": "2330",
-        "name": "台積電",
-        "direction": "多",
-        "horizonDays": 1,
-        "evaluatedDate": "2026-08-04",
-        "returnPct": -4.33,
-        "excessPct": -4.89,
-        "hit": false,
-        "trigger": "外資買超334.2億且站上MA20，籌碼極度穩定，挑戰2500元區間"
-      },
-      {
-        "predictionDate": "2026-07-31",
-        "ticker": "2330",
-        "name": "台積電",
-        "direction": "多",
-        "horizonDays": 3,
-        "evaluatedDate": "2026-08-04",
-        "returnPct": -4.33,
-        "excessPct": -4.89,
-        "hit": false,
-        "trigger": "外資買超334.2億且站上MA20，籌碼極度穩定，挑戰2500元區間"
-      },
-      {
-        "predictionDate": "2026-07-24",
-        "ticker": "3231",
-        "name": "緯創",
-        "direction": "多",
-        "horizonDays": 5,
-        "evaluatedDate": "2026-08-04",
-        "returnPct": 8.94,
-        "excessPct": 8.38,
-        "hit": true,
-        "trigger": "逆勢爆量站上MA20，AI營收佔比達70%，為市場目前唯一資金共識"
-      },
-      {
-        "predictionDate": "2026-07-23",
-        "ticker": "3231",
-        "name": "緯創",
-        "direction": "多",
-        "horizonDays": 5,
-        "evaluatedDate": "2026-08-04",
-        "returnPct": 12.39,
-        "excessPct": 11.83,
-        "hit": true,
-        "trigger": "爆量突破 MA20 且外資單日掃貨 7.9 萬張，量價共振極強"
-      },
-      {
-        "predictionDate": "2026-07-22",
-        "ticker": "2408",
-        "name": "南亞科",
-        "direction": "多",
-        "horizonDays": 3,
-        "evaluatedDate": "2026-08-04",
-        "returnPct": -2.13,
-        "excessPct": -2.69,
-        "hit": false,
-        "trigger": "外資買超第 3 名且市場尚未放量，具備影子建倉特徵"
-      },
-      {
-        "predictionDate": "2026-07-22",
-        "ticker": "2408",
-        "name": "南亞科",
-        "direction": "多",
-        "horizonDays": 5,
-        "evaluatedDate": "2026-08-04",
-        "returnPct": -2.13,
-        "excessPct": -2.69,
-        "hit": false,
-        "trigger": "外資買超第 3 名且市場尚未放量，具備影子建倉特徵"
-      },
-      {
-        "predictionDate": "2026-07-30",
+        "predictionDate": "2026-08-07",
         "ticker": "1216",
         "name": "統一",
         "direction": "多",
         "horizonDays": 1,
-        "evaluatedDate": "2026-07-31",
-        "returnPct": -2.38,
-        "excessPct": -10.36,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": -0.26,
+        "excessPct": -1.85,
         "hit": false,
-        "trigger": "外資買超第3名，帶量站上MA20，屬防禦性換手標的"
+        "trigger": "外資買超全市場第2名，強勢站上MA20，作為震盪期之避險防禦標的",
+        "isPrimaryHorizon": false
       },
       {
-        "predictionDate": "2026-07-30",
-        "ticker": "2344",
-        "name": "華邦電",
-        "direction": "多",
-        "horizonDays": 1,
-        "evaluatedDate": "2026-07-31",
-        "returnPct": 9.7,
-        "excessPct": 1.72,
-        "hit": true,
-        "trigger": "外資買超第一名且毛利率顯著改善(53.4%)，基本面強勁"
-      },
-      {
-        "predictionDate": "2026-07-14",
-        "ticker": "1301",
-        "name": "台塑",
+        "predictionDate": "2026-08-07",
+        "ticker": "1216",
+        "name": "統一",
         "direction": "多",
         "horizonDays": 3,
-        "evaluatedDate": "2026-07-31",
-        "returnPct": -13.52,
-        "excessPct": -21.5,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": -0.26,
+        "excessPct": -1.85,
         "hit": false,
-        "trigger": "AMD投資案帶動基礎材料實質需求，毛利率上行且外資買超第一，爆量突破MA20完成底部形態"
+        "trigger": "外資買超全市場第2名，強勢站上MA20，作為震盪期之避險防禦標的",
+        "isPrimaryHorizon": false
       },
       {
-        "predictionDate": "2026-07-14",
-        "ticker": "1301",
-        "name": "台塑",
+        "predictionDate": "2026-08-07",
+        "ticker": "3231",
+        "name": "緯創",
+        "direction": "多",
+        "horizonDays": 1,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": 5.18,
+        "excessPct": 3.59,
+        "hit": true,
+        "trigger": "外資今日買超全市場第1名且站穩MA20，屬AMD百億投資核心供應鏈",
+        "isPrimaryHorizon": false
+      },
+      {
+        "predictionDate": "2026-08-07",
+        "ticker": "3231",
+        "name": "緯創",
+        "direction": "多",
+        "horizonDays": 3,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": 5.18,
+        "excessPct": 3.59,
+        "hit": true,
+        "trigger": "外資今日買超全市場第1名且站穩MA20，屬AMD百億投資核心供應鏈",
+        "isPrimaryHorizon": false
+      },
+      {
+        "predictionDate": "2026-08-06",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizonDays": 3,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": 9.37,
+        "excessPct": 7.78,
+        "hit": true,
+        "trigger": "外資買超 42 億且成功站上 MA20，量價結構優於力積電",
+        "isPrimaryHorizon": false
+      },
+      {
+        "predictionDate": "2026-08-05",
+        "ticker": "2330",
+        "name": "台積電",
+        "direction": "多",
+        "horizonDays": 3,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": -1.04,
+        "excessPct": -2.63,
+        "hit": false,
+        "trigger": "外資買超金額全台第一且重回 MA20，受 AMD 2奈米 Venice 處理器利多推動",
+        "isPrimaryHorizon": false
+      },
+      {
+        "predictionDate": "2026-08-05",
+        "ticker": "2330",
+        "name": "台積電",
         "direction": "多",
         "horizonDays": 5,
-        "evaluatedDate": "2026-07-31",
-        "returnPct": -13.52,
-        "excessPct": -21.5,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": -1.04,
+        "excessPct": -2.63,
         "hit": false,
-        "trigger": "AMD投資案帶動基礎材料實質需求，毛利率上行且外資買超第一，爆量突破MA20完成底部形態"
+        "trigger": "外資買超金額全台第一且重回 MA20，受 AMD 2奈米 Venice 處理器利多推動",
+        "isPrimaryHorizon": false
+      },
+      {
+        "predictionDate": "2026-07-20",
+        "ticker": "4958",
+        "name": "臻鼎-KY",
+        "direction": "多",
+        "horizonDays": 5,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": -1.67,
+        "excessPct": -3.26,
+        "hit": false,
+        "trigger": "外資買超冠軍 + 營收年增 41% + 隱匿建倉特徵",
+        "isPrimaryHorizon": false
+      },
+      {
+        "predictionDate": "2026-07-20",
+        "ticker": "4958",
+        "name": "臻鼎-KY",
+        "direction": "多",
+        "horizonDays": 20,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": -1.67,
+        "excessPct": -3.26,
+        "hit": false,
+        "trigger": "外資買超冠軍 + 營收年增 41% + 隱匿建倉特徵",
+        "isPrimaryHorizon": true
+      },
+      {
+        "predictionDate": "2026-07-13",
+        "ticker": "4958",
+        "name": "臻鼎-KY",
+        "direction": "多",
+        "horizonDays": 20,
+        "evaluatedDate": "2026-08-10",
+        "returnPct": -27.17,
+        "excessPct": -28.76,
+        "hit": false,
+        "trigger": "外資買超金額全台第一，影子建倉且收盤站上月線",
+        "isPrimaryHorizon": true
+      },
+      {
+        "predictionDate": "2026-08-06",
+        "ticker": "2317",
+        "name": "鴻海",
+        "direction": "多",
+        "horizonDays": 1,
+        "evaluatedDate": "2026-08-07",
+        "returnPct": -1.7,
+        "excessPct": -1.32,
+        "hit": false,
+        "trigger": "外資買超全市場第一，受惠 AI 伺服器整機代工訂單展望，且量平守住 MA20",
+        "isPrimaryHorizon": false
+      },
+      {
+        "predictionDate": "2026-08-06",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizonDays": 1,
+        "evaluatedDate": "2026-08-07",
+        "returnPct": -0.44,
+        "excessPct": -0.06,
+        "hit": false,
+        "trigger": "外資買超 42 億且成功站上 MA20，量價結構優於力積電",
+        "isPrimaryHorizon": false
       }
     ],
     "openPredictions": [
       {
-        "predictionDate": "2026-08-04",
-        "ticker": "2301",
-        "name": "光寶科",
+        "predictionDate": "2026-08-10",
+        "ticker": "2344",
+        "name": "華邦電",
         "direction": "多",
-        "trigger": "外資買超第 2 名但市場熱度尚未過熱，法人吸籌跡象明顯，配合 AI 伺服器高階電源需求具補漲潛力"
+        "trigger": "外資買超第二名且剛站上 MA20，具備補漲空間與底部型態"
+      },
+      {
+        "predictionDate": "2026-08-10",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "trigger": "AMD百億投資帶動DDR5需求，外資單日狂砸153億元進行掃盤式建倉"
       },
       {
         "predictionDate": "2026-07-07",
@@ -351,12 +416,123 @@
     ],
     "stockScoreboard": [
       {
+        "ticker": "2881",
+        "name": "富邦金",
+        "samples": 2,
+        "hitRatePct": 100.0,
+        "avgExcessPct": 19.94,
+        "latestEval": "2026-06-04",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "2301",
+        "name": "光寶科",
+        "samples": 2,
+        "hitRatePct": 100.0,
+        "avgExcessPct": 16.66,
+        "latestEval": "2026-06-15",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "2317",
+        "name": "鴻海",
+        "samples": 5,
+        "hitRatePct": 100.0,
+        "avgExcessPct": 7.36,
+        "latestEval": "2026-06-22",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "2408",
+        "name": "南亞科",
+        "samples": 7,
+        "hitRatePct": 85.7,
+        "avgExcessPct": 22.67,
+        "latestEval": "2026-07-13",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "2344",
+        "name": "華邦電",
+        "samples": 12,
+        "hitRatePct": 75.0,
+        "avgExcessPct": 21.73,
+        "latestEval": "2026-07-22",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "2303",
+        "name": "聯電",
+        "samples": 6,
+        "hitRatePct": 50.0,
+        "avgExcessPct": 16.74,
+        "latestEval": "2026-07-24",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "2618",
+        "name": "長榮航",
+        "samples": 2,
+        "hitRatePct": 50.0,
+        "avgExcessPct": 2.52,
+        "latestEval": "2026-08-07",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "2313",
+        "name": "華通",
+        "samples": 5,
+        "hitRatePct": 40.0,
+        "avgExcessPct": -0.13,
+        "latestEval": "2026-07-15",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "4958",
+        "name": "臻鼎-KY",
+        "samples": 3,
+        "hitRatePct": 33.3,
+        "avgExcessPct": 4.64,
+        "latestEval": "2026-08-10",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "6770",
+        "name": "力積電",
+        "samples": 6,
+        "hitRatePct": 33.3,
+        "avgExcessPct": 3.41,
+        "latestEval": "2026-08-06",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "2337",
+        "name": "旺宏",
+        "samples": 5,
+        "hitRatePct": 0.0,
+        "avgExcessPct": -10.3,
+        "latestEval": "2026-08-05",
+        "horizonDays": 20
+      },
+      {
+        "ticker": "3231",
+        "name": "緯創",
+        "samples": 2,
+        "hitRatePct": 0.0,
+        "avgExcessPct": -24.35,
+        "latestEval": "2026-07-20",
+        "horizonDays": 20
+      }
+    ],
+    "stockScoreboardAllHorizons": [
+      {
         "ticker": "6239",
         "name": "力成",
         "samples": 4,
         "hitRatePct": 100.0,
         "avgExcessPct": 19.62,
-        "latestEval": "2026-06-12"
+        "latestEval": "2026-06-12",
+        "horizonDays": "all"
       },
       {
         "ticker": "00981A",
@@ -364,7 +540,8 @@
         "samples": 2,
         "hitRatePct": 100.0,
         "avgExcessPct": 4.99,
-        "latestEval": "2026-08-04"
+        "latestEval": "2026-08-04",
+        "horizonDays": "all"
       },
       {
         "ticker": "3450",
@@ -372,7 +549,17 @@
         "samples": 2,
         "hitRatePct": 100.0,
         "avgExcessPct": 3.94,
-        "latestEval": "2026-05-11"
+        "latestEval": "2026-05-11",
+        "horizonDays": "all"
+      },
+      {
+        "ticker": "2344",
+        "name": "華邦電",
+        "samples": 57,
+        "hitRatePct": 75.4,
+        "avgExcessPct": 9.2,
+        "latestEval": "2026-08-06",
+        "horizonDays": "all"
       },
       {
         "ticker": "1303",
@@ -380,7 +567,8 @@
         "samples": 4,
         "hitRatePct": 75.0,
         "avgExcessPct": 25.54,
-        "latestEval": "2026-06-17"
+        "latestEval": "2026-06-17",
+        "horizonDays": "all"
       },
       {
         "ticker": "2891",
@@ -388,31 +576,26 @@
         "samples": 4,
         "hitRatePct": 75.0,
         "avgExcessPct": 9.97,
-        "latestEval": "2026-06-12"
-      },
-      {
-        "ticker": "2344",
-        "name": "華邦電",
-        "samples": 54,
-        "hitRatePct": 74.1,
-        "avgExcessPct": 7.92,
-        "latestEval": "2026-07-31"
+        "latestEval": "2026-06-12",
+        "horizonDays": "all"
       },
       {
         "ticker": "2317",
         "name": "鴻海",
-        "samples": 26,
-        "hitRatePct": 65.4,
-        "avgExcessPct": 2.37,
-        "latestEval": "2026-07-30"
+        "samples": 27,
+        "hitRatePct": 63.0,
+        "avgExcessPct": 2.24,
+        "latestEval": "2026-08-07",
+        "horizonDays": "all"
       },
       {
         "ticker": "2408",
         "name": "南亞科",
-        "samples": 31,
-        "hitRatePct": 61.3,
-        "avgExcessPct": 8.08,
-        "latestEval": "2026-08-04"
+        "samples": 33,
+        "hitRatePct": 60.6,
+        "avgExcessPct": 7.82,
+        "latestEval": "2026-08-10",
+        "horizonDays": "all"
       },
       {
         "ticker": "3481",
@@ -420,7 +603,17 @@
         "samples": 5,
         "hitRatePct": 60.0,
         "avgExcessPct": 3.75,
-        "latestEval": "2026-07-13"
+        "latestEval": "2026-07-13",
+        "horizonDays": "all"
+      },
+      {
+        "ticker": "3231",
+        "name": "緯創",
+        "samples": 19,
+        "hitRatePct": 57.9,
+        "avgExcessPct": -2.6,
+        "latestEval": "2026-08-10",
+        "horizonDays": "all"
       },
       {
         "ticker": "2882",
@@ -428,29 +621,25 @@
         "samples": 7,
         "hitRatePct": 57.1,
         "avgExcessPct": 1.26,
-        "latestEval": "2026-07-07"
+        "latestEval": "2026-07-07",
+        "horizonDays": "all"
       },
       {
-        "ticker": "4958",
-        "name": "臻鼎-KY",
-        "samples": 9,
-        "hitRatePct": 55.6,
-        "avgExcessPct": 10.15,
-        "latestEval": "2026-07-23"
-      },
-      {
-        "ticker": "3231",
-        "name": "緯創",
-        "samples": 17,
-        "hitRatePct": 52.9,
-        "avgExcessPct": -3.32,
-        "latestEval": "2026-08-04"
+        "ticker": "2618",
+        "name": "長榮航",
+        "samples": 11,
+        "hitRatePct": 54.5,
+        "avgExcessPct": 2.0,
+        "latestEval": "2026-08-07",
+        "horizonDays": "all"
       }
     ]
   },
   "notes": [
     "此檔為 Dashboard 展示用摘要，不是投資建議。",
     "命中率來自 analytics.db 的 prediction_results；未驗收標的會留在 openPredictions。",
-    "今日追蹤股優先取最新 structured_data 的 short_term_picks / prediction_targets。"
+    "今日追蹤股優先取最新 structured_data 的 short_term_picks / prediction_targets。",
+    "解讀權重：20D = 可信度主指標；1D/3D/5D = 短線節奏參考（噪音高）。",
+    "stockScoreboard 預設只統計 20D；全窗混合見 stockScoreboardAllHorizons。"
   ]
 }

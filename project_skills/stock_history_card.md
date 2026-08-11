@@ -30,7 +30,7 @@ Channel story / views are optional footnotes only — **not** prediction evidenc
 Must surface:
 
 1. Overall tracking hit_rate and n  
-2. 1D / 3D / 5D / 20D hit summary when available  
+2. 1D / 3D / 5D / **20D** hit summary when available — **weight 20D as trend reliability**; treat 1–5D as rhythm noise unless n is large  
 3. Recent triggers + stop_loss (what we bet and how we invalidated)  
 4. Role guidance that affects **whether** it should be a formal prediction (e.g. direction_indicator ≠ elastic rocket)  
 
@@ -40,5 +40,6 @@ May omit or de-emphasize: YouTube titles, view counts.
 
 - Prefer this card over model memory for any historical accuracy claim.  
 - Do not invent hit rates.  
+- Prefer names with stronger **20D / multi-week** evidence for formal `prediction_targets`.  
 - High views on a video about a stock ≠ that stock is a good prediction.  
 - Goal metric: better next predictions, not better thumbnails.  

@@ -1,22 +1,26 @@
 # Analytics Summary
 
-- Generated at: 2026-08-10 16:24
+- Generated at: 2026-08-11 16:19
 - Database: `data/analytics.db`
 - Daily runs: 96
 - Predictions: 114
 - Evaluated results: 356
 - AI pick records: 150
 - Editorial frames: 47
-- YouTube asset plans: 52
+- YouTube asset plans: 53
 - YouTube metric samples: 25
 
 ## Performance By Horizon
-| Horizon | Samples | Hit Rate | Avg Return | Avg Excess |
-| --- | --- | --- | --- | --- |
-| 1D | 110 | 46.4% | +0.23% | -0.09% |
-| 3D | 93 | 46.2% | +0.89% | +0.27% |
-| 5D | 86 | 48.8% | +3.15% | +2.39% |
-| 20D | 67 | 59.7% | +10.23% | +9.80% |
+- 依目前本機回測樣本，20D 命中率 59.7%（n=67）優於 1D/3D/5D 平均 47.1%，約高 13 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。
+- 同一批樣本下 20D 平均超額 +9.80%，中期方向的可說服力通常高於隔日漲跌。
+- 因此口播／標題若只用 1D 驗收論成敗，容易把噪音當成系統失準；隔日結果可提一句，但成敗尺子請放在 20D。
+
+| Horizon | Samples | Hit Rate | Avg Return | Avg Excess | Read as |
+| --- | --- | --- | --- | --- | --- |
+| 1D | 110 | 46.4% | +0.23% | -0.09% | 短線參考 |
+| 3D | 93 | 46.2% | +0.89% | +0.27% | 短線參考 |
+| 5D | 86 | 48.8% | +3.15% | +2.39% | 短線參考 |
+| 20D | 67 | 59.7% | +10.23% | +9.80% | 主指標 |
 
 ## Performance By Direction
 | Direction | Samples | Hit Rate | Avg Return | Avg Excess |

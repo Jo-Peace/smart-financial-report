@@ -193,9 +193,17 @@ def build_report(limit=12):
     ]
 
     if by_horizon:
+        try:
+            from modules.horizon_reliability import natural_reliability_sentences
+
+            for sentence in natural_reliability_sentences([dict(r) for r in by_horizon]):
+                lines.append(f"- {sentence}")
+            lines.append("")
+        except Exception:
+            pass
         lines.append(
             _table(
-                ["Horizon", "Samples", "Hit Rate", "Avg Return", "Avg Excess"],
+                ["Horizon", "Samples", "Hit Rate", "Avg Return", "Avg Excess", "Read as"],
                 [
                     [
                         f"{row['horizon_days']}D",
@@ -203,6 +211,11 @@ def build_report(limit=12):
                         _fmt_hit_rate(row["hit_rate"]),
                         _fmt_pct(row["avg_return"]),
                         _fmt_pct(row["avg_excess"]),
+                        (
+                            "主指標"
+                            if int(row["horizon_days"]) == 20
+                            else ("短線參考" if int(row["horizon_days"]) in (1, 3, 5) else "對照")
+                        ),
                     ]
                     for row in by_horizon
                 ],

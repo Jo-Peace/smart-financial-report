@@ -80,8 +80,19 @@ def _prediction_lines(targets, limit=3):
             stop_desc = target.get("stop_loss_desc", "")
             stop_price = target.get("stop_loss_price", None)
             stop = stop_desc if stop_price in (None, "") else f"{stop_desc}（{stop_price}）"
+            # Prefer explicit fields when present; otherwise keep trigger/stop readable.
+            rhythm = target.get("rhythm_condition") or target.get("next_day_condition") or ""
+            trend = (
+                target.get("trend_condition")
+                or target.get("horizon_20d_condition")
+                or target.get("thesis")
+                or ""
+            )
             lines.append(
-                f"- {sid} {name}：方向 {direction}；觀察理由：{_clean_source_text(trigger)}；"
+                f"- {sid} {name}：方向 {direction}；"
+                f"為何點名：{_clean_source_text(trigger)}；"
+                f"隔日節奏：{_clean_source_text(rhythm) or '（見觸發理由中的短線條件）'}；"
+                f"趨勢成立（≈20 交易日）：{_clean_source_text(trend) or '（中期假說見觸發理由；成敗以趨勢窗為主）'}；"
                 f"失效條件：{_clean_source_text(stop)}"
             )
         else:
@@ -90,14 +101,17 @@ def _prediction_lines(targets, limit=3):
 
 
 def _validation_lines(rows, structured_data=None):
+    """Short-horizon rhythm only — not the system scoreboard."""
     rows = _as_list(rows)
     if not rows:
         policy = (structured_data or {}).get("validation_policy") or {}
         if policy.get("onair_validation_eligible") is False:
             reason = policy.get("skip_reason") or "前次產出間隔過長"
-            return f"- 略過上集驗收：{_clean_source_text(reason)}"
+            return f"- 略過上集短線對照：{_clean_source_text(reason)}"
         return "- 無"
-    lines = []
+    lines = [
+        "- （解讀）以下為隔日／近端節奏對照，不是中期趨勢成敗；勿用單一 1D 論定系統準不準。"
+    ]
     for row in rows:
         if isinstance(row, dict):
             sid = row.get("id", "")
@@ -110,7 +124,9 @@ def _validation_lines(rows, structured_data=None):
                 pct_text = f"{pct}%" if pct not in (None, "") else "無漲跌"
             evidence = "；".join(_clean_source_text(x) for x in _as_list(row.get("evidence")))
             extra = f"；證據：{evidence}" if evidence else ""
-            lines.append(f"- {sid} {name}：{result}；漲跌 {pct_text}{extra}")
+            lines.append(
+                f"- {sid} {name}：短線節奏 {result}；漲跌 {pct_text}{extra}"
+            )
         else:
             lines.append(f"- {_clean_source_text(row)}")
     return "\n".join(lines)
@@ -213,8 +229,11 @@ def _short_term_pick_lines(structured_data):
     picks = _as_list(structured_data.get("short_term_picks"))
     if not picks:
         # Fall back to prediction_targets so source still has a forward card.
-        return _prediction_lines(structured_data.get("prediction_targets"), limit=2)
-    lines = []
+        body = _prediction_lines(structured_data.get("prediction_targets"), limit=2)
+        if body == "- 無":
+            return body
+        return f"- （時間尺度）1～5 日＝節奏參考，不是趨勢成敗主尺子。\n{body}"
+    lines = ["- （時間尺度）1～5 日＝短線節奏參考，不是趨勢成敗主尺子。"]
     for pick in picks[:2]:
         if isinstance(pick, dict):
             ticker = pick.get("ticker", "")
@@ -237,7 +256,9 @@ def _long_term_pick_lines(structured_data):
     picks = _as_list(structured_data.get("long_term_picks"))
     if not picks:
         return "- 無"
-    lines = []
+    lines = [
+        "- （時間尺度）中期／約 20 交易日＝「趨勢」窗；假說成敗優先看此層，不是隔日漲跌。"
+    ]
     for pick in picks[:2]:
         if isinstance(pick, dict):
             theme = _flag_extreme_returns(pick.get("theme", ""))
@@ -400,12 +421,36 @@ def _timeframe_brief_lines(structured_data):
     history = structured_data.get("timeframe_history") or {}
     recent_results = _as_list(history.get("recent_results"))
     lines = []
-    # Only 1D sample if present
+    # Natural, data-driven reliability note (often: 20D leads short windows).
+    reliability = structured_data.get("horizon_reliability") or {}
+    one_liner = reliability.get("one_liner") or history.get("reliability_note") or ""
+    if not one_liner:
+        try:
+            from modules.horizon_reliability import reliability_one_liner
+
+            one_liner = reliability_one_liner(history.get("horizon_performance"))
+        except Exception:
+            one_liner = ""
+    if one_liner:
+        lines.append(f"- {one_liner}")
+    # Short windows only as rhythm context, not the main scoreboard.
     for row in _as_list(history.get("horizon_performance")):
         if str(row.get("horizon_days")) in {"1", "1D"} or row.get("horizon_days") == 1:
             hit_rate = row.get("hit_rate")
             hit_text = f"{float(hit_rate) * 100:.0f}%" if hit_rate is not None else "N/A"
-            lines.append(f"- 近端 1D 命中率 {hit_text}（樣本 {row.get('samples', 'N/A')}）")
+            lines.append(
+                f"- 近端 1D 命中率 {hit_text}（樣本 {row.get('samples', 'N/A')}；僅節奏參考）"
+            )
+            break
+    for row in _as_list(history.get("horizon_performance")):
+        if int(row.get("horizon_days") or 0) == 20:
+            hit_rate = row.get("hit_rate")
+            hit_text = f"{float(hit_rate) * 100:.0f}%" if hit_rate is not None else "N/A"
+            excess = row.get("avg_excess")
+            excess_text = f"{float(excess):+.1f}%" if excess is not None else "N/A"
+            lines.append(
+                f"- 20D 命中率 {hit_text}、超額 {excess_text}（樣本 {row.get('samples', 'N/A')}；可信度主指標）"
+            )
             break
     if recent_results:
         lines.append("- 與今日相關的最近驗收：")
@@ -440,18 +485,39 @@ def build_notebooklm_source(structured_data, date_str=None):
     if isinstance(frame, dict) and frame.get("confidence") not in (None, ""):
         confidence = f"{frame.get('confidence')}/100"
 
+    reliability = structured_data.get("horizon_reliability") or {}
+    ruler_line = reliability.get("one_liner") or (
+        structured_data.get("timeframe_history") or {}
+    ).get("reliability_note") or ""
+    if not ruler_line:
+        try:
+            from modules.horizon_reliability import reliability_one_liner
+
+            ruler_line = reliability_one_liner(
+                (structured_data.get("timeframe_history") or {}).get("horizon_performance")
+            )
+        except Exception:
+            ruler_line = ""
+    ruler_bullet = (
+        f"- 時間尺度：{_clean_source_text(ruler_line)}"
+        if ruler_line
+        else "- 時間尺度：隔日～5D＝節奏；約 20 交易日＝趨勢成敗主尺子（目前樣本優先）"
+    )
+
     return f"""# NotebookLM 乾淨資料源：{date_str} 台股盤後
 
 用途：僅供 NotebookLM 引用的可驗證資料。不含主持人口吻、不含導演指令、不含模板解讀。
+解讀權重：短線節奏可提；假說／選標成敗以中期趨勢窗（≈20 交易日）為主。
 
 ## 1. 市場總覽
 
 - 日期：{structured_data.get("date", date_str)}
 - 大盤：{_clean_source_text(structured_data.get("index_action", "N/A"))}
 - 主軸標籤：{label}{f'（信心 {confidence}）' if confidence else ''}
-- 驗收在節目中的建議位置：{placement}（lead / brief / omit；實際說法見主持人 prompt）
+- 短線對照在節目中的位置：{placement}（lead / brief / omit；實際說法見主持人 prompt）
+{ruler_bullet}
 
-## 2. 昨日預測結果（事實）
+## 2. 昨日預測節奏（短線事實；非趨勢期末考）
 
 {_validation_lines(
     structured_data.get("validation_results") or structured_data.get("prev_day_picks_result"),
@@ -474,11 +540,11 @@ def build_notebooklm_source(structured_data, date_str=None):
 
 {_build_protagonist_cards(structured_data, limit=3)}
 
-## 7. 短線觀察與失效條件（1～5 日）
+## 7. 短線節奏卡（1～5 日；僅參考）
 
 {_short_term_pick_lines(structured_data)}
 
-## 8. 明日觀察標的與失效條件
+## 8. 明日／追蹤標的（節奏 + 趨勢兩層）
 
 {_prediction_lines(structured_data.get("prediction_targets"), limit=2)}
 
@@ -499,11 +565,11 @@ def build_notebooklm_source(structured_data, date_str=None):
 - 穩健：{_clean_source_text(structured_data.get("conservative_strategy", "N/A"))}
 - 波段：{_clean_source_text(structured_data.get("aggressive_strategy", "N/A"))}
 
-## 13. 長線背景（可略讀；極端報酬已標註）
+## 13. 中期趨勢背景（≈20 交易日；可略讀；極端報酬已標註）
 
 {_long_term_pick_lines(structured_data)}
 
-## 14. 多日統計摘要（可略讀）
+## 14. 多日統計摘要（趨勢窗優先；可略讀）
 
 {_timeframe_brief_lines(structured_data)}
 """

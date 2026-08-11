@@ -182,6 +182,15 @@ def print_report(rows, recent_n: int = 15) -> dict:
     print("  - 下一步：定 1 個標題主鉤 + 1 個差異化視覺 → 再跑 regen-assets")
     print("  - 若開場疲勞 BLOCK：禁止同一 token 開場；local 高樣本模板優先")
     print("  - title_priority：n≥3 命中率會自動加減主角權重（見 role_scorer）")
+    try:
+        from modules.analytics_store import AnalyticsStore
+        from modules.horizon_reliability import reliability_one_liner
+
+        note = reliability_one_liner(AnalyticsStore().get_horizon_performance_summary())
+        if note:
+            print(f"  - 時間窗：{note}")
+    except Exception:
+        pass
     print("=" * 60 + "\n")
 
     return {
