@@ -372,7 +372,7 @@
       }
     },
     "tracking": {
-      "prediction_count": 10,
+      "prediction_count": 8,
       "hit_count": 0,
       "hit_rate": "0.0%",
       "last_recommended": "2026-10-07",
@@ -385,13 +385,6 @@
           "trigger": "外資暴買 77.9 億但市場尚未放量，具備影子建倉爆發潛力且營收年增強勢",
           "stop_loss": "收盤跌破 MA20",
           "result": "實際 -8.85% → ❌ 失準"
-        },
-        {
-          "date": "2026-05-15",
-          "direction": "多",
-          "trigger": "外資買超金額第一名，具備影子建倉特徵",
-          "stop_loss": "收盤跌破 230 元",
-          "result": "實際 -3.26% → ❌ 失準"
         },
         {
           "date": "2026-05-15",
@@ -420,13 +413,6 @@
           "trigger": "技術面強勢修復，若連三日站穩 MA20 則確立補漲行情",
           "stop_loss": "收盤跌破 265 元",
           "result": "實際 -4.36% → ❌ 失準"
-        },
-        {
-          "date": "2026-06-18",
-          "direction": "多",
-          "trigger": "外資買超 50.2 億全市場第一，且毛利率預計回升至 30%",
-          "stop_loss": "收盤跌破 250.0 元",
-          "result": "實際 -1.70% → ❌ 失準"
         },
         {
           "date": "2026-06-18",
@@ -576,20 +562,13 @@
       }
     },
     "tracking": {
-      "prediction_count": 2,
+      "prediction_count": 1,
       "hit_count": 0,
       "hit_rate": "0.0%",
       "last_recommended": "2026-08-31",
       "consecutive_foreign_buy_days": 0,
       "last_foreign_buy_date": "2026-09-08",
       "history": [
-        {
-          "date": "2026-08-31",
-          "direction": "多",
-          "trigger": "外資買超第三名且量增，顯示大錢回流權值股，觀察能否守住 20 日均線",
-          "stop_loss": "收盤跌破 104 元",
-          "result": "實際 -0.65% → ❌ 失準"
-        },
         {
           "date": "2026-08-31",
           "direction": "多",
@@ -704,9 +683,9 @@
       "景氣循環股"
     ],
     "tracking": {
-      "prediction_count": 20,
-      "hit_count": 7,
-      "hit_rate": "35.0%",
+      "prediction_count": 19,
+      "hit_count": 6,
+      "hit_rate": "31.6%",
       "last_recommended": "2026-10-05",
       "consecutive_foreign_buy_days": 0,
       "last_foreign_buy_date": "2026-10-08",
@@ -738,13 +717,6 @@
           "trigger": "外資買超第一且營收年增噴發，籌碼高度集中並站上所有均線",
           "stop_loss": "收盤跌破二百八十元",
           "result": "實際 +6.64% → ✅ 命中"
-        },
-        {
-          "date": "2026-06-02",
-          "direction": "多",
-          "trigger": "外資百億買超第一名，且毛利率轉正具備強大基本面修復動能",
-          "stop_loss": "收盤跌破 MA20",
-          "result": "實際 +9.96% → ✅ 命中"
         },
         {
           "date": "2026-06-02",
@@ -1185,9 +1157,9 @@
       }
     },
     "tracking": {
-      "prediction_count": 12,
+      "prediction_count": 10,
       "hit_count": 6,
-      "hit_rate": "50.0%",
+      "hit_rate": "60.0%",
       "last_recommended": "2026-09-23",
       "consecutive_foreign_buy_days": 0,
       "last_foreign_buy_date": "2026-10-01",
@@ -1233,20 +1205,6 @@
           "trigger": "外資單日買超百億且股價強勢站上 MA20，底部結構初步確認",
           "stop_loss": "收盤跌破 160 元",
           "result": "實際 -2.07% → ❌ 失準"
-        },
-        {
-          "date": "2026-07-02",
-          "direction": "多",
-          "trigger": "外資單日買超百億且股價強勢站上 MA20，底部結構初步確認",
-          "stop_loss": "收盤跌破 160 元",
-          "result": "實際 -2.07% → ❌ 失準"
-        },
-        {
-          "date": "2026-08-31",
-          "direction": "多",
-          "trigger": "外資買超第一名且站上短期均線，AMD 投資帶動 AI 輔助晶片估值修復",
-          "stop_loss": "收盤跌破 118 元",
-          "result": "實際 -0.77% → ❌ 失準"
         },
         {
           "date": "2026-08-31",
@@ -1580,9 +1538,9 @@
       }
     },
     "tracking": {
-      "prediction_count": 7,
-      "hit_count": 3,
-      "hit_rate": "42.9%",
+      "prediction_count": 5,
+      "hit_count": 1,
+      "hit_rate": "20.0%",
       "last_recommended": "2026-10-01",
       "consecutive_foreign_buy_days": 0,
       "last_foreign_buy_date": "2026-09-30",
@@ -1607,20 +1565,6 @@
           "trigger": "外資大買 40.5 億，帶量站上 MA20，FOPLP 題材發酵且月線轉強",
           "stop_loss": "收盤跌破 MA20",
           "result": "實際 -1.50% → ❌ 失準"
-        },
-        {
-          "date": "2026-09-22",
-          "direction": "多",
-          "trigger": "面板級封裝 (FOPLP) 產線進入實質貢獻期",
-          "stop_loss": "跌破今日低點 48 元",
-          "result": "實際 +0.20% → ✅ 命中"
-        },
-        {
-          "date": "2026-09-22",
-          "direction": "多",
-          "trigger": "面板級封裝 (FOPLP) 產線進入實質貢獻期",
-          "stop_loss": "跌破今日低點 48 元",
-          "result": "實際 +0.20% → ✅ 命中"
         },
         {
           "date": "2026-09-22",
@@ -1839,9 +1783,9 @@
       }
     },
     "tracking": {
-      "prediction_count": 5,
-      "hit_count": 4,
-      "hit_rate": "80.0%",
+      "prediction_count": 3,
+      "hit_count": 2,
+      "hit_rate": "66.7%",
       "last_recommended": "2026-09-23",
       "consecutive_foreign_buy_days": 0,
       "last_foreign_buy_date": "2026-10-02",
@@ -1852,20 +1796,6 @@
           "trigger": "收盤站上 MA20，成交量第 1 名，外資重金押注",
           "stop_loss": "收盤跌破 26.74 元 (MA20 位置)",
           "result": "實際 +6.86% → ✅ 命中"
-        },
-        {
-          "date": "2026-09-22",
-          "direction": "多",
-          "trigger": "外資買超 61.6 億且爆量漲停，量增比 2.02x",
-          "stop_loss": "開高走低且外資轉賣",
-          "result": "實際 +9.90% → ✅ 命中"
-        },
-        {
-          "date": "2026-09-22",
-          "direction": "多",
-          "trigger": "外資買超 61.6 億且爆量漲停，量增比 2.02x",
-          "stop_loss": "開高走低且外資轉賣",
-          "result": "實際 +9.90% → ✅ 命中"
         },
         {
           "date": "2026-09-22",
@@ -1898,9 +1828,9 @@
       "唯讀記憶體業"
     ],
     "tracking": {
-      "prediction_count": 6,
+      "prediction_count": 5,
       "hit_count": 3,
-      "hit_rate": "50.0%",
+      "hit_rate": "60.0%",
       "last_recommended": "2026-06-29",
       "consecutive_foreign_buy_days": 0,
       "last_foreign_buy_date": "2026-05-28",
@@ -1932,13 +1862,6 @@
           "trigger": "外資狂賣 71 億且高位放量不漲，主力撤出傳統儲存標的",
           "stop_loss": "外資反手回補超過 20 億元",
           "result": "實際 +2.89% → ❌ 失準"
-        },
-        {
-          "date": "2026-06-29",
-          "direction": "多",
-          "trigger": "大屠殺中唯一的紅燈，外資買超第 1 名且毛利率改善",
-          "stop_loss": "收盤跌破 159.9 元 (MA20 位置)",
-          "result": "實際 -2.46% → ❌ 失準"
         },
         {
           "date": "2026-06-29",
@@ -3877,20 +3800,13 @@
       }
     },
     "tracking": {
-      "prediction_count": 4,
+      "prediction_count": 3,
       "hit_count": 1,
-      "hit_rate": "25.0%",
+      "hit_rate": "33.3%",
       "last_recommended": "2026-07-29",
       "consecutive_foreign_buy_days": 1,
       "last_foreign_buy_date": "2026-10-13",
       "history": [
-        {
-          "date": "2026-06-18",
-          "direction": "多",
-          "trigger": "爆量突破 MA20 第一天，外資買超第 2 名且籌碼極度集中",
-          "stop_loss": "收盤跌破 MA20 出場",
-          "result": "實際 -0.00% → ❌ 失準"
-        },
         {
           "date": "2026-06-18",
           "direction": "多",
@@ -3997,20 +3913,13 @@
       }
     },
     "tracking": {
-      "prediction_count": 2,
+      "prediction_count": 1,
       "hit_count": 0,
       "hit_rate": "0.0%",
       "last_recommended": "2026-06-29",
       "consecutive_foreign_buy_days": 1,
       "last_foreign_buy_date": "2026-09-30",
       "history": [
-        {
-          "date": "2026-06-29",
-          "direction": "多",
-          "trigger": "外資買超第 2 名，具備 AI 半導體封測轉機，量能尚未失控",
-          "stop_loss": "收盤跌破 97 元",
-          "result": "實際 -7.18% → ❌ 失準"
-        },
         {
           "date": "2026-06-29",
           "direction": "多",
@@ -6173,20 +6082,13 @@
       }
     },
     "tracking": {
-      "prediction_count": 2,
+      "prediction_count": 1,
       "hit_count": 0,
       "hit_rate": "0.0%",
       "last_recommended": "2026-09-14",
       "consecutive_foreign_buy_days": 2,
       "last_foreign_buy_date": "2026-10-13",
       "history": [
-        {
-          "date": "2026-09-14",
-          "direction": "多",
-          "trigger": "量增比 2.15 倍屬爆量訊號，外資買超 13.7 億元並站上 MA20 底部型態成型",
-          "stop_loss": "收盤跌破 MA20 (58.79) 元或今日低點 58 元",
-          "result": "實際 -0.17% → ❌ 失準"
-        },
         {
           "date": "2026-09-14",
           "direction": "多",
@@ -7703,20 +7605,13 @@
       "傳產"
     ],
     "tracking": {
-      "prediction_count": 2,
-      "hit_count": 2,
+      "prediction_count": 1,
+      "hit_count": 1,
       "hit_rate": "100.0%",
       "last_recommended": "2026-10-06",
       "consecutive_foreign_buy_days": 0,
       "last_foreign_buy_date": "2026-10-06",
       "history": [
-        {
-          "date": "2026-10-06",
-          "direction": "多",
-          "trigger": "外資買超第 2 名，爆量突破 MA20，毛利與營收雙增並切入液冷系統整合",
-          "stop_loss": "收盤跌破 MA20 或外資單日轉賣超逾 20 億元",
-          "result": "實際 +2.24% → ✅ 命中"
-        },
         {
           "date": "2026-10-06",
           "direction": "多",
@@ -7864,20 +7759,13 @@
       "傳統印刷電路板"
     ],
     "tracking": {
-      "prediction_count": 2,
+      "prediction_count": 1,
       "hit_count": 0,
       "hit_rate": "0.0%",
       "last_recommended": "2026-09-14",
       "consecutive_foreign_buy_days": 0,
       "last_foreign_buy_date": "2026-09-14",
       "history": [
-        {
-          "date": "2026-09-14",
-          "direction": "多",
-          "trigger": "外資買超 17.4 億元市場第 1，AI 伺服器高層板龍頭，收復 MA20 將成領漲標的",
-          "stop_loss": "收盤跌破今日低點或營收增長失速",
-          "result": "實際 -0.97% → ❌ 失準"
-        },
         {
           "date": "2026-09-14",
           "direction": "多",
