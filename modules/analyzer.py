@@ -41,11 +41,24 @@ class MarketAnalyzer:
         except Exception as e:
             return f"Error generating report: {e}"
 
-    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None, previous_prediction_targets=None, previous_validation_summary=None, editorial_frame=None):
+    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None, previous_prediction_targets=None, previous_validation_summary=None, editorial_frame=None, similar_sessions_summary=None, last_output_date=None):
         """
         Generates a Markdown report using Gemini with enhanced data.
         """
         date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        from modules.session_calendar import (
+            analyzer_calendar_block,
+            analyzer_session_block,
+            session_lexicon,
+        )
+
+        _lex = session_lexicon(date_str, last_output_date=last_output_date)
+        _session_rules = analyzer_session_block(date_str, last_output_date=last_output_date)
+        _calendar_rules = analyzer_calendar_block(date_str)
+        _prev_section = _lex.get("prev_section") or "昨日預測節奏"
+        _prev_named = _lex.get("prev_named") or "昨天點名"
+        _next_watch = _lex.get("next_watch") or "明天先看"
+        _next_observe = _lex.get("next_observe") or "明日觀察"
         editorial_frame = editorial_frame or {}
         validation_placement = str(editorial_frame.get("validation_placement") or "brief").strip().lower()
         frame_label = str(editorial_frame.get("label") or editorial_frame.get("frame") or "").strip()
@@ -59,36 +72,36 @@ class MarketAnalyzer:
 - 若文中提到本機多日回測：用「目前樣本顯示…」的語氣，勿寫成永遠真理。
 """
         if validation_placement == "lead":
-            validation_step_block = """================================================================
-STEP 0【昨日預測節奏】今日可當開場（placement=lead）——仍是短線節奏，不是趨勢期末考
+            validation_step_block = f"""================================================================
+STEP 0【{_prev_section}】今日可當開場（placement=lead）——仍是短線節奏，不是趨勢期末考
 ================================================================
 優先使用「本機正式驗收結果」逐一寫入每一檔，不得自行刪減、替換或把非正式提醒混成正式標的；只有本機驗收結果為空時，才從「昨日正式 prediction_targets」或前日報告補抓：
-- 節奏命中：寫「✅ 昨日點名 XXX，今日實際 +X%（短線節奏符合）。」
-- 節奏失準：寫「❌ 昨日點名 XXX，今日實際 -X%（短線節奏偏離）。可能原因：[具體]；趨勢假說是否仍在，要看後續 2～4 週／約 20 交易日。」
+- 節奏命中：寫「✅ {_prev_named} XXX，今日實際 +X%（短線節奏符合）。」
+- 節奏失準：寫「❌ {_prev_named} XXX，今日實際 -X%（短線節奏偏離）。可能原因：[具體]；趨勢假說是否仍在，要看後續 2～4 週／約 20 交易日。」
 - 無可驗收：寫「本日無昨日預測標的可做短線節奏對照。」
 此段建立連續感後，必須立刻銜接今日盤面主線；不要把隔日漲跌寫成最終判決。
 """
-            validation_output_block = """## 〔0〕昨日預測節奏（短線）
+            validation_output_block = f"""## 〔0〕{_prev_section}（短線）
 （今日 placement=lead：可放開頭，逐一寫清數字；標明這是節奏不是趨勢期末考；寫完立刻進今日主軸。）
 
 ---
 """
         elif validation_placement == "omit":
-            validation_step_block = """================================================================
-STEP 0【昨日預測節奏】今日不要當主鉤子（placement=omit）
+            validation_step_block = f"""================================================================
+STEP 0【{_prev_section}】今日不要當主鉤子（placement=omit）
 ================================================================
 若有本機驗收結果：最多用 1～2 句寫在「量價對比」或「主軸」段內，並標成短線節奏；不要獨立成長段開場。
 標題/主軸標籤禁止用「驗收日」「驗收現場」「上集點名驗收」當主鉤子。
 若無驗收資料：完全跳過。
 """
-            validation_output_block = """## 〔0〕昨日預測節奏（短句即可，可併入主軸）
+            validation_output_block = f"""## 〔0〕{_prev_section}（短句即可，可併入主軸）
 （placement=omit：不要長段驗收開場；有數字就一句帶過，屬短線節奏。）
 
 ---
 """
         else:
-            validation_step_block = """================================================================
-STEP 0【昨日預測節奏】短段（placement=brief，預設）——天氣，不是趨勢判決
+            validation_step_block = f"""================================================================
+STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，不是趨勢判決
 ================================================================
 不要用長段「先驗收再分析」當每日固定開場。
 優先使用「本機正式驗收結果」：
@@ -96,7 +109,7 @@ STEP 0【昨日預測節奏】短段（placement=brief，預設）——天氣�
 - 無可驗收：寫「本日無昨日預測標的可做短線節奏對照。」一句即可。
 禁止把微小漲跌包裝成「史詩級驗收日」或「系統失效」。整篇主軸必須以本地主軸分類為準。
 """
-            validation_output_block = """## 〔0〕昨日預測節奏（短段）
+            validation_output_block = f"""## 〔0〕{_prev_section}（短段）
 （placement=brief：2～4 句寫清數字即可；屬短線節奏，不要佔前半篇。）
 
 ---
@@ -302,6 +315,9 @@ STEP 0【昨日預測節奏】短段（placement=brief，預設）——天氣�
 ## 本地量化訊號包（由程式計算，非 AI 推論）
 {signal_summary if signal_summary else '（尚未建立本地量化訊號包）'}
 
+## 本機相似盤（結構化比對，不是印象、不是 Wiki 尾巴）
+{similar_sessions_summary if similar_sessions_summary else '（未提供相似盤；禁止編造歷史日期）'}
+
 使用規則：
 - 「主力操作假說」只能寫成假說，不能寫成已確認事實。
 - 報告必須同時寫清兩層條件：
@@ -340,6 +356,14 @@ STEP 0【昨日預測節奏】短段（placement=brief，預設）——天氣�
 {wiki_str}
 {editorial_rule}
 {validation_step_block}
+================================================================
+STEP 0.5【相似盤對照】本機已比對的歷史日，不是回憶
+================================================================
+上方「本機相似盤」若列出 1～2 個日期：必須寫「〔相似盤對照〕」短段（每個歷史日 2～4 句），引用那天的買賣超與隔日節奏命中/失敗。
+選今日 prediction_targets 時，若相似盤顯示同一類押注隔日常失敗，要降權或寫明為何今天仍押。
+若寫「未找到足夠相似盤」：正文只寫「本日無足夠相似歷史盤可對照。」一句。禁止編造沒列到的日期，禁止用「史上第一次」迴避對照。
+相似盤是輔助，不能蓋過今日成交量與法人榜的主線。
+
 ================================================================
 STEP 1【找出今日的最強異常 / 主線】整集的靈魂，只選一個現象
 ================================================================
@@ -424,6 +448,11 @@ STEP 3【偵探式展開——成交量帶路，法人對比，新聞輔助】
 6. 禁用空泛套話：正文不得出現「資金輪動」四字；「資金脈絡」不得作為段落標題。請改為抓出「三大法人與成交量之間的主力買賣邏輯」，每次談買賣方向，都必須具體寫出「誰買、誰賣、金額/成交量、哪個榜單支持、隔日節奏條件、趨勢延續條件」。
 7. 禁止每天硬套警報語氣：不是每天都有「最強異常」「退潮警報」「資金續航」。若今日沒有足夠數據支持，必須誠實寫成「整理日 / 觀察日 / 訊號普通」，不要把常態買賣包裝成重大警訊。
 8. 禁止用「隔日沒漲＝預測失敗、系統失效」當全文結論；短線失準最多修正節奏，趨勢假說要另寫仍有效或已失效。
+9. 禁止把「買超但未進成交量前20」寫成鎖籌碼、靜默入侵、影子建倉、機構級掃貨。只能寫可驗證事實：金額、是否進量榜、連續買超天數。連續買超未滿 3 日、或當日已賣超，不得推論意圖。
+10. 交易日用語：週五禁止寫「明天開盤／明天台股」；週一禁止寫「昨天開盤」。用「下一交易日／上一交易日」或下面的指定口語。
+
+{_session_rules}
+{_calendar_rules}
 
 ================================================================
 STEP 3.5【每日主軸選擇——先判斷今天是哪一種日子】
@@ -446,12 +475,12 @@ STEP 3.5【每日主軸選擇——先判斷今天是哪一種日子】
 ================================================================
 STEP 4【今日唯一重要結論——觀眾明天還記得的那句話】
 ================================================================
-整集只允許一個核心結論。必須具體、有可驗證的方向；可同時點到「明天先看什麼」與「中期趨勢假說」，但不要把隔日當唯一勝敗。
+整集只允許一個核心結論。必須具體、有可驗證的方向；可同時點到「{_next_watch}什麼」與「中期趨勢假說」，但不要把隔日當唯一勝敗。
 例如：「今天的關鍵不在台積電漲多少，而在成交量前3名是面板和衛星股，
 但法人偏偏在賣這些——短線先看量能否續得住，趨勢上要看這兩週籌碼是否真的換邊。」
 
 ================================================================
-STEP 5【明日觀察焦點——節奏 + 趨勢兩層，嚴格門檻】
+STEP 5【{_next_observe}焦點——節奏 + 趨勢兩層，嚴格門檻】
 ================================================================
 優先從「本地量化訊號包」的明日觀察候選中挑選；若候選為空，原則上輸出「今日數據無安全明牌，現金為王，靜待訊號。」
 推薦1支（最多2支）值得追蹤標的，需符合至少一項：
@@ -461,7 +490,7 @@ STEP 5【明日觀察焦點——節奏 + 趨勢兩層，嚴格門檻】
 
 每檔必須用條列寫清（缺一不可）：
 - 為何點名（籌碼／量價／事件，要有數字）
-- 隔日節奏條件（明天先看什麼）
+- 隔日節奏條件（{_next_watch}什麼）
 - 趨勢成立條件（約 20 交易日／2～4 週怎樣算假說成立；口語可稱「趨勢」）
 - 失效條件（何時降級觀察）
 
@@ -480,8 +509,18 @@ STEP 6【技術位與商品——簡短補充，不是主角】
 ================================================================
 
 {validation_output_block}
+## 〔日曆約束〕（解讀用，不是標題鉤子）
+（3～6 句：結算／除息／已公布指數／尚未公布的 FOMC。用本機日曆事實，不要發明日期。）
+
+---
+
 ## 〔今日主軸〕[必須標明本地主軸：{frame_hint}]
 （1-2段，150字以內；不要因有驗收就改寫成驗收日，除非 placement=lead）
+
+---
+
+## 〔相似盤對照〕
+（有本機相似盤：每個歷史日 2～4 句，含當時預測與隔日節奏。無資料：寫「本日無足夠相似歷史盤可對照。」）
 
 ---
 
@@ -516,7 +555,7 @@ STEP 6【技術位與商品——簡短補充，不是主角】
 
 ---
 
-## 〔明日觀察焦點〕節奏 + 趨勢
+## 〔{_next_observe}焦點〕節奏 + 趨勢
 （每檔：為何點名｜隔日節奏｜趨勢成立（≈20 交易日，可稱趨勢）｜失效條件；或「今日無安全明牌，現金為王。」）
 
 ---

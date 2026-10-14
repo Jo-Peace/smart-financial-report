@@ -99,16 +99,18 @@ def count_trading_days_between(start_date, end_date):
     Count Mon–Fri sessions strictly after start_date up to and including end_date.
 
     gap == 1 means previous trading day (or Friday → Monday across weekend).
-    Taiwan public holidays are not excluded (acceptable v1; over-skip is safer than wrong 驗收).
+    TWSE holidays in data/twse_closed_days.json are excluded.
     """
     if start_date is None or end_date is None:
         return None
     if end_date <= start_date:
         return 0
+    from modules.twse_calendar import is_twse_session
+
     count = 0
     cursor = start_date + datetime.timedelta(days=1)
     while cursor <= end_date:
-        if cursor.weekday() < 5:  # Mon=0 … Fri=4
+        if is_twse_session(cursor):
             count += 1
         cursor += datetime.timedelta(days=1)
     return count
@@ -273,7 +275,11 @@ def should_expand_news_search(signal_pack, validation_results, event_radar):
         return True, "本地數據有明日觀察候選"
     if any(row.get("hit") is True or row.get("hit") is False for row in (validation_results or [])):
         return True, "昨日驗收可形成連續追蹤"
-    if event_radar and event_radar[0].get("impact_score", 0) >= 60:
+    top_event = (event_radar or [None])[0] or {}
+    if (
+        top_event.get("freshness") != "stale"
+        and int(top_event.get("impact_score") or 0) >= 60
+    ):
         return True, "消息面事件雷達命中高分供應鏈事件"
     return False, "無高分數據異常或高分事件，跳過擴大新聞搜尋"
 

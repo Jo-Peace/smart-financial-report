@@ -295,6 +295,8 @@ def main():
         previous_prediction_targets=yesterday_predictions,
         previous_validation_summary=validation_summary,
         editorial_frame=editorial_frame,
+        similar_sessions_summary=analysis_bundle.get("similar_sessions_summary") or "",
+        last_output_date=(validation_meta or {}).get("source_date"),
     )
     if is_generation_error(report_content):
         print("\n❌ AI 報告生成失敗，停止流程以避免覆蓋正式報告。")
@@ -320,6 +322,7 @@ def main():
         project_theme=PROJECT_THEME,
         channel_story_log=CHANNEL_STORY_LOG,
         youtube_assets_dir=YOUTUBE_ASSETS_DIR,
+        similar_sessions=analysis_bundle.get("similar_sessions"),
     )
     if not persist_result.get("ok"):
         return

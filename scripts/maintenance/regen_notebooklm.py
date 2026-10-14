@@ -199,6 +199,9 @@ def main() -> int:
 
     try:
         structured = attach_role_scores_to_structured(structured, load_stock_db(), limit=5)
+        from modules.broadcast_facts import attach_broadcast_facts
+
+        structured = attach_broadcast_facts(structured)
         top = (structured.get("focus_ranking") or [])[:3]
         if top:
             preview = "、".join(

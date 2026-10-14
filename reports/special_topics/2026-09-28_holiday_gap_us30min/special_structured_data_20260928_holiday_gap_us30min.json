@@ -1,0 +1,119 @@
+{
+  "date": "2026-09-28",
+  "slug": "holiday_gap_us30min",
+  "kind": "holiday_gap_us_open_30min",
+  "not_advice": true,
+  "snapshot": {
+    "taipei": "2026-09-28 21:30 open to 22:25 now",
+    "et": "2026-09-28 09:30 open to 10:25 now",
+    "checkpoint_30min_et": "10:00",
+    "minutes_after_us_open": 55,
+    "note": "Window is regular open to now. 10:00 is only the original 30-minute checkpoint, not the start."
+  },
+  "thesis": "Not a crash gap and not risk-on. NVDA is green on a buyback; TSM ADR has not reclaimed Friday close. Tuesday TW prices the 2330 gap and memory first; 3189 still has to prove 962 on its own tape.",
+  "time_window": "TW last session 2026-09-24 through US open 30-50 minutes 2026-09-28; verify 2026-09-29 (1D) and 20D",
+  "event_context": [
+    "TWSE closed 2026-09-25 to 2026-09-28 (Mid-Autumn + Teachers' Day); reopen 2026-09-29",
+    "2026-09-24: TWII 48024.60 (-0.28%), 2330 2475 foreign sell est. 116.7bn TWD, 3189 962 foreign buy est. 47.9bn TWD",
+    "NVDA board adds USD 150bn buyback authorization; remaining USD 235bn through FY2028; authorization is not completed purchases",
+    "Trump rejected Iran Hormuz reopening proposal; 10y around 5.22%; oil firmer; PCE Wednesday, NFP Friday"
+  ],
+  "market_indicators": [
+    {"id": "DJI", "at": "10:01 ET", "value": 51553.05, "chg_pct": -0.53, "open_0930_pct": -0.64},
+    {"id": "SPX", "at": "10:01 ET", "value": 7710.87, "chg_pct": -0.42, "open_0930_pct": -0.48},
+    {"id": "IXIC", "at": "10:01 ET", "value": 26851.38, "chg_pct": -0.80, "open_0930_pct": -0.49, "at_1000_pct": -0.65},
+    {"id": "TSM", "friday_close": 450.61, "around_1014_et": 445.3, "chg_pct": -1.18, "session_high": 449.60, "session_low": 444.81, "reclaimed_friday": false},
+    {"id": "NVDA", "friday_close": 225.07, "around_1013_et": 230.92, "chg_pct": 2.60, "session_range": [229.48, 233.21]},
+    {"id": "MU", "friday_close": 1082.28, "around_1013_et": 1059.37, "chg_pct": -2.12},
+    {"id": "SMH", "friday_close": 606.56, "around_open": 603.3, "chg_pct": -0.53},
+    {"id": "KOSPI", "session": "2026-09-28 Asia close", "chg_pct": -2.7},
+    {"id": "N225", "session": "2026-09-28 Asia close", "chg_pct": -0.73},
+    {"id": "US10Y", "approx": 5.22}
+  ],
+  "capital_rotation": [
+    "TW 09-24: foreign sells 2330/2408/2317/2303, buys 3189/2454/3037/1303",
+    "US open 30min: NVDA isolated green; TSM and MU still red; SMH only mildly red",
+    "Does not flip the 09-24 map; AI not dead, selection continues"
+  ],
+  "candidate_pool": [
+    {
+      "id": "2330",
+      "name": "台積電",
+      "role": "gap body, not attack stock",
+      "evidence": "09-24 close 2475 / foreign -116.7bn; TSM 10:14 ET 445.3 (-1.18%), high 449.60 still below Friday 450.61",
+      "upside_logic": "If TSM later reclaims 450.61, local open can gap less than this note",
+      "counter_risk": "Soft open in line with ADR is the base case, not a crash",
+      "move_order": "1 first priced"
+    },
+    {
+      "id": "3189",
+      "name": "景碩",
+      "role": "09-24 primary bet; no clean US proxy",
+      "evidence": "09-24 close 962 (+6.18%), turnover 41.05bn TWD rank 1, foreign +47.9bn, intraday high 996",
+      "upside_logic": "Hold 962 with still-front turnover = accumulation still alive",
+      "counter_risk": "Volume dump close below 906 invalidates; NVDA green is not a permit to chase",
+      "move_order": "2 first verifies 09-24 thesis",
+      "verify_strong": "close >= 962 and turnover still front-rank, not a long black bar",
+      "verify_downgrade": "break 962 but hold 906",
+      "verify_fail": "volume dump close below 906"
+    },
+    {
+      "id": "2408",
+      "name": "南亞科",
+      "role": "memory weakness continuation",
+      "evidence": "09-24 503 (-2.33%) foreign -102.8bn already stopped; MU ~ -2.1% at 10:13 ET",
+      "upside_logic": "none in this note",
+      "counter_risk": "MU close green plus local memory bounce with foreign buyback",
+      "move_order": "3 confirm memory"
+    },
+    {
+      "id": "3260",
+      "name": "威剛",
+      "role": "module side of memory; not 400 reclaim",
+      "evidence": "09-24 378 (-1.31%), 3-day down, volume ~4100 lots, low 373.5",
+      "upside_logic": "none until 373.5 holds and MU stops leaking",
+      "counter_risk": "Treat 400 as later; first check 373.5",
+      "move_order": "3 confirm memory"
+    },
+    {
+      "id": "3653",
+      "name": "健策",
+      "role": "thermal strength; do not chase first bar in a soft gap",
+      "evidence": "09-24 6920 (+7.96%)",
+      "upside_logic": "NVDA green is distant support only",
+      "counter_risk": "First bar often distributes after +8% into a holiday",
+      "move_order": "4 later confirm"
+    },
+    {
+      "id": "6933",
+      "name": "AMAX-KY",
+      "role": "side note after limit-up; digest not reopen",
+      "evidence": "09-24 limit-up 385; prior 09-22 325.5 / 09-23 350",
+      "upside_logic": "liquid cooling far from NVDA buyback first bar",
+      "counter_risk": "Open locked limit-up would falsify digest assumption",
+      "move_order": "5 not first layer"
+    },
+    {
+      "id": "2454",
+      "name": "聯發科",
+      "role": "second accumulation layer",
+      "evidence": "09-24 5285 (+1.93%) foreign +42.8bn",
+      "upside_logic": "confirms money staying in non-2330 electronics",
+      "counter_risk": "gaps with 2330 and loses 09-24 gain",
+      "move_order": "4 later confirm"
+    }
+  ],
+  "ranked_first_movers": ["2330", "3189", "2408", "3260", "3653", "2454"],
+  "conservative_strategy": "Let 2330 print the gap. Do not chase 3189 first bar. Cash until 3189 holds 962 on shrinking volume, or fail below 906.",
+  "aggressive_strategy": "Only 3189 is the 09-24 bet. Soft open with shrinking volume holding 962 = accumulation still possible. Volume dump black bar = stop. Do not map NVDA green onto substrates, thermal, or 6933.",
+  "invalidation_signals": [
+    "TSM cash close above Friday 450.61 cancels the soft 2330 gap read",
+    "NVDA gives back the buyback pop and SMH sells off >2% → isolated AI green cancelled",
+    "3189 volume dump close below 906 on 09-29 fails the 09-24 accumulation thesis",
+    "Hormuz/oil reversal into the US close can rewrite index beta; do not extrapolate -0.5%"
+  ],
+  "youtube_angles": [
+    "輝達開盤紅，台積電 ADR 卻沒翻過週五｜明天先驗景碩 962"
+  ],
+  "skipped": ["notebooklm_prompt", "thumbnail_prompt", "youtube_package"]
+}

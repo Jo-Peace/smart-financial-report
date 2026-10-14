@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    @font-face {
+      font-family: "TWHei";
+      src: url("file:///System/Library/Fonts/STHeiti%20Medium.ttc") format("truetype");
+      font-weight: 700;
+    }
+    html, body {
+      margin: 0;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      background: #000;
+    }
+    .frame {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+    }
+    .bg {
+      position: absolute;
+      inset: 0;
+      width: 1280px;
+      height: 720px;
+      object-fit: cover;
+    }
+    .scrim {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 620px;
+      height: 720px;
+      background: linear-gradient(90deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.72) 52%, rgba(0,0,0,0) 100%);
+    }
+    .date {
+      position: absolute;
+      left: 36px;
+      top: 28px;
+      color: #fff;
+      font-family: "TWHei", "STHeiti", "PingFang TC", sans-serif;
+      font-size: 34px;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 8px #000;
+      background: rgba(0,0,0,.55);
+      border: 2px solid rgba(255,255,255,.35);
+      padding: 6px 14px 8px;
+      border-radius: 8px;
+    }
+    .stack {
+      position: absolute;
+      left: 28px;
+      top: 150px;
+      width: 540px;
+      padding: 22px 22px 28px 18px;
+      background: rgba(0,0,0,.42);
+      border-radius: 18px;
+    }
+    .line1, .line2 {
+      font-family: "TWHei", "STHeiti", "PingFang TC", sans-serif;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+      line-height: .92;
+      text-shadow:
+        0 0 6px #000,
+        4px 4px 0 #000,
+        -3px 3px 0 #000,
+        3px -3px 0 #000,
+        -3px -3px 0 #000;
+    }
+    .line1 {
+      font-size: 142px;
+      color: #7CFF6B;
+      letter-spacing: -3px;
+    }
+    .line2 {
+      margin-top: 14px;
+      font-size: 104px;
+      color: #FFE14A;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <img class="bg" src="thumb_a_bg.jpg" alt="" />
+    <div class="scrim"></div>
+    <div class="date">9/9 台股盤後</div>
+    <div class="stack">
+      <p class="line1">砍109億</p>
+      <p class="line2">誰在收?</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -4,6 +4,9 @@
 
 | 資料夾 | 檔案數 | 主要檔 |
 |--------|--------|--------|
+| [`2026-09-28_holiday_gap_us30min/`](./2026-09-28_holiday_gap_us30min/) | 2 | `special_report_2026-09-28_holiday_gap_us30min.md` |
+| [`2026-09-11_cpi_core_scenarios/`](./2026-09-11_cpi_core_scenarios/) | 6 | `special_report_2026-09-11_cpi_core_scenarios.md` |
+| [`2026-09-10_iphone18_taiwan_supply_chain/`](./2026-09-10_iphone18_taiwan_supply_chain/) | 5 | `special_report_2026-09-10_iphone18_taiwan_supply_chain.md` |
 | [`2026-07-16_tsmc_q2_earnings/`](./2026-07-16_tsmc_q2_earnings/) | 6 | `special_report_2026-07-16_tsmc_q2_earnings.md` |
 | [`2026-07-10_typhoon_30d_capital_flow/`](./2026-07-10_typhoon_30d_capital_flow/) | 7 | `special_report_2026-07-10_typhoon_30d_capital_flow.md` |
 | [`2026-06-27_spacex_taiwan_supply_chain/`](./2026-06-27_spacex_taiwan_supply_chain/) | 6 | `special_report_2026-06-27_spacex_taiwan_supply_chain.md` |

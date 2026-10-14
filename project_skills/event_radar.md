@@ -41,7 +41,7 @@ The skill must produce:
 
 ## Daily Workflow
 
-1. Scan for high-impact events.
-2. Keep a cache so the same event is not re-read every day.
-3. Expand news search only when the data gate or event score justifies it.
-4. Carry the event into the daily report and YouTube packaging only if it is still structurally relevant.
+1. Scan for high-impact events with generic Taiwan-supply-chain queries plus today's protagonist names. Lite mode must not be an AMD-only pair.
+2. Keep a same-day Tavily cache, and a cross-day history so the same URL/title decays (repeat/stale) instead of scoring 100 every session.
+3. Expand news search from today's tape first (買超／賣超主角). Radar may append one query only when it names a today's stock and is not stale.
+4. Carry a stale event into the daily report only as background. Never use it as the opening cause of today's largest buy/sell.

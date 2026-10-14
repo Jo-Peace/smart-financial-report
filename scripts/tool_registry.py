@@ -122,6 +122,13 @@ TOOL_SPECS: tuple[ToolSpec, ...] = (
         legacy_names=(),
     ),
     ToolSpec(
+        id="similar-sessions",
+        category="maintenance",
+        script="scripts/maintenance/similar_sessions.py",
+        description="本機相似盤查詢（法人榜結構對照，0 Gemini）",
+        legacy_names=(),
+    ),
+    ToolSpec(
         id="preflight-views",
         category="youtube",
         script="scripts/youtube/preflight_views.py",

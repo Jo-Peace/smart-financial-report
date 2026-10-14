@@ -64,12 +64,12 @@ Default visual family (2026-07-07 CTR fix):
 
 ## A/B Difference
 
-Recommended split:
+Recommended split (2026-09-03 YouTube thumbnail-insight test):
 
-- A: battle, data shock, market clash.
-- B: control room, institutional signal, buy/sell dashboard, discovery moment.
+- A (control): current two-line overlay `股名／代號` + `外資砍／買○○億`; existing composition may stay map-like.
+- B (experiment): same stock and number, but overlay is a fragment (`還紅?` / `砍292億` / `高買低量`). Medium characters, larger type, theme in the background only. No verification stamp, no VERIFIED, no 上集點名.
 
-The visual layout, character scale, and background should differ between A and B.
+The visual layout, character scale, and background should differ between A and B. Overlay must match the title hero.
 
 Track the thumbnail concept type for future learning:
 

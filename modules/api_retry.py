@@ -10,10 +10,16 @@ def is_retryable_exception(exception: BaseException) -> bool:
     if any(code in error_str for code in ["429", "500", "502", "503", "504"]):
         return True
     
-    # Also retry on generic requests timeouts
+    # Also retry on generic requests / httpx timeouts (Gemini SDK uses httpx)
     try:
         import requests
         if isinstance(exception, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)):
+            return True
+    except ImportError:
+        pass
+    try:
+        import httpx
+        if isinstance(exception, (httpx.TimeoutException, httpx.ConnectError, httpx.RemoteProtocolError)):
             return True
     except ImportError:
         pass

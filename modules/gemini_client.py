@@ -24,7 +24,13 @@ def default_model_name() -> str:
 def get_client(api_key: str) -> genai.Client:
     if not api_key:
         raise ValueError("Gemini API key is required")
-    return genai.Client(api_key=api_key)
+    # google.genai HttpOptions.timeout is milliseconds. Default 3 min so
+    # generate_report cannot hang silently for 10+ minutes with no HTTP log.
+    timeout_ms = int(os.getenv("GEMINI_HTTP_TIMEOUT_MS") or "180000")
+    return genai.Client(
+        api_key=api_key,
+        http_options=types.HttpOptions(timeout=timeout_ms),
+    )
 
 
 def response_text(response) -> str:

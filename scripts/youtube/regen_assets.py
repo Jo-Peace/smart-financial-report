@@ -73,6 +73,7 @@ def build_packaging_context(structured_data):
         format_editorial_frame_for_prompt,
     )
     from modules.event_radar import format_event_radar_for_prompt
+    from modules.market_calendar import packaging_calendar_block
 
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     skill_context = ""
@@ -132,6 +133,7 @@ def build_packaging_context(structured_data):
             _read_tail(CHANNEL_STORY_LOG, max_chars=5000),
             youtube_assets_dir=REPORTS_DIR,
         ),
+        "calendar_rules": packaging_calendar_block(structured_data.get("date")),
         "analytics_summary": _read_tail(analytics_path, max_chars=4500),
         "youtube_performance_patterns": _read_tail(youtube_performance_path, max_chars=5000),
         "channel_story": _read_tail(CHANNEL_STORY_LOG, max_chars=3500),
@@ -296,35 +298,44 @@ def integrate_thumbnail_prompts_into_package(package_path, ab_results, visual_th
     first_content = _read_file(first_path) if first_path and os.path.exists(first_path) else thumbnails[0].get("prompt", "")
     notebook_section = _notebooklm_cover_section_from_thumbnail(first_content, visual_theme)
 
+    # Strip previously appended cover blocks before inserting. The stop heading
+    # in the addendum is "## 48 小時驗收欄位", not "###". Doing this after insert
+    # deletes the block just written whenever that heading level does not match.
+    checklist_stop = r"\n(?:###|##) 48 小時驗收欄位"
+    package = re.sub(
+        rf"\n### A/B 完整封面 Prompt（以此為準）[\s\S]*?(?={checklist_stop}|\Z)",
+        "\n",
+        package,
+        count=1,
+    )
+    package = re.sub(
+        rf"\n(?:###|##) NotebookLM Video Overview 封面視覺統一指令[\s\S]*?(?={checklist_stop}|\Z)",
+        "\n",
+        package,
+        count=1,
+    )
+
     cover_pattern = re.compile(
         r"### A 組封面設定.*?(?=(?:###|##) NotebookLM Video Overview 封面視覺統一指令)",
         flags=re.DOTALL,
     )
     package, cover_replacements = cover_pattern.subn(prompt_section + "\n\n", package, count=1)
 
-    # Support both ## / ### heading levels and avoid leaving a stale appended block.
     notebook_pattern = re.compile(
-        r"(?:###|##) NotebookLM Video Overview 封面視覺統一指令.*?(?=(?:###|##) 48 小時驗收欄位|\Z)",
+        rf"(?:###|##) NotebookLM Video Overview 封面視覺統一指令.*?(?={checklist_stop}|\Z)",
         flags=re.DOTALL,
     )
     package, notebook_replacements = notebook_pattern.subn(notebook_section + "\n\n", package, count=1)
 
-    # Remove any previously appended "A/B 完整封面 Prompt" / trailing NotebookLM blocks
-    # so force re-runs do not stack duplicate cover sections.
-    package = re.sub(
-        r"\n### A/B 完整封面 Prompt（以此為準）[\s\S]*?(?=\n### 48 小時驗收欄位|\Z)",
-        "\n",
-        package,
-        count=1,
-    )
-    package = re.sub(
-        r"\n### NotebookLM Video Overview 封面視覺統一指令[\s\S]*?(?=\n### 48 小時驗收欄位|\Z)",
-        "\n",
-        package,
-    )
-
     if not cover_replacements:
-        # Prefer inserting before the 48h checklist when present.
+        # NotebookLM heading is stripped above, so the A-group block often
+        # survives and still carries the planner's old cover words.
+        package = re.sub(
+            rf"\n### A 組封面設定[\s\S]*?(?=\n### A/B 完整封面 Prompt|{checklist_stop}|\Z)",
+            "\n",
+            package,
+            count=1,
+        )
         checklist_pattern = re.compile(r"(?=### 48 小時驗收欄位|## 48 小時驗收欄位)")
         if checklist_pattern.search(package):
             package = checklist_pattern.sub(prompt_section + "\n\n", package, count=1)

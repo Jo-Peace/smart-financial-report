@@ -77,14 +77,53 @@ def _item_text(item: Any) -> str:
 
 
 def _stock_key(ticker: str | None, name: str | None) -> str:
-    return (ticker or name or "").strip()
+    return (str(ticker or "").strip() or str(name or "").strip())
+
+
+def _load_name_to_ticker() -> dict[str, str]:
+    path = BASE_DIR / "data" / "stock_db.json"
+    mapping: dict[str, str] = {}
+    data = _read_json(path)
+    if not isinstance(data, dict):
+        return mapping
+    for ticker, info in data.items():
+        name = str((info or {}).get("name") or "").strip()
+        if name:
+            mapping[name] = str(ticker)
+            mapping[name.replace("-KY", "")] = str(ticker)
+    return mapping
+
+
+_NAME_TO_TICKER = None
+
+
+def _ticker_for_name(name: str) -> str:
+    global _NAME_TO_TICKER
+    if _NAME_TO_TICKER is None:
+        _NAME_TO_TICKER = _load_name_to_ticker()
+    clean = re.sub(r"[\s\*＊]", "", str(name or ""))
+    return _NAME_TO_TICKER.get(name.strip()) or _NAME_TO_TICKER.get(clean) or ""
 
 
 def _parse_stock_label(text: str) -> tuple[str, str]:
-    match = re.match(r"\s*(?P<ticker>\d{4})?\s*(?P<name>[^（(]+)", text)
-    if not match:
-        return "", text.strip()
-    return (match.group("ticker") or "").strip(), (match.group("name") or "").strip()
+    blob = str(text or "").strip()
+    ticker = ""
+    t_match = re.search(r"\b(\d{4,6})\b", blob)
+    if t_match:
+        ticker = t_match.group(1)
+    name_src = blob
+    if t_match:
+        name_src = blob[t_match.end():]
+    name = re.split(r"[：（(:（]", name_src, maxsplit=1)[0]
+    name = re.sub(r"[+\-]?\d+(?:\.\d+)?\s*億", "", name)
+    name = re.sub(r"[\s\*＊]+", "", name).strip("-_/")
+    if not name:
+        name = re.split(r"[：（(:（]", blob, maxsplit=1)[0]
+        name = re.sub(r"\d{4,6}", "", name)
+        name = re.sub(r"[+\-]?\d+(?:\.\d+)?\s*億", "", name).strip()
+    if not ticker and name:
+        ticker = _ticker_for_name(name)
+    return ticker, name
 
 
 def _recent_structured_dates(limit: int = 20) -> list[str]:
@@ -113,9 +152,11 @@ def _build_current_watch(data: dict[str, Any]) -> tuple[list[dict[str, Any]], li
         ticker = str(item.get("ticker") or item.get("id") or "").strip()
         name = str(item.get("name") or "").strip()
         key = _stock_key(ticker, name)
-        if not key or key in seen_tracking:
+        if not key or key in seen_tracking or (ticker and ticker in seen_tracking):
             continue
         seen_tracking.add(key)
+        if ticker:
+            seen_tracking.add(ticker)
         tracking.append(
             {
                 "ticker": ticker,
@@ -137,6 +178,16 @@ def _build_current_watch(data: dict[str, Any]) -> tuple[list[dict[str, Any]], li
             continue
         ticker = str(item.get("ticker") or (theme if theme.isdigit() else "")).strip()
         name = str(item.get("name") or focus_name_by_ticker.get(ticker) or theme).strip()
+        parsed_ticker, parsed_name = _parse_stock_label(theme)
+        ticker = ticker or parsed_ticker
+        if name == theme or not name:
+            name = parsed_name or name
+        key = _stock_key(ticker, name)
+        if not key or key in seen_tracking or (ticker and ticker in seen_tracking):
+            continue
+        seen_tracking.add(key)
+        if ticker:
+            seen_tracking.add(ticker)
         tracking.append(
             {
                 "ticker": ticker,
@@ -145,7 +196,7 @@ def _build_current_watch(data: dict[str, Any]) -> tuple[list[dict[str, Any]], li
                 "horizon": item.get("horizon") or data.get("long_term_horizon") or "2~6週",
                 "timeScale": item.get("time_scale") or "中期",
                 "reason": item.get("thesis") or item.get("evidence") or "",
-                "invalidation": item.get("invalidation") or "需要 20D / 60D 持續驗證",
+                "invalidation": item.get("invalidation") or "需要 20D 持續驗證",
                 "source": "latest_long_term_pick",
             }
         )
@@ -161,7 +212,7 @@ def _build_current_watch(data: dict[str, Any]) -> tuple[list[dict[str, Any]], li
                 "ticker": ticker,
                 "name": name,
                 "direction": "注意",
-                "reason": _item_text(text),
+                "reason": _item_text(text)[:80],
                 "riskType": "外資賣超 / 權值撤退",
             }
         )
@@ -177,7 +228,7 @@ def _build_current_watch(data: dict[str, Any]) -> tuple[list[dict[str, Any]], li
                 "ticker": ticker,
                 "name": name,
                 "direction": "注意",
-                "reason": _item_text(text),
+                "reason": _item_text(text)[:80],
                 "riskType": "量價 / 籌碼背離",
             }
         )
@@ -274,7 +325,29 @@ def _horizon_role(horizon_days: int) -> dict[str, str]:
     }
 
 
-def _build_analytics(limit: int = 12) -> dict[str, Any]:
+def _stock_score_for_tickers(cur, tickers: list[str]) -> list[sqlite3.Row]:
+    wanted = [str(t).strip() for t in tickers if str(t).strip()]
+    if not wanted:
+        return []
+    placeholders = ",".join("?" for _ in wanted)
+    return cur.execute(
+        f"""
+        SELECT p.ticker, p.name,
+               COUNT(*) AS samples,
+               AVG(r.hit) AS hit_rate,
+               AVG(r.excess_return_pct) AS avg_excess,
+               MAX(r.evaluated_date) AS latest_eval
+        FROM prediction_results r
+        JOIN predictions p ON p.id = r.prediction_id
+        WHERE r.horizon_days = ? AND p.ticker IN ({placeholders})
+        GROUP BY p.ticker, p.name
+        ORDER BY hit_rate DESC, avg_excess DESC, samples DESC
+        """,
+        (PRIMARY_RELIABILITY_HORIZON, *wanted),
+    ).fetchall()
+
+
+def _build_analytics(limit: int = 12, today_tickers: list[str] | None = None) -> dict[str, Any]:
     if not DB_PATH.is_file():
         return {"available": False, "reason": "analytics.db not found"}
 
@@ -348,6 +421,7 @@ def _build_analytics(limit: int = 12) -> dict[str, Any]:
         """,
         (limit,),
     ).fetchall()
+    today_score = _stock_score_for_tickers(cur, today_tickers or [])
     conn.close()
 
     by_horizon_rows = []
@@ -369,7 +443,9 @@ def _build_analytics(limit: int = 12) -> dict[str, Any]:
         if item["isPrimary"]:
             primary_row = item
 
-    def _score_rows(rows):
+    today_ids = {str(t).strip() for t in (today_tickers or []) if str(t).strip()}
+
+    def _score_rows(rows, on_today=False):
         return [
             {
                 "ticker": row["ticker"],
@@ -379,9 +455,15 @@ def _build_analytics(limit: int = 12) -> dict[str, Any]:
                 "avgExcessPct": _percent(row["avg_excess"]),
                 "latestEval": row["latest_eval"],
                 "horizonDays": PRIMARY_RELIABILITY_HORIZON,
+                "onTodayWatch": bool(on_today or str(row["ticker"]) in today_ids),
             }
             for row in rows
         ]
+
+    today_rows = _score_rows(today_score, on_today=True)
+    seen = {row["ticker"] for row in today_rows}
+    rest = [row for row in _score_rows(stock_score) if row["ticker"] not in seen]
+    scoreboard = (today_rows + rest)[:limit]
 
     return {
         "available": True,
@@ -415,8 +497,8 @@ def _build_analytics(limit: int = 12) -> dict[str, Any]:
             }
             for row in open_predictions
         ],
-        # 主表：20D 個股表現（UI 預設）
-        "stockScoreboard": _score_rows(stock_score),
+        # 主表：今日雷達個股優先，其餘為 20D 歷史榜
+        "stockScoreboard": scoreboard,
         # 對照：全窗混合（除錯／舊版相容）
         "stockScoreboardAllHorizons": [
             {
@@ -437,7 +519,12 @@ def build_payload(date: str | None = None) -> dict[str, Any]:
     structured_path = _latest_structured_path(date)
     structured_data = _read_json(structured_path) if structured_path else {}
     tracking, warnings, focus = _build_current_watch(structured_data)
-    analytics = _build_analytics()
+    today_tickers = []
+    for row in tracking + warnings:
+        ticker = str(row.get("ticker") or "").strip()
+        if ticker and ticker not in today_tickers:
+            today_tickers.append(ticker)
+    analytics = _build_analytics(today_tickers=today_tickers)
     return {
         "generatedAt": dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "sourceDate": structured_data.get("date") or (structured_path.parent.name if structured_path else ""),

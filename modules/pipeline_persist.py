@@ -16,6 +16,7 @@ from modules.prediction_validator import format_validation_results_for_structure
 from modules.structured_facts import build_local_structured_facts, summarize_local_facts
 from modules.timeframe_builder import enrich_structured_data_with_timeframes
 from modules.role_scorer import attach_role_scores_to_structured, load_stock_db
+from modules.narrative_sanitize import sanitize_narrative_text, sanitize_structured_data
 
 
 def persist_daily_artifacts(
@@ -37,6 +38,7 @@ def persist_daily_artifacts(
     project_theme="",
     channel_story_log="",
     youtube_assets_dir="",
+    similar_sessions=None,
 ):
     os.makedirs(reports_dir, exist_ok=True)
     validation_results = validation_results or []
@@ -47,6 +49,7 @@ def persist_daily_artifacts(
     commodity_data = commodity_data or {}
     supply_chain_event_radar = supply_chain_event_radar or []
 
+    report_content = sanitize_narrative_text(report_content or "")
     filepath = daily_artifact_write_path(reports_dir, date_str, "report")
     filename = os.path.basename(filepath)
     with open(filepath, "w", encoding="utf-8") as f:
@@ -112,6 +115,12 @@ def persist_daily_artifacts(
         structured_data["editorial_frame"] = editorial_frame
         structured_data["supply_chain_event_radar"] = supply_chain_event_radar
         try:
+            from modules.market_calendar import events_for_structured
+
+            structured_data["calendar_events"] = events_for_structured(date_str)
+        except Exception:
+            structured_data["calendar_events"] = []
+        try:
             structured_data = attach_role_scores_to_structured(
                 structured_data,
                 load_stock_db(),
@@ -126,6 +135,28 @@ def persist_daily_artifacts(
                 print(f"  ✅ 主角量化排序: {preview}")
         except Exception as score_err:
             print(f"  ⚠️  角色量化分數略過: {score_err}")
+        try:
+            from modules.broadcast_facts import attach_broadcast_facts
+
+            structured_data = attach_broadcast_facts(structured_data)
+        except Exception as broadcast_err:
+            print(f"  ⚠️  播出帳本略過: {broadcast_err}")
+        structured_data = sanitize_structured_data(structured_data)
+        try:
+            from modules.similar_sessions import find_similar_for_structured
+
+            if similar_sessions is None:
+                similar_sessions = find_similar_for_structured(structured_data, reports_dir)
+            structured_data["similar_sessions"] = similar_sessions or []
+            if similar_sessions:
+                preview = "、".join(
+                    f"{row.get('date')}({row.get('score')})" for row in similar_sessions
+                )
+                print(f"  ✅ 相似盤已寫入 structured_data: {preview}")
+            else:
+                print("  ⚠️  無足夠相似盤可寫入 structured_data")
+        except Exception as similar_err:
+            print(f"  ⚠️  相似盤寫入略過: {similar_err}")
         json.dump(structured_data, f, ensure_ascii=False, indent=2)
     print(f"  ✅ 結構化數據已儲存: {json_filename}")
     if local_facts.get("safe_havens_bought") or local_facts.get("heavyweights_dumped"):
@@ -180,6 +211,20 @@ def persist_daily_artifacts(
             print(f"  ✅ Analytics 摘要已更新: {os.path.basename(analytics_report_path)}")
         except Exception as report_error:
             print(f"  ⚠️  Analytics 摘要產生失敗: {report_error}")
+        try:
+            from scripts.maintenance.build_dashboard_stock_watch import build_payload, DEFAULT_OUTPUT
+
+            watch = build_payload(date_str)
+            DEFAULT_OUTPUT.write_text(
+                json.dumps(watch, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            print(
+                f"  ✅ 股票雷達已更新: {os.path.basename(DEFAULT_OUTPUT)} "
+                f"（{watch.get('sourceDate') or date_str}）"
+            )
+        except Exception as watch_error:
+            print(f"  ⚠️  股票雷達摘要產生失敗: {watch_error}")
     except Exception as e:
         print(f"  ⚠️  Analytics DB 寫入失敗，略過本地統計: {e}")
 

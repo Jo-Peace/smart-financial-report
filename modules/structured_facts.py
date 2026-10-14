@@ -16,6 +16,7 @@ LOCAL_OWNED_FIELDS = (
     "index_action",
     "heavyweights_dumped",
     "safe_havens_bought",
+    "trust_conflicts",
     "commodities",
     "prev_day_picks_result",
 )
@@ -143,11 +144,19 @@ def build_local_structured_facts(
     """
     _ = volume_data  # reserved
     buys, sells = _build_institutional_lists(institutional_data, top_n=top_n)
+    from modules.institutional_ranking import format_conflict_line
+
+    conflicts = [
+        format_conflict_line(row)
+        for row in (institutional_data or {}).get("trust_conflicts") or []
+        if row
+    ]
     facts = {
         "date": date_str,
         "index_action": _build_index_action(market_data),
         "safe_havens_bought": buys,
         "heavyweights_dumped": sells,
+        "trust_conflicts": conflicts,
         "commodities": _build_commodities(commodity_data),
         "prev_day_picks_result": format_validation_results_for_structured_data(validation_results),
     }
@@ -163,6 +172,7 @@ def format_ground_truth_block(local_facts: dict | None) -> str:
         f"- index_action: {local_facts.get('index_action') or 'N/A'}",
         f"- safe_havens_bought (外資買超前段): {local_facts.get('safe_havens_bought') or []}",
         f"- heavyweights_dumped (外資賣超前段): {local_facts.get('heavyweights_dumped') or []}",
+        f"- trust_conflicts (土洋對作，只當備查不可講成主線): {local_facts.get('trust_conflicts') or []}",
         f"- commodities: {local_facts.get('commodities') or []}",
         f"- prev_day_picks_result (本機驗收): {local_facts.get('prev_day_picks_result') or []}",
         "Copy these factual fields as-is when present. Focus extraction on narrative fields:",

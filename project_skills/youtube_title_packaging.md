@@ -6,8 +6,8 @@ Purpose: produce two clean title candidates for daily Taiwan stock videos and ke
 
 Generate only two title candidates:
 
-- A: primary title, highest-confidence formula.
-- B: replacement title, different angle for testing after 48 hours.
+- A: control. Full sentence, current formula (`外資○○億狂砍／狂掃` + core stock + contradiction). Upload A first.
+- B: experiment. Same core stock and same verified number, but fragmented: short question, telegram, or incomplete clause. Do not start B with `外資○○億狂砍／狂掃`. Do not use 驗收 / 上集點名 / VERIFIED.
 
 Do not generate C titles. Three-way testing creates too much noise for the current channel scale.
 

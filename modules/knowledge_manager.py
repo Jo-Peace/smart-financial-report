@@ -108,7 +108,9 @@ class KnowledgeUpdater:
         return ["一", "二", "三", "四", "五", "六", "日"][day.weekday()]
 
     def _join_items(self, items, limit=5) -> str:
-        cleaned = [str(x).strip() for x in (items or []) if str(x).strip()]
+        from modules.narrative_sanitize import sanitize_narrative_text
+
+        cleaned = [sanitize_narrative_text(str(x).strip()) for x in (items or []) if str(x).strip()]
         if not cleaned:
             return "（無）"
         shown = cleaned[:limit]

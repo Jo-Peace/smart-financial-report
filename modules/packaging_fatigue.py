@@ -82,11 +82,24 @@ OPENER_HOOK_PATTERNS = [
     ("AMD", re.compile(r"^[\s🚀🚨📉📈]*AMD", re.I)),
     ("驗收開場", re.compile(r"^[\s🚀🚨]*【?驗收")),
     ("驗收上集", re.compile(r"^[\s🚀🚨]*驗收上集")),
+    ("外資金額開場", re.compile(r"^[\s🚀🚨📉📈]*外資\s*[\d.]+億狂[掃砍]")),
 ]
 
 # Soft limit: 2 consecutive same openers = warn; 3+ = block as fatigued opener.
 OPENER_WARN_STREAK = 2
 OPENER_BLOCK_STREAK = 3
+OPENER_BLOCK_STREAK_BY_LABEL = {
+    "外資金額開場": 2,  # 連兩支「外資Ｎ億狂掃／狂砍」就換鉤
+}
+
+SHADOW_TITLE_RE = re.compile(r"影子建倉|影子資金|隱形掃貨")
+WHO_RECEIVES_RE = re.compile(r"誰在收[？?]")
+UNPUBLISHED_RESULT_OPENERS = [
+    re.compile(r"^[\s🚀🚨📉📈]*升息"),
+    re.compile(r"^[\s🚀🚨📉📈]*降息"),
+    re.compile(r"^[\s🚀🚨📉📈]*非農"),
+    re.compile(r"^[\s🚀🚨📉📈]*聯準會.{0,12}(升息|降息|按兵|利率決議已)"),
+]
 
 COMPOUND_REPLACEMENTS = [
     ("能接棒嗎", "誰在買"),
@@ -154,8 +167,10 @@ def analyze_title_opener_streaks(titles: list[str], lookback: int = 8) -> dict:
             else:
                 break
 
-    warn = bool(trailing_label and streak >= OPENER_WARN_STREAK)
-    block = bool(trailing_label and streak >= OPENER_BLOCK_STREAK)
+    block_n = OPENER_BLOCK_STREAK_BY_LABEL.get(trailing_label, OPENER_BLOCK_STREAK)
+    warn_n = max(1, block_n - 1)
+    warn = bool(trailing_label and streak >= warn_n)
+    block = bool(trailing_label and streak >= block_n)
     advice = ""
     if block:
         advice = (
@@ -344,6 +359,8 @@ def build_title_fatigue_report(channel_story="", youtube_assets_dir=YOUTUBE_ASSE
             "- 若資料支持換手，請改問：為什麼逆勢、量價哪裡矛盾、明日失效條件是什麼。",
             "- 連續 3 天內不得重複「榜外吸籌 + 資金換手」A/B 配對。",
             "- 同一開場關鍵字（如 AMD）連續 ≥3 支：禁止再開場；事件可放描述中後段。",
+            "- 「外資Ｎ億狂掃／狂砍」連兩支即換鉤；B 組不要連用「誰在收？」。",
+            "- 禁止標題出現影子建倉／把未公布的升息、非農當結果開場。",
             "- 標題前 20 字優先：已驗證金額 + 核心股名 + 反直覺矛盾（非品牌事件名）。",
         ]
     )
@@ -573,17 +590,60 @@ def _ensure_brand_suffix(title, short_date=""):
 
 
 def _still_uses_blocked_opener(title, fatigue_state=None):
-    """True if title still cold-opens with the BLOCK opener token."""
+    """True if title still cold-opens with a blocked or warned-dead opener."""
     opener = (fatigue_state or {}).get("opener_streak") or {}
-    if not opener.get("block"):
-        return False
     label = opener.get("trailing_label")
     if not label:
         return False
-    return _opener_hook_label(title) == label
+    if _opener_hook_label(title) != label:
+        return False
+    if opener.get("block"):
+        return True
+    # 外資Ｎ億狂掃／狂砍：連一支都不要再接同一開場。
+    if opener.get("warn") and label == "外資金額開場":
+        return True
+    return False
 
 
-def guard_youtube_titles(titles, fatigue_state=None, local_candidates=None, short_date=""):
+def _recent_used_who_receives(fatigue_state=None) -> bool:
+    titles = (fatigue_state or {}).get("recent_titles") or []
+    return any(WHO_RECEIVES_RE.search(str(title or "")) for title in titles[-4:])
+
+
+def _unpublished_result_kinds(date_str="") -> set[str]:
+    if not date_str:
+        return set()
+    try:
+        from modules.market_calendar import nearby_market_events
+    except Exception:
+        return set()
+    kinds = set()
+    for row in nearby_market_events(date_str):
+        if row.get("when") in {"今天", "尚未發生"} and row.get("kind") in {
+            "nfp",
+            "fomc_us",
+            "fomc_tw",
+        }:
+            kinds.add(row["kind"])
+    return kinds
+
+
+def title_is_unusable(title, fatigue_state=None, date_str="") -> bool:
+    """Hard rejects that local templates should replace."""
+    text = str(title or "").strip()
+    if not text:
+        return True
+    if SHADOW_TITLE_RE.search(text):
+        return True
+    if _recent_used_who_receives(fatigue_state) and WHO_RECEIVES_RE.search(text):
+        return True
+    unpublished = _unpublished_result_kinds(date_str)
+    if unpublished and any(pattern.search(text) for pattern in UNPUBLISHED_RESULT_OPENERS):
+        return True
+    return False
+
+
+def guard_youtube_titles(titles, fatigue_state=None, local_candidates=None, short_date="", date_str=""):
     """
     Post-process Gemini/fallback titles: soft-replace fatigued terms, keep two distinct angles.
 
@@ -603,6 +663,8 @@ def guard_youtube_titles(titles, fatigue_state=None, local_candidates=None, shor
         if not line or len(line) < 12:
             return ""
         if _still_uses_blocked_opener(line, fatigue_state):
+            return ""
+        if title_is_unusable(line, fatigue_state=fatigue_state, date_str=date_str):
             return ""
         return _ensure_brand_suffix(line, short_date=short_date)
 

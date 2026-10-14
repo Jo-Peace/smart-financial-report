@@ -23,24 +23,9 @@ def _as_list(value):
 
 
 def _clean_source_text(value):
-    text = str(value)
-    replacements = {
-        "影子主力的避險碉堡": "法人避險買盤",
-        "高階真空吸籌": "低量買超",
-        "真空吸籌": "榜外買超",
-        "資金的地下大遷移": "資金轉向",
-        "血洗": "重挫",
-        "崩盤": "重挫",
-        "碉堡": "避險標的",
-        "外資提款": "外資賣超",
-        "精準轉入": "轉向買超",
-        "汰弱留強": "買賣超分化",
-        "影子建倉": "榜外低量買超",
-        "核彈級": "大幅",
-    }
-    for old, new in replacements.items():
-        text = text.replace(old, new)
-    return text
+    from modules.narrative_sanitize import sanitize_narrative_text
+
+    return sanitize_narrative_text(value)
 
 
 def _line_items(items, limit=None):
@@ -190,6 +175,41 @@ def _dedupe_events(events, limit=2):
     return out
 
 
+def _similar_session_lines(rows, limit=2):
+    rows = _as_list(rows)[:limit]
+    if not rows:
+        return "- 無足夠相似歷史盤可對照"
+    lines = []
+    for row in rows:
+        if not isinstance(row, dict):
+            lines.append(f"- {_clean_source_text(row)}")
+            continue
+        date = row.get("date") or "未知日"
+        score = row.get("score", "")
+        index_action = _clean_source_text(row.get("index_action") or "")
+        bought = _clean_source_text(row.get("bought") or "無")
+        sold = _clean_source_text(row.get("sold") or "無")
+        reasons = "、".join(_clean_source_text(x) for x in _as_list(row.get("reasons"))[:3])
+        preds = []
+        for pred in _as_list(row.get("predictions"))[:2]:
+            if isinstance(pred, dict):
+                preds.append(
+                    f"{pred.get('ticker', '')} {pred.get('name', '')} {pred.get('direction', '')}".strip()
+                )
+            elif pred:
+                preds.append(_clean_source_text(pred))
+        pred_text = "；".join(p for p in preds if p) or "無正式預測"
+        results = "；".join(_clean_source_text(x) for x in _as_list(row.get("next_day_results"))[:3]) or "尚無隔日節奏"
+        next_date = row.get("next_date") or "無"
+        lines.append(
+            f"- {date}（分數 {score}）：大盤 {index_action or 'N/A'}；"
+            f"買超 {bought}；賣超 {sold}；"
+            f"對照原因 {reasons or '結構相近'}；"
+            f"當時預測 {pred_text}；隔日（{next_date}）{results}"
+        )
+    return "\n".join(lines)
+
+
 def _event_lines(events, limit=2):
     events = _dedupe_events(events, limit=limit)
     if not events:
@@ -203,7 +223,9 @@ def _event_lines(events, limit=2):
             # Shorten English headline noise for TTS/source clarity.
             if len(title) > 80:
                 title = title[:77] + "…"
-            lines.append(f"- {title}；影響分數 {score}；可能影響：{roles}")
+            fresh = event.get("freshness") or "new"
+            tag = "舊事件背景" if fresh == "stale" else ("連日重複" if fresh == "repeat" else "新事件")
+            lines.append(f"- {title}；影響分數 {score}；新舊={tag}；可能影響：{roles}")
         else:
             lines.append(f"- {_clean_source_text(event)}")
     return "\n".join(lines)
@@ -308,6 +330,60 @@ def _lookup_target_invalidation(structured_data, sid: str, name: str) -> str:
         if (sid and tid == sid) or (name and tname and name in tname):
             return _clean_source_text(pick.get("invalidation") or "")
     return ""
+
+
+def _admission_label(level: str) -> str:
+    return {
+        "official": "正式追蹤（可當下一交易日主盯）",
+        "talk_only": "僅可口述（矛盾／背景，不可講成已確認趨勢）",
+        "context": "對照股（不要當主盯）",
+    }.get(level or "", "觀察")
+
+
+def _render_broadcast_cards(facts: dict) -> str:
+    cards = facts.get("heroes") or []
+    if not cards:
+        return "- 無足夠資料組成主角卡"
+    blocks = []
+    for i, card in enumerate(cards[:3], start=1):
+        label = f"{card.get('ticker', '')} {card.get('name', '')}".strip() or f"標的{i}"
+        from modules.broadcast_facts import format_amount_yi, format_pct
+
+        amount = format_amount_yi(card.get("foreign_amount")) if card.get("foreign_amount") is not None else ""
+        pct = format_pct(card.get("pct_change")) if card.get("pct_change") is not None else ""
+        vol = ""
+        if card.get("volume_rank"):
+            vol = f"成交量第 {card['volume_rank']} 名"
+        elif card.get("off_rank"):
+            vol = "成交量未進前 20"
+        streak = card.get("foreign_streak_days")
+        if card.get("sold_today") or (card.get("foreign_amount") is not None and card.get("foreign_amount") < 0):
+            streak_text = "今日賣超（連續買超中斷，勿唸舊天數）"
+        elif streak not in (None, 0):
+            streak_text = f"{streak} 日"
+        else:
+            streak_text = "資料不足（勿自行發明連續天數）"
+        lines = [
+            f"### 主角 {i}：{label}",
+            f"- 入場層級：{_admission_label(card.get('admission'))}",
+            f"- 層級理由：{card.get('admission_reason') or '無'}",
+            f"- 可唸事實：{card.get('say_line') or label}",
+        ]
+        if amount:
+            lines.append(f"- 外資金額：{amount}")
+        if pct:
+            lines.append(f"- 漲跌：{pct}")
+        if vol:
+            lines.append(f"- 量能：{vol}")
+        lines.append(f"- 外資連續買超：{streak_text}")
+        if card.get("invalidation"):
+            lines.append(f"- 失效條件：{card['invalidation']}")
+        else:
+            lines.append("- 失效條件：資料源未指定（勿自行發明）")
+        if card.get("caution"):
+            lines.append("- 口播限制：這是單日矛盾／節奏，成敗看約 20 交易日，不要講成隔日必漲")
+        blocks.append("\n".join(lines))
+    return "\n\n".join(blocks)
 
 
 def _build_protagonist_cards(structured_data, limit=3) -> str:
@@ -485,92 +561,106 @@ def build_notebooklm_source(structured_data, date_str=None):
     if isinstance(frame, dict) and frame.get("confidence") not in (None, ""):
         confidence = f"{frame.get('confidence')}/100"
 
-    reliability = structured_data.get("horizon_reliability") or {}
-    ruler_line = reliability.get("one_liner") or (
-        structured_data.get("timeframe_history") or {}
-    ).get("reliability_note") or ""
-    if not ruler_line:
-        try:
-            from modules.horizon_reliability import reliability_one_liner
+    from modules.broadcast_facts import attach_broadcast_facts, ensure_broadcast_facts
 
-            ruler_line = reliability_one_liner(
-                (structured_data.get("timeframe_history") or {}).get("horizon_performance")
-            )
-        except Exception:
-            ruler_line = ""
+    structured_data = attach_broadcast_facts(structured_data)
+    facts = ensure_broadcast_facts(structured_data)
+    opening = facts.get("opening") or {}
+    ruler_line = facts.get("ruler_line") or ""
     ruler_bullet = (
-        f"- 時間尺度：{_clean_source_text(ruler_line)}"
+        f"- 成敗尺子：{_clean_source_text(ruler_line)}"
         if ruler_line
-        else "- 時間尺度：隔日～5D＝節奏；約 20 交易日＝趨勢成敗主尺子（目前樣本優先）"
+        else "- 成敗尺子：隔日～5D＝節奏；約 20 交易日＝趨勢主尺子"
     )
+    from modules.market_calendar import calendar_one_liner, nearby_market_events
+
+    calendar_events = structured_data.get("calendar_events") or nearby_market_events(date_str)
+    calendar_line = calendar_one_liner(date_str)
+    calendar_bullet = f"- 日曆：{_clean_source_text(calendar_line)}" if calendar_line else ""
+    calendar_backup = "\n".join(
+        f"- {row.get('date')}（{row.get('when')}）：{_clean_source_text(row.get('text'))}"
+        for row in (calendar_events or [])[:8]
+    ) or "- （近窗無日曆事件）"
+    hook = _clean_source_text(opening.get("hook_line") or "")
+    contrast = _clean_source_text(opening.get("contrast_line") or "")
+    from modules.session_calendar import last_output_from_structured, session_lexicon
+
+    lex = session_lexicon(
+        date_str or structured_data.get("date"),
+        last_output_date=last_output_from_structured(structured_data),
+    )
+    prev_section = lex.get("prev_section") or "昨日預測節奏"
+    next_section = lex.get("next_section") or "明日條件"
+    next_label = lex.get("next_label") or "明天"
 
     return f"""# NotebookLM 乾淨資料源：{date_str} 台股盤後
 
-用途：僅供 NotebookLM 引用的可驗證資料。不含主持人口吻、不含導演指令、不含模板解讀。
+用途：僅供 NotebookLM 引用的可驗證資料。不含主持人口吻、不含導演指令。
+數字以本節「必引」與「主角卡」為準；內部量化分（P/E/F/V）不是口播內容。
 解讀權重：短線節奏可提；假說／選標成敗以中期趨勢窗（≈20 交易日）為主。
 
-## 1. 市場總覽
+## 1. 今日必引數字（開場先用這段，不要自行重算）
 
 - 日期：{structured_data.get("date", date_str)}
 - 大盤：{_clean_source_text(structured_data.get("index_action", "N/A"))}
 - 主軸標籤：{label}{f'（信心 {confidence}）' if confidence else ''}
-- 短線對照在節目中的位置：{placement}（lead / brief / omit；實際說法見主持人 prompt）
+- 開場矛盾：{hook or "見主角卡"}
+- 買賣對照：{contrast or "見主角卡"}
+- 短線對照位置：{placement}（實際講法見主持人 prompt）
 {ruler_bullet}
+{calendar_bullet}
 
-## 2. 昨日預測節奏（短線事實；非趨勢期末考）
+## 2. 主角股卡片（最多 3 檔；優先講「正式追蹤」）
+
+{_render_broadcast_cards(facts)}
+
+## 3. {prev_section}（短線事實；非趨勢期末考）
 
 {_validation_lines(
     structured_data.get("validation_results") or structured_data.get("prev_day_picks_result"),
     structured_data=structured_data,
 )}
 
-## 3. 法人買超（前段）
+## 4. {next_section}
 
-{_line_items(structured_data.get("safe_havens_bought"), limit=5)}
-
-## 4. 法人賣超（前段）
-
-{_line_items(structured_data.get("heavyweights_dumped"), limit=5)}
-
-## 5. 量價 / 籌碼矛盾
-
-{_line_items(structured_data.get("price_volume_divergence"), limit=3)}
-
-## 6. 今日主角股卡片（最多 3 檔，主持人優先講這幾張）
-
-{_build_protagonist_cards(structured_data, limit=3)}
-
-## 7. 短線節奏卡（1～5 日；僅參考）
-
-{_short_term_pick_lines(structured_data)}
-
-## 8. 明日／追蹤標的（節奏 + 趨勢兩層）
-
+- 正式追蹤：見主角卡標成「正式追蹤」的檔；失效條件必須原句唸出。
+- 僅可口述：見主角卡標成「僅可口述」的檔；可以當矛盾，不可以當「{next_label}追這檔」。
 {_prediction_lines(structured_data.get("prediction_targets"), limit=2)}
 
-## 9. 族群與個股對應
+## 5. 備查（不要整段朗讀）
 
-{_sector_lines(structured_data.get("sectors"), limit=5)}
+### 法人買超前段
+{_line_items(structured_data.get("safe_havens_bought"), limit=5)}
 
-## 10. 商品行情
+### 法人賣超前段
+{_line_items(structured_data.get("heavyweights_dumped"), limit=5)}
 
+### 土洋對作（備查；不要當開場主線）
+{_line_items(structured_data.get("trust_conflicts"), limit=5)}
+
+### 量價 / 籌碼矛盾原文
+{_line_items(structured_data.get("price_volume_divergence"), limit=3)}
+
+### 相似歷史盤（本機結構化比對，不是模型記憶）
+{_similar_session_lines(structured_data.get("similar_sessions"), limit=2)}
+
+### 商品
 {_line_items(structured_data.get("commodities"), limit=4)}
 
-## 11. 外部事件（已去重，最多 2 則）
+### 日曆約束（解讀用，不要整段朗讀）
+{calendar_backup}
 
+### 外部事件（已去重，最多 2 則）
 {_event_lines(structured_data.get("supply_chain_event_radar"), limit=2)}
 
-## 12. 策略摘要（一句即可）
-
+### 策略一句
 - 穩健：{_clean_source_text(structured_data.get("conservative_strategy", "N/A"))}
 - 波段：{_clean_source_text(structured_data.get("aggressive_strategy", "N/A"))}
 
-## 13. 中期趨勢背景（≈20 交易日；可略讀；極端報酬已標註）
-
+### 中期趨勢背景（可略讀；極端報酬已標註）
 {_long_term_pick_lines(structured_data)}
 
-## 14. 多日統計摘要（趨勢窗優先；可略讀）
-
+### 多日統計（趨勢窗優先；可略讀）
 {_timeframe_brief_lines(structured_data)}
 """
 

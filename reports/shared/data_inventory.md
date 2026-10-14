@@ -1,18 +1,18 @@
 # 資料歸納盤點（Data Inventory）
 
-更新時間：2026-08-05 17:09:57
+更新時間：2026-10-01 16:31:22
 
 這份檔案記錄 reports 歸檔後，資訊複利相關資料是否完整。
 
 ## 盤點摘要
 
-- structured_data 檔案數：143
-- daily report 檔案數：93
-- 可回溯日期數（依 structured_data）：93
-- 日期範圍：2026-03-06 ~ 2026-08-05
-- analytics.db daily_runs：93
-- analytics 已指向 canonical daily/ 路徑：93 / 93
-- local_market_memory 日期數：93
+- structured_data 檔案數：176
+- daily report 檔案數：126
+- 可回溯日期數（依 structured_data）：126
+- 日期範圍：2026-03-06 ~ 2026-09-30
+- analytics.db daily_runs：126
+- analytics 已指向 canonical daily/ 路徑：126 / 126
+- local_market_memory 日期數：126
 - 06_YouTube_Assets 殘留檔案數：0
 
 ## 複利資料來源（請優先維護這些）
@@ -33,33 +33,4 @@
 
 ## 最近一次整理動作
 
-- ANALYTICS path updated: 2026-06-15
-- ANALYTICS path updated: 2026-06-16
-- ANALYTICS path updated: 2026-06-17
-- ANALYTICS path updated: 2026-06-18
-- ANALYTICS path updated: 2026-06-22
-- ANALYTICS path updated: 2026-06-23
-- ANALYTICS path updated: 2026-06-24
-- ANALYTICS path updated: 2026-06-25
-- ANALYTICS path updated: 2026-06-26
-- ANALYTICS path updated: 2026-06-29
-- ANALYTICS path updated: 2026-06-30
-- ANALYTICS path updated: 2026-07-01
-- ANALYTICS path updated: 2026-07-02
-- ANALYTICS path updated: 2026-07-03
-- ANALYTICS path updated: 2026-07-07
-- ANALYTICS path updated: 2026-07-08
-- ANALYTICS path updated: 2026-07-13
-- ANALYTICS path updated: 2026-07-14
-- ANALYTICS path updated: 2026-07-15
-- ANALYTICS path updated: 2026-07-20
-- ANALYTICS path updated: 2026-07-21
-- ANALYTICS path updated: 2026-07-22
-- ANALYTICS path updated: 2026-07-23
-- ANALYTICS path updated: 2026-07-24
-- ANALYTICS path updated: 2026-07-27
-- ANALYTICS path updated: 2026-07-28
-- ANALYTICS path updated: 2026-07-29
-- ANALYTICS path updated: 2026-07-30
-- ANALYTICS path updated: 2026-07-31
-- ANALYTICS path updated: 2026-08-04
+- （無）

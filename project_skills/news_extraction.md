@@ -14,6 +14,8 @@ Use this skill when:
 
 Prefer direct article text extraction over headline paraphrase.
 
+Daily `/1` news order is tape-first: search the 1–2 protagonist tickers already chosen by institutional/volume data, then at most one radar event that names those tickers. Recycled mega-buyer headlines are background, not the reason for today's buy.
+
 Use source order:
 
 1. Official source.

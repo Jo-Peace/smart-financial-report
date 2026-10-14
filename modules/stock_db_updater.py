@@ -56,6 +56,45 @@ class StockDatabaseUpdater:
         else:
             print("  [Auto-DB] AI 調查失敗，本次未新增資料。")
 
+    def _refresh_foreign_streaks(self, institutional_data, today_str):
+        """Update consecutive-buy days for every name on today's buy/sell lists."""
+        if not institutional_data:
+            return False
+        buy_ids = {str(s.get("id") or "").strip() for s in institutional_data.get("top_buy") or []}
+        sell_ids = {str(s.get("id") or "").strip() for s in institutional_data.get("top_sell") or []}
+        buy_ids.discard("")
+        sell_ids.discard("")
+        changed = False
+        yesterday = str(__import__("datetime").date.today() - __import__("datetime").timedelta(days=1))
+        for sid in buy_ids | sell_ids:
+            if sid not in self.stock_db:
+                continue
+            entry = self.stock_db[sid]
+            tracking = entry.get("tracking") or {
+                "prediction_count": 0,
+                "hit_count": 0,
+                "hit_rate": "0.0%",
+                "last_recommended": None,
+                "consecutive_foreign_buy_days": 0,
+                "last_foreign_buy_date": None,
+                "history": [],
+            }
+            if sid in sell_ids and sid not in buy_ids:
+                if tracking.get("consecutive_foreign_buy_days"):
+                    tracking["consecutive_foreign_buy_days"] = 0
+                    changed = True
+            elif sid in buy_ids:
+                last_fii_date = tracking.get("last_foreign_buy_date")
+                if last_fii_date == yesterday:
+                    tracking["consecutive_foreign_buy_days"] = tracking.get("consecutive_foreign_buy_days", 0) + 1
+                else:
+                    tracking["consecutive_foreign_buy_days"] = 1
+                tracking["last_foreign_buy_date"] = today_str
+                changed = True
+            entry["tracking"] = tracking
+            self.stock_db[sid] = entry
+        return changed
+
     def update_tracking_stats(self, yesterday_predictions, todays_market_data, todays_institutional_data=None):
         """
         [優化 D] 根據昨日預測與今日實際表現，更新 stock_db 中的動態績效 tracking 欄位。
@@ -67,24 +106,23 @@ class StockDatabaseUpdater:
                 e.g. {"2303.TW": {"price": 76.0, "pct_change": 4.1, ...}}
             todays_institutional_data: optional, the institutional data dict with top_buy/top_sell lists
         """
-        if not yesterday_predictions:
-            return
-
         today_str = str(__import__('datetime').date.today())
         needs_save = False
+        if todays_institutional_data and self._refresh_foreign_streaks(todays_institutional_data, today_str):
+            needs_save = True
+
+        if not yesterday_predictions:
+            if needs_save:
+                self._save_stock_db()
+                print("  [Auto-DB] 外資連續買超天數已依今日買賣超榜更新。")
+            return
 
         # Build lookup: id -> pct_change from today's market data
         market_lookup = {}
-        for symbol, data in todays_market_data.items():
+        for symbol, data in (todays_market_data or {}).items():
             sid = symbol.replace('.TW', '').replace('.TWO', '')
             if data and 'pct_change' in data:
                 market_lookup[sid] = data['pct_change']
-
-        # Build set of today's foreign buy ids
-        fii_buy_ids = set()
-        if todays_institutional_data:
-            for s in todays_institutional_data.get('top_buy', []):
-                fii_buy_ids.add(str(s['id']))
 
         print(f"  [Auto-DB] 正在更新 {len(yesterday_predictions)} 檔昨日預測標的的績效追蹤...")
 
@@ -145,21 +183,6 @@ class StockDatabaseUpdater:
             history = tracking.get('history', [])
             history.append(history_entry)
             tracking['history'] = history[-20:]  # keep last 20
-
-            # Update foreign buy streak
-            if sid in fii_buy_ids:
-                last_fii_date = tracking.get('last_foreign_buy_date')
-                if last_fii_date == str(__import__('datetime').date.today() - __import__('datetime').timedelta(days=1)):
-                    tracking['consecutive_foreign_buy_days'] = tracking.get('consecutive_foreign_buy_days', 0) + 1
-                else:
-                    tracking['consecutive_foreign_buy_days'] = 1
-                tracking['last_foreign_buy_date'] = today_str
-            else:
-                # Check if streak should be reset
-                last_fii_date = tracking.get('last_foreign_buy_date')
-                if last_fii_date and last_fii_date != today_str:
-                    tracking['consecutive_foreign_buy_days'] = 0
-
             entry['tracking'] = tracking
             self.stock_db[sid] = entry
             needs_save = True

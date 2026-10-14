@@ -2,14 +2,20 @@ import datetime
 import os
 
 from modules.editorial_frame import build_editorial_frame, format_editorial_frame_for_prompt
-from modules.event_radar import build_event_radar, format_event_radar_for_prompt
+from modules.event_radar import (
+    build_event_radar,
+    format_event_radar_for_prompt,
+    load_event_history,
+    record_event_history,
+    save_event_history,
+)
 from modules.market_signal_scorer import (
     build_market_signal_pack,
     format_signal_pack_for_prompt,
     load_stock_db,
 )
 from modules.fetch_result import unwrap_fetch_result
-from modules.pipeline_stages import collect_news_bundle
+from modules.pipeline_stages import collect_news_bundle, pick_deep_dive_focus, tape_focus_names
 from modules.prediction_validator import (
     format_validation_results_for_prompt,
     validate_prediction_targets,
@@ -64,6 +70,12 @@ def build_analysis_bundle(
             for line in validation_summary.splitlines()[1:]:
                 print(f"  {line}")
 
+    focus_names = tape_focus_names(
+        institutional_data=institutional_data,
+        volume_data=volume_data,
+        yesterday_predictions=yesterday_predictions,
+    )
+
     if news_mode in {"lite", "smart", "full"} and not supply_chain_event_radar:
         print("\n🧭 正在跑低成本消息面哨兵（不做大規模新聞搜尋）...")
         supply_chain_event_candidates = []
@@ -71,15 +83,31 @@ def build_analysis_bundle(
             supply_chain_event_candidates = fetcher.get_supply_chain_catalyst_events(
                 days=7,
                 lite=(news_mode != "full"),
+                focus_names=focus_names[:2],
             )
             supply_chain_event_candidates = unwrap_fetch_result(supply_chain_event_candidates, default=[])
-        supply_chain_event_radar = build_event_radar(supply_chain_event_candidates)
+        event_history = load_event_history()
+        supply_chain_event_radar = build_event_radar(
+            supply_chain_event_candidates,
+            history=event_history,
+            today=report_date,
+        )
+        try:
+            save_event_history(
+                record_event_history(event_history, supply_chain_event_candidates, report_date),
+                today=report_date,
+            )
+        except OSError as hist_err:
+            print(f"  ⚠️  事件雷達歷史寫入略過: {hist_err}")
     elif news_mode == "off":
         print("\n🧭 NEWS_MODE=off，跳過消息面事件雷達")
 
     if supply_chain_event_radar:
         top_event = supply_chain_event_radar[0]
-        print(f"  ✅ 高分供應鏈事件: {top_event['event']}（{top_event['impact_score']}）")
+        print(
+            f"  ✅ 高分供應鏈事件: {top_event['event']}"
+            f"（{top_event['impact_score']}／{top_event.get('freshness', 'new')}）"
+        )
     else:
         print("  ⚠️  未偵測到高分供應鏈事件")
 
@@ -137,13 +165,17 @@ def build_analysis_bundle(
         dynamic_topics=dynamic_topics,
         supply_chain_event_radar=supply_chain_event_radar,
         unwrap_fetch_result=unwrap_fetch_result,
+        focus_names=focus_names,
     )
     print(f"\n  📋 獨特新聞文章總數: {len(unique_news)}")
 
     deep_dive_data = None
-    top_buy_list = institutional_data.get("top_buy", [])
-    if expand_news and top_buy_list:
-        focus_stock = top_buy_list[0]
+    focus_stock = pick_deep_dive_focus(
+        institutional_data=institutional_data,
+        signal_pack=signal_pack,
+        volume_data=volume_data,
+    )
+    if expand_news and focus_stock and focus_stock.get("id"):
         focus_id = focus_stock.get("id", "")
         focus_name = focus_stock.get("name", "")
         print(f"\n🎯 [深度押注] 今日焦點股：{focus_id} {focus_name}")
@@ -174,6 +206,33 @@ def build_analysis_bundle(
     editorial_frame_summary = format_editorial_frame_for_prompt(editorial_frame)
     event_radar_summary = format_event_radar_for_prompt(supply_chain_event_radar)
 
+    similar_sessions = []
+    similar_sessions_summary = ""
+    try:
+        from modules.similar_sessions import find_similar_for_live, format_for_prompt
+
+        similar_sessions = find_similar_for_live(
+            report_date,
+            market_data=market_data,
+            institutional_data=institutional_data,
+            editorial_frame=editorial_frame,
+            reports_dir=os.path.join(base_dir, "reports"),
+            stock_db=stock_db,
+        )
+        similar_sessions_summary = format_for_prompt(similar_sessions)
+        if similar_sessions:
+            preview = "、".join(
+                f"{row.get('date')}({row.get('score')})" for row in similar_sessions
+            )
+            print(f"  ✅ 相似盤: {preview}")
+        else:
+            print("  ⚠️  無足夠相似歷史盤可對照")
+    except Exception as similar_err:
+        print(f"  ⚠️  相似盤比對略過: {similar_err}")
+        similar_sessions_summary = (
+            "# 本機相似盤\n（比對失敗，禁止編造歷史日期。）"
+        )
+
     signal_summary_parts = []
     if skill_context:
         signal_summary_parts.append(skill_context)
@@ -184,6 +243,8 @@ def build_analysis_bundle(
             format_signal_pack_for_prompt(signal_pack),
         ]
     )
+    if similar_sessions_summary:
+        signal_summary_parts.append(similar_sessions_summary)
     signal_summary = "\n\n".join(part for part in signal_summary_parts if part)
 
     strongest = signal_pack.get("strongest_anomaly")
@@ -220,4 +281,6 @@ def build_analysis_bundle(
         "editorial_frame_summary": editorial_frame_summary,
         "event_radar_summary": event_radar_summary,
         "signal_summary": signal_summary,
+        "similar_sessions": similar_sessions,
+        "similar_sessions_summary": similar_sessions_summary,
     }

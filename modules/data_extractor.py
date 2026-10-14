@@ -1,11 +1,37 @@
 import json
 import os
+import re
 
 from modules.gemini_client import default_model_name, generate_json
 from modules.structured_facts import (
     format_ground_truth_block,
     merge_structured_with_local_facts,
 )
+
+
+def _loads_json_object(raw: str):
+    """Parse Gemini JSON; tolerate trailing extra text / multiple objects."""
+    text = (raw or "").strip()
+    if not text:
+        raise ValueError("empty JSON response")
+    # Strip markdown fences if model ignored mime type.
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text).strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as first_err:
+        # First complete object only (handles "Extra data: line N").
+        decoder = json.JSONDecoder()
+        try:
+            obj, _end = decoder.raw_decode(text)
+            return obj
+        except json.JSONDecodeError:
+            start = text.find("{")
+            end = text.rfind("}")
+            if start >= 0 and end > start:
+                return json.loads(text[start : end + 1])
+            raise first_err
 
 
 # Narrative fields only — factual leaderboard fields are force-merged from local_facts.
@@ -57,7 +83,7 @@ Never invent stocks, sectors, or numbers not present in the report.
             task_name="structured_data_extraction",
             model_name=model_name,
         )
-        data = json.loads(raw)
+        data = _loads_json_object(raw)
         if isinstance(data, list) and len(data) > 0:
             data = data[0]
         if not isinstance(data, dict):

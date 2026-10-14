@@ -138,7 +138,7 @@ def _build_long_term_picks(structured_data, horizon_rows, recent_trends):
                     "theme": _clean_text(top_event.get("event")),
                     "time_scale": "中長期",
                     "horizon": "2~6週 / 1~3個月",
-                    "validation_window": "20D / 60D",
+                    "validation_window": "20D",
                     "thesis": f"事件雷達影響分數 {top_event.get('impact_score', 'N/A')}，代表供應鏈結構可能重估。",
                     "evidence": ", ".join(_clean_text(x) for x in _as_list(top_event.get("impacted_roles"))[:3]) or "無",
                 }
@@ -196,7 +196,7 @@ def _build_long_term_picks(structured_data, horizon_rows, recent_trends):
                 "theme": "今日無明確長線主軸",
                 "time_scale": "中期",
                 "horizon": "2~6週 / 1~3個月",
-                "validation_window": "20D / 60D",
+                "validation_window": "20D",
                 "thesis": "目前資料不足以建立穩定長線主軸，先等多日驗證再升級。",
                 "evidence": "無",
             }
@@ -226,7 +226,7 @@ def enrich_structured_data_with_timeframes(structured_data):
     structured_data["short_term_horizon"] = "1~5日"
     structured_data["long_term_horizon"] = "2~6週 / 1~3個月"
     structured_data["short_term_validation_window"] = "1D / 3D / 5D"
-    structured_data["long_term_validation_window"] = "20D / 60D"
+    structured_data["long_term_validation_window"] = "20D"
     structured_data["short_term_picks"] = _build_short_term_picks(structured_data)
     structured_data["long_term_picks"] = _build_long_term_picks(structured_data, horizon_rows, recent_trends)
     structured_data["horizon_reliability"] = {

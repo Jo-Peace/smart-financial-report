@@ -12,6 +12,31 @@ from modules.fetch_result import fetch_error, fetch_error_from_exception, fetch_
 
 logger = logging.getLogger(__name__)
 
+
+def supply_chain_radar_queries(lite=True, focus_names=None):
+    """Build radar search queries. Lite must not be an AMD-only pair."""
+    generic = [
+        "台灣 AI 伺服器 供應鏈 投資 先進封裝 CoWoS 基板 HBM 液冷",
+        "Taiwan semiconductor supply chain CoWoS HBM liquid cooling investment 2026",
+    ]
+    mega = [
+        "NVIDIA Taiwan AI server supply chain advanced packaging CoWoS investment",
+        "AMD Taiwan investment AI infrastructure advanced packaging supply chain",
+        "Broadcom Marvell Taiwan AI ASIC supply chain CoWoS substrate",
+        "OpenAI Microsoft AWS Taiwan AI server supply chain investment",
+    ]
+    names = [str(n).strip() for n in (focus_names or []) if str(n or "").strip()]
+    focus_q = []
+    if names:
+        focus_q.append(f"{' '.join(names[:2])} 台灣 法說 訂單 產能 供應鏈")
+
+    if lite:
+        queries = [generic[0]]
+        queries.append(focus_q[0] if focus_q else generic[1])
+        return queries
+    return generic + focus_q + mega
+
+
 class DataFetcher:
     def __init__(self, tavily_api_key, tavily_search_limit=None):
         self.tavily_client = TavilyClient(api_key=tavily_api_key)
@@ -701,60 +726,82 @@ class DataFetcher:
                 except (ValueError, IndexError):
                     continue
 
-            # Fetch close prices for top movers to compute dollar amounts (parallel)
-            print("  正在計算法人買賣超金額（並行抓取）...")
-            sorted_by_shares = sorted(all_stocks, key=lambda x: abs(x["foreign_net"]), reverse=True)
-            price_candidates = sorted_by_shares[:top_n * 4]
+            # Amount rank needs prices beyond the top share-count names.
+            from modules.institutional_ranking import (
+                apply_amount_estimates,
+                fetch_twse_day_all,
+                find_trust_conflicts,
+                latest_close_map,
+                price_lookup_candidates,
+                rank_by_amount,
+            )
 
-            def _lookup_price(stock):
+            print("  正在計算法人買賣超金額（全日收盤表優先，失敗再補價）...")
+            db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "analytics.db")
+
+            tape = fetch_twse_day_all(data_date_str or "")
+            if tape:
                 try:
-                    hist = yf.Ticker(f"{stock['id']}.TW").history(period="5d")
-                    if hist.empty:
-                        hist = yf.Ticker(f"{stock['id']}.TWO").history(period="5d")
-                    if not hist.empty:
-                        close_price = float(hist['Close'].iloc[-1])
-                        stock['close_price'] = close_price
-                        stock['est_amount'] = round(stock['foreign_net'] * close_price / 1e8, 2)
-                    else:
-                        stock['close_price'] = None
-                        stock['est_amount'] = 0
+                    from modules.analytics_store import AnalyticsStore
+
+                    saved = AnalyticsStore(db_path).record_daily_closes(data_date_str, tape)
+                    print(f"  ✅ 全日收盤 {saved} 檔已入庫（只供估價／回測，不進口播）")
                 except Exception:
-                    stock['close_price'] = None
-                    stock['est_amount'] = 0
+                    logger.exception("daily_closes persist failed")
+                    print(f"  ✅ 全日收盤 {len(tape)} 檔已取到（入庫略過）")
+            price_map = latest_close_map(db_path, close_date=data_date_str)
+            if tape:
+                for row in tape:
+                    sid = str(row.get("id") or "").strip()
+                    if sid and row.get("close_price"):
+                        price_map[sid] = float(row["close_price"])
+            missing = price_lookup_candidates(all_stocks, price_map)
 
-            with ThreadPoolExecutor(max_workers=10) as executor:
-                list(executor.map(_lookup_price, price_candidates))
+            def _yf_close(sid: str):
+                try:
+                    hist = yf.Ticker(f"{sid}.TW").history(period="5d")
+                    if hist.empty:
+                        hist = yf.Ticker(f"{sid}.TWO").history(period="5d")
+                    if not hist.empty:
+                        return float(hist["Close"].iloc[-1])
+                except Exception:
+                    return None
+                return None
 
-            # Fill 0 for stocks we didn't look up
-            for stock in all_stocks:
-                if 'est_amount' not in stock:
-                    stock['est_amount'] = 0
+            if missing:
+                print(f"  補價 {len(missing)} 檔（張數前段＋高價股，略過本機已有收盤）...")
+                with ThreadPoolExecutor(max_workers=10) as executor:
+                    for sid, price in zip(missing, executor.map(_yf_close, missing)):
+                        if price and price > 0:
+                            price_map[sid] = price
 
-            # Sort by estimated dollar amount
-            sorted_by_amount = sorted(all_stocks, key=lambda x: x["est_amount"], reverse=True)
-            top_buy = sorted_by_amount[:top_n]
-            # For sells, sort ascending (most negative first)
-            sorted_by_amount_sell = sorted(all_stocks, key=lambda x: x["est_amount"])
-            top_sell = sorted_by_amount_sell[:top_n]
+            all_stocks = apply_amount_estimates(all_stocks, price_map)
+            top_buy, top_sell = rank_by_amount(all_stocks, top_n=top_n)
+            trust_conflicts = find_trust_conflicts(all_stocks)
 
-            print(f"  ✅ 外資買超前 {top_n} 名（依金額排序）:")
+            print(f"  ✅ 外資買超前 {top_n} 名（依金額排序，全市場估價）:")
             for s in top_buy[:5]:
                 amt_str = f"{s['est_amount']:+.1f}億" if s.get('est_amount') else ""
                 print(f"     {s['id']} {s['name']}: {s['foreign_net']:+,} 股 ({amt_str})")
-            print(f"  ✅ 外資賣超前 {top_n} 名（依金額排序）:")
+            print(f"  ✅ 外資賣超前 {top_n} 名（依金額排序，全市場估價）:")
             for s in top_sell[:5]:
                 amt_str = f"{s['est_amount']:+.1f}億" if s.get('est_amount') else ""
                 print(f"     {s['id']} {s['name']}: {s['foreign_net']:+,} 股 ({amt_str})")
+            if trust_conflicts:
+                print("  ⚠ 土洋對作（外資／投信反向，備查）:")
+                for row in trust_conflicts[:3]:
+                    print(f"     {row['id']} {row['name']}: {row['note']} 外資{row['foreign_amount']:+.1f}億 投信{row['trust_amount']:+.1f}億")
 
             return fetch_ok(
                 {
                     "top_buy": top_buy,
                     "top_sell": top_sell,
+                    "trust_conflicts": trust_conflicts,
                     "data_date": data_date_str,
                     "source": "twse",
                 },
                 source="twse",
-                meta={"kind": "institutional", "top_n": top_n},
+                meta={"kind": "institutional", "top_n": top_n, "priced": len(price_map)},
             )
 
         except Exception as e:
@@ -904,13 +951,13 @@ class DataFetcher:
         print(f"  ✅ 找到 {len(events)} 個重大催化劑事件")
         return fetch_ok(events, source="tavily", meta={"kind": "tech_catalyst_events", "days": days})
 
-    def get_supply_chain_catalyst_events(self, days=7, lite=True, cache_path=None):
+    def get_supply_chain_catalyst_events(self, days=7, lite=True, cache_path=None, focus_names=None):
         """
         Actively searches for supply-chain-level AI/semiconductor events.
 
-        This catches structural news that may not immediately appear in today's
-        volume or institutional rankings, e.g. AMD investing in Taiwan's AI
-        ecosystem, CoWoS capacity deals, or AI server platform launches.
+        Catches structural news that may not appear on today's institutional
+        rankings. Lite mode uses a generic Taiwan-supply-chain query plus today's
+        protagonist names — not an AMD-only pair.
         """
         cache_path = cache_path or os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -918,11 +965,16 @@ class DataFetcher:
             "supply_chain_event_cache.json",
         )
         today = datetime.datetime.now().strftime("%Y-%m-%d")
+        focus_names = [str(n).strip() for n in (focus_names or []) if str(n or "").strip()]
         try:
             if os.path.exists(cache_path):
                 with open(cache_path, "r", encoding="utf-8") as f:
                     cached = json.load(f)
-                if cached.get("date") == today:
+                if (
+                    cached.get("date") == today
+                    and cached.get("lite") == bool(lite)
+                    and list(cached.get("focus_names") or []) == focus_names
+                ):
                     print("\n🧭 使用今日已快取的主動消息面事件雷達")
                     return fetch_ok(
                         cached.get("events", []),
@@ -933,15 +985,7 @@ class DataFetcher:
             pass
 
         print("\n🧭 正在搜尋低成本主動消息面事件雷達（AI供應鏈 / 台廠投資 / 先進封裝）...")
-        full_queries = [
-            "AMD Taiwan investment AI infrastructure advanced packaging supply chain",
-            "AMD 台灣 投資 AI 基礎設施 先進封裝 供應鏈",
-            "NVIDIA Taiwan AI server supply chain advanced packaging CoWoS investment",
-            "Broadcom Marvell Taiwan AI ASIC supply chain CoWoS substrate",
-            "OpenAI Microsoft AWS Taiwan AI server supply chain investment",
-            "台灣 AI 伺服器 供應鏈 投資 先進封裝 CoWoS 基板 HBM",
-        ]
-        queries = full_queries[:2] if lite else full_queries
+        queries = supply_chain_radar_queries(lite=lite, focus_names=focus_names)
 
         events = []
         seen = set()
@@ -975,7 +1019,17 @@ class DataFetcher:
         try:
             os.makedirs(os.path.dirname(cache_path), exist_ok=True)
             with open(cache_path, "w", encoding="utf-8") as f:
-                json.dump({"date": today, "events": events}, f, ensure_ascii=False, indent=2)
+                json.dump(
+                    {
+                        "date": today,
+                        "lite": bool(lite),
+                        "focus_names": focus_names,
+                        "events": events,
+                    },
+                    f,
+                    ensure_ascii=False,
+                    indent=2,
+                )
         except Exception:
             pass
         return fetch_ok(

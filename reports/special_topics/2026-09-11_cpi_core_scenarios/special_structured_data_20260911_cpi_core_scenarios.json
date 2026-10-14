@@ -1,0 +1,52 @@
+{
+  "date": "2026-09-11",
+  "slug": "cpi_core_scenarios",
+  "kind": "short_scenario_map",
+  "not_advice": true,
+  "release": {
+    "event": "BLS August 2026 CPI",
+    "taipei": "2026-09-11 20:30",
+    "et": "2026-09-11 08:30"
+  },
+  "watch": "core_cpi_mom",
+  "ignore_as_surprise": "headline_cpi_mom_0.4_oil",
+  "already_priced": {
+    "ppi_headline_yoy": 5.4,
+    "ppi_core_mom": 0.2,
+    "fed_hike_odds_sept16": 0.70,
+    "sox_2026_09_10": -2.66,
+    "tsm_adr_2026_09_10": -1.68,
+    "twii_2026_09_11": -1.61,
+    "2330_2026_09_11": -1.63,
+    "2330_foreign_sell_est_twd_bn": 202.2
+  },
+  "consensus": {
+    "headline_mom": 0.4,
+    "headline_yoy": "3.3-3.4",
+    "core_mom": 0.2,
+    "core_yoy": 2.4
+  },
+  "buckets": [
+    {
+      "id": "hot",
+      "core_mom": ">=0.3",
+      "fed": "hike odds toward 90%",
+      "tw_open": "Monday duration/AI pressure continues"
+    },
+    {
+      "id": "inline",
+      "core_mom": "0.2",
+      "fed": "debate unresolved",
+      "tw_open": "digest PPI; choppy not collapse"
+    },
+    {
+      "id": "cold",
+      "core_mom": "<=0.1",
+      "fed": "hike odds toward coin-flip",
+      "tw_open": "TSMC/ELAN bounce possible; do not chase 2308 first bar"
+    }
+  ],
+  "first_movers": ["2330", "2383", "2308", "2412"],
+  "execution_session": "2026-09-14 TW open",
+  "next_event": "FOMC 2026-09-16 14:00 ET"
+}

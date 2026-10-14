@@ -150,6 +150,18 @@ class AnalyticsStore:
         """)
 
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS daily_closes (
+                close_date TEXT NOT NULL,
+                ticker TEXT NOT NULL,
+                name TEXT,
+                close_price REAL,
+                volume INTEGER,
+                source TEXT,
+                PRIMARY KEY (close_date, ticker)
+            )
+        """)
+
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS daily_editorial_frames (
                 run_date TEXT PRIMARY KEY,
                 frame TEXT NOT NULL,
@@ -553,6 +565,85 @@ class AnalyticsStore:
                     _json_dumps(row),
                 ),
             )
+
+    def record_daily_closes(self, close_date, rows, source="twse_day_all"):
+        """Persist full-market closes for ranking / later backtests. Not used on-air."""
+        close_date = str(close_date or "")[:10]
+        if not close_date or not rows:
+            return 0
+        conn = self._connect()
+        cur = conn.cursor()
+        written = 0
+        for row in rows:
+            ticker = _normalize_ticker(row.get("id") or row.get("ticker"))
+            price = row.get("close_price") or row.get("close")
+            if not ticker or not price:
+                continue
+            try:
+                price = float(price)
+            except (TypeError, ValueError):
+                continue
+            if price <= 0:
+                continue
+            volume = row.get("volume")
+            try:
+                volume = int(volume) if volume not in (None, "") else None
+            except (TypeError, ValueError):
+                volume = None
+            cur.execute(
+                """
+                INSERT INTO daily_closes (
+                    close_date, ticker, name, close_price, volume, source
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(close_date, ticker) DO UPDATE SET
+                    name = excluded.name,
+                    close_price = excluded.close_price,
+                    volume = excluded.volume,
+                    source = excluded.source
+                """,
+                (
+                    close_date,
+                    ticker,
+                    row.get("name") or "",
+                    price,
+                    volume,
+                    source,
+                ),
+            )
+            written += 1
+        conn.commit()
+        conn.close()
+        return written
+
+    def load_close_map(self, close_date=None):
+        """Exact-date closes if present; otherwise newest close per ticker."""
+        conn = self._connect()
+        out = {}
+        if close_date:
+            rows = conn.execute(
+                """
+                SELECT ticker, close_price FROM daily_closes
+                WHERE close_date = ? AND close_price > 0
+                """,
+                (str(close_date)[:10],),
+            )
+            for ticker, price in rows:
+                out[str(ticker)] = float(price)
+        if not out:
+            rows = conn.execute(
+                """
+                SELECT ticker, close_price FROM daily_closes
+                WHERE close_price > 0
+                ORDER BY close_date DESC
+                """
+            )
+            for ticker, price in rows:
+                ticker = str(ticker)
+                if ticker not in out:
+                    out[ticker] = float(price)
+        conn.close()
+        return out
 
     def _record_editorial_frame(self, cur, run_date, frame):
         if not frame or not frame.get("frame"):

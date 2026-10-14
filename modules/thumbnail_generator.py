@@ -478,8 +478,12 @@ def _build_local_title_candidates(structured_data, date_label, fatigue_state):
 
     if frame in {"major_event_day", "重大事件日"}:
         events = structured_data.get("supply_chain_event_radar") or structured_data.get("macro_events") or []
-        if events:
-            candidates.insert(0, f"{date_label} 台股｜事件衝擊來了，{main_target or '盤面'}先看哪裡？")
+        fresh = [
+            row for row in (events or [])
+            if isinstance(row, dict) and row.get("freshness") == "new" and int(row.get("impact_score") or 0) >= 60
+        ]
+        if fresh and main_target:
+            candidates.append(f"{date_label} 台股｜{main_target}先看哪個條件？")
 
     candidates.append(f"{date_label} 台股盤後｜明天先盯這 2 個條件")
 
@@ -659,6 +663,152 @@ def _stock_name_only(stock_text):
 def _stock_overlay_primary(stock_text, fallback="主角股"):
     text = str(stock_text or "").strip()
     return text or fallback
+
+
+def _named_stocks_from_structured(structured_data):
+    """Name -> ticker from daily lists / prediction targets."""
+    mapping = {}
+    structured_data = structured_data or {}
+    for item in structured_data.get("prediction_targets") or []:
+        if not isinstance(item, dict):
+            continue
+        ticker = str(item.get("id") or item.get("ticker") or "").strip()
+        name = str(item.get("name") or "").strip()
+        if name:
+            mapping[name] = ticker or mapping.get(name, "")
+    for blob in list(structured_data.get("safe_havens_bought") or []) + list(
+        structured_data.get("heavyweights_dumped") or []
+    ):
+        text = str(blob)
+        ticker = ""
+        t_match = re.search(r"\b(\d{4,6})\b", text)
+        if t_match:
+            ticker = t_match.group(1)
+        name = re.sub(r"\([^)]*\)", "", text)
+        name = re.sub(r"[+\-]?\d+(?:\.\d+)?\s*億", "", name)
+        name = re.sub(r"\s+", " ", name).strip(" ：:，,")
+        if name:
+            mapping[name] = ticker or mapping.get(name, "")
+    return mapping
+
+
+def parse_title_hero(title, structured_data=None):
+    """Pull the opening stock + amount so A/B overlays share one fact."""
+    text = str(title or "")
+    names = _named_stocks_from_structured(structured_data)
+    ticker = ""
+    t_match = re.search(r"\b(\d{4})\b", text)
+    if t_match:
+        ticker = t_match.group(1)
+    amount = _first_amount_text(text)
+    verb = ""
+    head = text[:28]
+    if any(token in head for token in ("砍", "提款", "賣")):
+        verb = "砍"
+    elif any(token in head for token in ("掃", "買", "狂掃", "砸", "密吸")):
+        verb = "買"
+    name = ""
+    hits = []
+    for candidate, sid in names.items():
+        needle = re.sub(r"[\*＊]", "", str(candidate or ""))
+        pos = text.find(candidate)
+        if pos < 0 and needle:
+            pos = text.find(needle)
+        if pos >= 0:
+            hits.append((pos, candidate, sid))
+    hits.sort()
+    if hits:
+        name = hits[0][1]
+        ticker = ticker or hits[0][2]
+    if not name:
+        name_match = re.search(
+            r"(?:狂)?(?:砍|掃|買|賣超?|提款|砸|密吸)([\u4e00-\u9fff]{2,4})",
+            text,
+        )
+        if name_match:
+            name = name_match.group(1).strip()
+    if name and not ticker:
+        ticker = names.get(name) or _lookup_ticker_by_name(name) or ""
+    if ticker and not name:
+        for candidate, sid in names.items():
+            if sid == ticker:
+                name = candidate
+                break
+    return {
+        "ticker": str(ticker or "").strip(),
+        "name": str(name or "").strip(),
+        "amount": amount,
+        "verb": verb,
+    }
+
+
+def _control_overlay(hero):
+    name = hero.get("name") or ""
+    ticker = hero.get("ticker") or ""
+    amount = hero.get("amount") or ""
+    verb = hero.get("verb") or "買"
+    primary = " ".join(part for part in (ticker, name) if part).strip() or name or ticker or "主角股"
+    if amount:
+        secondary = f"外資{verb}{amount}"
+    else:
+        secondary = "看這檔"
+    return primary, secondary
+
+
+def _fragment_overlay(hero):
+    name = hero.get("name") or hero.get("ticker") or "這檔"
+    ticker = hero.get("ticker") or ""
+    amount = hero.get("amount") or ""
+    verb = hero.get("verb") or ""
+    if amount and verb == "砍":
+        # 短句實驗：大字是金額動作；不要用已疲勞的「誰在收」。
+        return f"砍{amount}", "誰在買?"
+    if amount and verb == "買":
+        label = f"{ticker} {name}".strip() if ticker else name
+        return label, f"{verb}{amount}"
+    if amount:
+        return name, amount
+    return name, "還紅?"
+
+
+def align_ab_overlays(scenarios, titles, structured_data=None):
+    """A = complete 股名+金額; B = fragment of the same hero. Same stock, same number."""
+    titles = titles or []
+    hero = parse_title_hero(titles[0] if titles else "", structured_data)
+    if not hero.get("amount") and len(titles) > 1:
+        extra = parse_title_hero(titles[1], structured_data)
+        if extra.get("amount"):
+            hero = extra
+    if not hero.get("name") and not hero.get("ticker"):
+        return scenarios
+    out = []
+    for index, scenario in enumerate(scenarios or []):
+        row = dict(scenario)
+        if index == 0:
+            primary, secondary = _control_overlay(hero)
+        else:
+            primary, secondary = _fragment_overlay(hero)
+            avoid = list(row.get("avoid") or [])
+            avoid.extend(
+                [
+                    "不要驗收章",
+                    "不要 VERIFIED",
+                    "不要上集點名當封面大字",
+                    "不要考卷／核取章版型",
+                    "不要把故事寫成完整句當封面字",
+                ]
+            )
+            row["avoid"] = avoid
+            if row.get("family") == "validation" or row.get("scenario_name") == "驗收現場":
+                row["scene"] = (
+                    f"{hero.get('name') or hero.get('ticker') or '主角股'} 的數字要一眼可讀；"
+                    "場景當背景，不要做成核對台或驗收儀式。"
+                )
+        row["overlay_primary"] = primary
+        row["overlay_secondary"] = secondary
+        row["hero"] = hero
+        out.append(row)
+    return out
 
 
 def _buy_amount_for_stock(stock_text, structured_data):
@@ -999,6 +1149,7 @@ def generate_scenario_briefs(
     for index, scenario in enumerate(selected):
         scenario["paired_title"] = titles[min(index, len(titles) - 1)] if titles else "台股今日分析"
 
+    selected = align_ab_overlays(selected[:count], titles, structured_data)
     return selected[:count]
 
 
@@ -1019,15 +1170,15 @@ AB_COMPOSITION_VARIANTS = [
     },
     {
         "id": "B_close_conflict",
-        "label": "B 特寫對撞",
+        "label": "B 殘句中景",
         "directive": (
             "COMPOSITION VARIANT B (mandatory, must look different from A): "
-            "Camera = medium-close low-side cinematic angle (NOT top-down map). "
-            "Subject scale = two competing stock ideas as LARGE foreground props "
-            "(tickets, towers, or glowing nodes), characters MEDIUM size mid-frame. "
-            "Headline plaque integrates on a side panel or upper negative space. "
-            "Background map may be blurred only. "
-            "Do NOT reuse bird's-eye full-map layout from variant A; different camera, scale, and focal subject."
+            "Camera = medium-close, characters MEDIUM size with readable faces. "
+            "Headline plaque occupies about 40% and is the first thing you read; "
+            "overlay is a fragment (short question or ticker+status), not a full sentence. "
+            "Daily visual theme stays in the background only. "
+            "Do NOT use verification stamps, VERIFIED badges, 上集點名, exam-sheet layouts, "
+            "or an ultra-wide bird's-eye capital-flow map as the main subject."
         ),
     },
 ]

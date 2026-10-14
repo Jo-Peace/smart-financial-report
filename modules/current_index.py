@@ -1,28 +1,63 @@
 import os
+import re
 
 from modules.report_paths import relative_daily_link, relative_youtube_link
 
 
+TODAY_SPECIAL_FILES = [
+    (
+        "資料夾",
+        "special_topics/2026-09-11_cpi_core_scenarios/",
+    ),
+    (
+        "報告",
+        "special_topics/2026-09-11_cpi_core_scenarios/special_report_2026-09-11_cpi_core_scenarios.md",
+    ),
+    (
+        "NotebookLM source",
+        "special_topics/2026-09-11_cpi_core_scenarios/notebooklm_source_special_20260911_cpi_core_scenarios.md",
+    ),
+    (
+        "NotebookLM prompt",
+        "special_topics/2026-09-11_cpi_core_scenarios/notebooklm_prompt_special_20260911_cpi_core_scenarios.md",
+    ),
+    (
+        "YouTube 專題包",
+        "special_topics/2026-09-11_cpi_core_scenarios/youtube_special_package_2026-09-11_cpi_core_scenarios.md",
+    ),
+    (
+        "封面 prompt",
+        "special_topics/2026-09-11_cpi_core_scenarios/yt_thumbnail_prompt_special_2026-09-11_cpi_core_scenarios.md",
+    ),
+]
+
+RECENT_SPECIAL_LINKS = [
+    (
+        "iPhone 18 供應鏈專題",
+        "special_topics/2026-09-10_iphone18_taiwan_supply_chain/special_report_2026-09-10_iphone18_taiwan_supply_chain.md",
+    ),
+]
+
 SPECIAL_TOPIC_LINKS = [
     (
         "SpaceX 專題報告",
-        "special_topics/special_report_2026-06-27_spacex_taiwan_supply_chain.md",
+        "special_topics/2026-06-27_spacex_taiwan_supply_chain/special_report_2026-06-27_spacex_taiwan_supply_chain.md",
     ),
     (
         "SpaceX NotebookLM prompt",
-        "special_topics/notebooklm_prompt_special_20260627_spacex_taiwan_supply_chain.md",
+        "special_topics/2026-06-27_spacex_taiwan_supply_chain/notebooklm_prompt_special_20260627_spacex_taiwan_supply_chain.md",
     ),
     (
         "SpaceX NotebookLM source",
-        "special_topics/notebooklm_source_special_20260627_spacex_taiwan_supply_chain.md",
+        "special_topics/2026-06-27_spacex_taiwan_supply_chain/notebooklm_source_special_20260627_spacex_taiwan_supply_chain.md",
     ),
     (
         "SpaceX 上架包",
-        "special_topics/youtube_special_package_2026-06-27_spacex_taiwan_supply_chain.md",
+        "special_topics/2026-06-27_spacex_taiwan_supply_chain/youtube_special_package_2026-06-27_spacex_taiwan_supply_chain.md",
     ),
     (
         "SpaceX 封面 prompt",
-        "special_topics/yt_thumbnail_prompt_special_2026-06-27_spacex_taiwan_supply_chain.md",
+        "special_topics/2026-06-27_spacex_taiwan_supply_chain/yt_thumbnail_prompt_special_2026-06-27_spacex_taiwan_supply_chain.md",
     ),
 ]
 
@@ -45,6 +80,64 @@ def _qa_lines(reports_dir, required_paths):
     return lines
 
 
+def _extract_section(markdown: str, heading: str) -> str:
+    pattern = rf"^## {re.escape(heading)}\s*$"
+    lines = (markdown or "").splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        if re.match(pattern, line.strip()):
+            start = i + 1
+            break
+    if start is None:
+        return ""
+    end = len(lines)
+    for j in range(start, len(lines)):
+        if lines[j].startswith("## ") and not lines[j].startswith("### "):
+            end = j
+            break
+    body = "\n".join(lines[start:end]).strip()
+    return body
+
+
+def _section_has_existing_link(reports_dir, body: str) -> bool:
+    if not body:
+        return False
+    for rel in re.findall(r"\]\(\./([^)]+)\)", body):
+        if _exists(reports_dir, rel):
+            return True
+    return False
+
+
+def _default_today_special_lines(reports_dir) -> list[str]:
+    if not any(_exists(reports_dir, path) for _, path in TODAY_SPECIAL_FILES):
+        return []
+    lines = ["- 狀態：已產出（情境短片，非單點預測；CPI 已公布，專題改作對照用）"]
+    for label, path in TODAY_SPECIAL_FILES:
+        if _exists(reports_dir, path):
+            if path.endswith("/"):
+                name = os.path.basename(path.rstrip("/"))
+                lines.append(f"- {label}：[`{name}`](./{path.rstrip('/')}/)")
+            else:
+                lines.append(_rel_link(label, path))
+    return lines
+
+
+def _recent_special_lines(reports_dir, previous_markdown="") -> list[str]:
+    seen = set()
+    lines = []
+    prev_body = _extract_section(previous_markdown, "最近完成的獨立專題")
+    for label, path in RECENT_SPECIAL_LINKS + SPECIAL_TOPIC_LINKS:
+        if _exists(reports_dir, path) and path not in seen:
+            seen.add(path)
+            lines.append(_rel_link(label, path))
+    for match in re.finditer(r"^- (.+?)：\[`[^`]+`\]\(\./([^)]+)\)", prev_body or "", flags=re.M):
+        label, path = match.group(1), match.group(2)
+        if path not in seen and _exists(reports_dir, path):
+            seen.add(path)
+            lines.append(_rel_link(label, path))
+    return lines
+
+
 def build_current_index(
     reports_dir,
     date_str,
@@ -53,6 +146,7 @@ def build_current_index(
     youtube_ready=False,
     youtube_visual_theme="",
     youtube_note="",
+    previous_markdown="",
 ):
     daily_paths = {
         "日報": relative_daily_link(reports_dir, date_str, "report"),
@@ -69,9 +163,9 @@ def build_current_index(
     lines = [
         "# 今日產出索引",
         "",
-        f"更新日期：{date_str}",
+        f"最近成功 /1 產出日期：{date_str}",
         "",
-        "這份檔案只放今天要找的入口，不再讓你在 `reports/` 裡面翻檔名。",
+        "這份檔案只放最近一次成功產出的入口；尚未跑當日 /1 時，不會假裝有今天的資料。",
         "",
         "## 今日主流程 /1",
         "",
@@ -99,6 +193,8 @@ def build_current_index(
     required = list(daily_paths.values()) if daily_ready else []
     if youtube_ready:
         required.extend(youtube_paths.values())
+    required.extend([path for _, path in TODAY_SPECIAL_FILES if not path.endswith("/")])
+    required.extend([path for _, path in RECENT_SPECIAL_LINKS])
     required.extend([path for _, path in SPECIAL_TOPIC_LINKS])
     lines.extend(["", "## 索引 QA", ""])
     lines.extend(_qa_lines(reports_dir, required))
@@ -109,14 +205,25 @@ def build_current_index(
             "## 今日整理資料夾",
             "",
             f"- [`daily/{date_str}/`](./daily/{date_str}/)",
-            f"- [`youtube/{date_str}/`](./youtube/{date_str}/)" if youtube_ready else "- `youtube/{date_str}/`（待 /2 產出）",
+            f"- [`youtube/{date_str}/`](./youtube/{date_str}/)" if youtube_ready else f"- `youtube/{date_str}/`（待 /2 產出）",
             "- [`shared/`](./shared/)",
             "",
         ]
     )
+    today_special_body = _extract_section(previous_markdown, "今日獨立專題")
+    if not _section_has_existing_link(reports_dir, today_special_body):
+        today_special_lines = _default_today_special_lines(reports_dir)
+        today_special_body = "\n".join(today_special_lines)
+    if today_special_body:
+        lines.extend(["## 今日獨立專題", "", today_special_body, ""])
+
+    recent_lines = _recent_special_lines(reports_dir, previous_markdown)
     lines.extend(["## 最近完成的獨立專題", ""])
-    for label, path in SPECIAL_TOPIC_LINKS:
-        lines.append(_rel_link(label, path))
+    if recent_lines:
+        lines.extend(recent_lines)
+    else:
+        for label, path in SPECIAL_TOPIC_LINKS:
+            lines.append(_rel_link(label, path))
 
     lines.extend(
         [
@@ -134,8 +241,17 @@ def build_current_index(
 
 
 def write_current_index(reports_dir, date_str, **kwargs):
-    content = build_current_index(reports_dir, date_str, **kwargs)
     path = os.path.join(reports_dir, "CURRENT.md")
+    previous = ""
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                previous = f.read()
+        except OSError:
+            previous = ""
+    kwargs = dict(kwargs)
+    kwargs.setdefault("previous_markdown", previous)
+    content = build_current_index(reports_dir, date_str, **kwargs)
     os.makedirs(reports_dir, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)

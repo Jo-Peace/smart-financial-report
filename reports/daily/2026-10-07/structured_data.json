@@ -1,0 +1,868 @@
+{
+  "date": "2026-10-07",
+  "index_action": "下跌 16.2點（-0.03%）",
+  "safe_havens_bought": [
+    "臻鼎-KY (+38.2億)",
+    "華邦電 (+36.9億)",
+    "南亞 (+30.3億)",
+    "華新科 (+27.1億)",
+    "欣興 (+23.7億)"
+  ],
+  "heavyweights_dumped": [
+    "聯發科 (-136.2億)",
+    "台達電 (-42.4億)",
+    "南亞科 (-39.6億)",
+    "奇鋐 (-33.0億)",
+    "台積電 (-30.1億)"
+  ],
+  "trust_conflicts": [
+    "台達電：外資賣、投信買，外資 -42.4億，投信 +1.5億",
+    "華邦電：外資買、投信賣，外資 +36.9億，投信 -13.1億",
+    "奇鋐：外資賣、投信買，外資 -33.0億，投信 +4.6億",
+    "台積電：外資賣、投信買，外資 -30.1億，投信 +1.9億",
+    "華新科：外資買、投信賣，外資 +27.1億"
+  ],
+  "commodities": [
+    "黃金 (收$4160.7, -0.63%)",
+    "原油 (收$89.54, +0.11%)",
+    "白銀 (收$60.79, -0.61%)"
+  ],
+  "prev_day_picks_result": [
+    "2313 華通 (-2.38%, 預測未成立)",
+    "4958 臻鼎-KY (+3.66%, 預測成立)"
+  ],
+  "sectors": {
+    "AI 邊緣人機介面族群": [
+      "2409 友達 (成交量第一但外資賣超)"
+    ],
+    "AI 電子化學基礎族群": [
+      "1303 南亞 (量價齊揚、站上MA20)"
+    ],
+    "AI 伺服器基礎材料族群": [
+      "1301 台塑 (強攻漲停)"
+    ],
+    "AI 玻纖布材料族群": [
+      "1802 台玻 (漲停爆量)"
+    ],
+    "AI 記憶體整合技術族群": [
+      "6770 力積電 (量大跌深、主力棄守)"
+    ],
+    "AI 載板/PCB": [
+      "4958 臻鼎-KY",
+      "3037 欣興"
+    ],
+    "記憶體": [
+      "2344 華邦電 (站上MA20)",
+      "2408 南亞科 (外資賣超)"
+    ],
+    "IC設計": [
+      "2454 聯發科 (失守MA20、外資大賣)"
+    ]
+  },
+  "ai_data_picks": [
+    "4958 臻鼎-KY (外資買超第一且成交量未進前20)",
+    "2344 華邦電 (外資大買且站上MA20)"
+  ],
+  "prediction_targets": [
+    {
+      "id": "4958",
+      "name": "臻鼎-KY",
+      "direction": "多",
+      "trigger": "外資買超第1名且成交量尚未過熱，法人靜默吸籌",
+      "stop_loss_price": 506.75,
+      "stop_loss_desc": "收盤跌破 MA20"
+    },
+    {
+      "id": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "trigger": "外資買超第2名且帶量站上MA20，反映記憶體報價回升邏輯",
+      "stop_loss_price": 174.97,
+      "stop_loss_desc": "收盤跌破 MA20"
+    }
+  ],
+  "price_volume_divergence": [
+    "2409 友達：成交量全台第一但外資賣超 29.8 億元 (散戶接手)",
+    "4958 臻鼎-KY：外資買超全台第一但成交量未進前 20 名 (主力低調掃貨)",
+    "6770 力積電：量大跌深，外資狂砍 26.4 億元"
+  ],
+  "conservative_strategy": "關注已站穩 MA20 且外資轉買的 1303 南亞，採取拉回月線不破的布局策略。",
+  "aggressive_strategy": "鎖定 4958 臻鼎-KY，利用其法人靜默吸籌的優勢，在量能爆發前卡位。",
+  "short_term_horizon": "1~5日",
+  "long_term_horizon": "2~6週 / 1~3個月",
+  "short_term_validation_window": "1D / 3D / 5D",
+  "long_term_validation_window": "20D",
+  "short_term_picks": [
+    {
+      "ticker": "4958",
+      "name": "臻鼎-KY",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資買超第1名且成交量尚未過熱，法人靜默吸籌",
+      "invalidation": "收盤跌破 MA20"
+    },
+    {
+      "ticker": "2344",
+      "name": "華邦電",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資買超第2名且帶量站上MA20，反映記憶體報價回升邏輯",
+      "invalidation": "收盤跌破 MA20"
+    }
+  ],
+  "long_term_picks": [
+    {
+      "theme": "1303 南亞",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "5D +79.51%、10D +20.95%",
+      "evidence": "5D +79.51%、10D +20.95%"
+    },
+    {
+      "theme": "3037 欣興",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "thesis": "5D +11.02%、10D +55.95%",
+      "evidence": "5D +11.02%、10D +55.95%"
+    }
+  ],
+  "horizon_reliability": {
+    "primary_leads": true,
+    "primary_days": 20,
+    "one_liner": "依目前本機回測樣本，20D 命中率 55.6%（n=124）優於 1D/3D/5D 平均 47.1%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。",
+    "sentences": [
+      "依目前本機回測樣本，20D 命中率 55.6%（n=124）優於 1D/3D/5D 平均 47.1%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。",
+      "同一批樣本下 20D 平均超額 +6.81%，中期方向的可說服力通常高於隔日漲跌。",
+      "因此口播／標題若只用 1D 驗收論成敗，容易把噪音當成系統失準；隔日結果可提一句，但成敗尺子請放在 20D。"
+    ]
+  },
+  "long_term_thesis": "依目前本機回測樣本，20D 命中率 55.6%（n=124）優於 1D/3D/5D 平均 47.1%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。 長線主軸仍應優先看供應鏈與族群是否有多日驗證延續，而不是單日爆量。",
+  "long_term_evidence": [
+    "依目前本機回測樣本，20D 命中率 55.6%（n=124）優於 1D/3D/5D 平均 47.1%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。",
+    "同一批樣本下 20D 平均超額 +6.81%，中期方向的可說服力通常高於隔日漲跌。",
+    "因此口播／標題若只用 1D 驗收論成敗，容易把噪音當成系統失準；隔日結果可提一句，但成敗尺子請放在 20D。",
+    "事件雷達與族群同步性，應優先高於單日籌碼雜訊。"
+  ],
+  "timeframe_history": {
+    "horizon_performance": [
+      {
+        "horizon_days": 1,
+        "samples": 175,
+        "hit_rate": 0.4228571428571429,
+        "avg_return": 0.08545687118924584,
+        "avg_excess": -0.24007472568304747
+      },
+      {
+        "horizon_days": 3,
+        "samples": 156,
+        "hit_rate": 0.48717948717948717,
+        "avg_return": 1.3566572962460308,
+        "avg_excess": 0.7333825315950261
+      },
+      {
+        "horizon_days": 5,
+        "samples": 143,
+        "hit_rate": 0.5034965034965035,
+        "avg_return": 2.894795401572335,
+        "avg_excess": 2.212828081681266
+      },
+      {
+        "horizon_days": 20,
+        "samples": 124,
+        "hit_rate": 0.5564516129032258,
+        "avg_return": 7.34268564936609,
+        "avg_excess": 6.812282423559639
+      }
+    ],
+    "recent_results": [
+      {
+        "prediction_date": "2026-10-05",
+        "ticker": "2308",
+        "name": "台達電",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-06",
+        "return_pct": 2.2443890274314215,
+        "index_return_pct": 0.22,
+        "excess_return_pct": 2.0243890274314214,
+        "hit": 1,
+        "result_desc": "1日驗收: +2.24% -> 命中"
+      },
+      {
+        "prediction_date": "2026-10-02",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-05",
+        "return_pct": 0.7604562737642585,
+        "index_return_pct": 2.55,
+        "excess_return_pct": -1.7895437262357414,
+        "hit": 1,
+        "result_desc": "1日驗收: +0.76% -> 命中"
+      },
+      {
+        "prediction_date": "2026-10-02",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-10-05",
+        "return_pct": 0.7604562737642585,
+        "index_return_pct": 2.55,
+        "excess_return_pct": -1.7895437262357414,
+        "hit": 1,
+        "result_desc": "3日驗收: +0.76% -> 命中"
+      },
+      {
+        "prediction_date": "2026-10-02",
+        "ticker": "4958",
+        "name": "臻鼎-KY",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-05",
+        "return_pct": 2.6737967914438503,
+        "index_return_pct": 2.55,
+        "excess_return_pct": 0.12379679144385047,
+        "hit": 1,
+        "result_desc": "1日驗收: +2.67% -> 命中"
+      },
+      {
+        "prediction_date": "2026-10-02",
+        "ticker": "4958",
+        "name": "臻鼎-KY",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-10-05",
+        "return_pct": 2.6737967914438503,
+        "index_return_pct": 2.55,
+        "excess_return_pct": 0.12379679144385047,
+        "hit": 1,
+        "result_desc": "3日驗收: +2.67% -> 命中"
+      },
+      {
+        "prediction_date": "2026-10-01",
+        "ticker": "2327",
+        "name": "國巨",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-10-05",
+        "return_pct": 3.9867109634551494,
+        "index_return_pct": 2.55,
+        "excess_return_pct": 1.4367109634551496,
+        "hit": 1,
+        "result_desc": "3日驗收: +3.99% -> 命中"
+      },
+      {
+        "prediction_date": "2026-09-30",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizon_days": 3,
+        "evaluated_date": "2026-10-05",
+        "return_pct": 2.119460500963391,
+        "index_return_pct": 2.55,
+        "excess_return_pct": -0.43053949903660893,
+        "hit": 1,
+        "result_desc": "3日驗收: +2.12% -> 命中"
+      },
+      {
+        "prediction_date": "2026-09-30",
+        "ticker": "2408",
+        "name": "南亞科",
+        "direction": "多",
+        "horizon_days": 5,
+        "evaluated_date": "2026-10-05",
+        "return_pct": 2.119460500963391,
+        "index_return_pct": 2.55,
+        "excess_return_pct": -0.43053949903660893,
+        "hit": 1,
+        "result_desc": "5日驗收: +2.12% -> 命中"
+      }
+    ],
+    "recent_trends": {
+      "1802": {
+        "latest_date": "2026-05-04",
+        "latest_price": 66.2,
+        "latest_pct_change": -1.19,
+        "trends": {}
+      },
+      "3037": {
+        "latest_date": "2026-10-06",
+        "latest_price": 1310.0,
+        "latest_pct_change": -1.13,
+        "trends": {
+          "5D": {
+            "from_date": "2026-08-27",
+            "to_date": "2026-10-06",
+            "base_price": 1180.0,
+            "latest_price": 1310.0,
+            "pct_change": 11.016949152542372
+          },
+          "10D": {
+            "from_date": "2026-07-07",
+            "to_date": "2026-10-06",
+            "base_price": 840.0,
+            "latest_price": 1310.0,
+            "pct_change": 55.952380952380956
+          }
+        }
+      },
+      "2344": {
+        "latest_date": "2026-09-30",
+        "latest_price": 179.5,
+        "latest_pct_change": 3.16,
+        "trends": {
+          "5D": {
+            "from_date": "2026-09-02",
+            "to_date": "2026-09-30",
+            "base_price": 179.0,
+            "latest_price": 179.5,
+            "pct_change": 0.27932960893854747
+          },
+          "10D": {
+            "from_date": "2026-08-20",
+            "to_date": "2026-09-30",
+            "base_price": 176.5,
+            "latest_price": 179.5,
+            "pct_change": 1.69971671388102
+          },
+          "20D": {
+            "from_date": "2026-07-28",
+            "to_date": "2026-09-30",
+            "base_price": 144.0,
+            "latest_price": 179.5,
+            "pct_change": 24.65277777777778
+          }
+        }
+      },
+      "1303": {
+        "latest_date": "2026-10-01",
+        "latest_price": 254.0,
+        "latest_pct_change": -0.59,
+        "trends": {
+          "5D": {
+            "from_date": "2026-07-29",
+            "to_date": "2026-10-01",
+            "base_price": 141.5,
+            "latest_price": 254.0,
+            "pct_change": 79.50530035335689
+          },
+          "10D": {
+            "from_date": "2026-07-14",
+            "to_date": "2026-10-01",
+            "base_price": 210.0,
+            "latest_price": 254.0,
+            "pct_change": 20.952380952380953
+          }
+        }
+      },
+      "2408": {
+        "latest_date": "2026-10-05",
+        "latest_price": 530.0,
+        "latest_pct_change": 0.76,
+        "trends": {
+          "5D": {
+            "from_date": "2026-09-23",
+            "to_date": "2026-10-05",
+            "base_price": 515.0,
+            "latest_price": 530.0,
+            "pct_change": 2.912621359223301
+          },
+          "10D": {
+            "from_date": "2026-09-09",
+            "to_date": "2026-10-05",
+            "base_price": 523.0,
+            "latest_price": 530.0,
+            "pct_change": 1.338432122370937
+          },
+          "20D": {
+            "from_date": "2026-08-17",
+            "to_date": "2026-10-05",
+            "base_price": 524.0,
+            "latest_price": 530.0,
+            "pct_change": 1.1450381679389312
+          }
+        }
+      },
+      "4958": {
+        "latest_date": "2026-10-06",
+        "latest_price": 574.0,
+        "latest_pct_change": -0.35,
+        "trends": {
+          "5D": {
+            "from_date": "2026-09-23",
+            "to_date": "2026-10-06",
+            "base_price": 473.0,
+            "latest_price": 574.0,
+            "pct_change": 21.353065539112052
+          },
+          "10D": {
+            "from_date": "2026-08-10",
+            "to_date": "2026-10-06",
+            "base_price": 470.5,
+            "latest_price": 574.0,
+            "pct_change": 21.99787460148778
+          }
+        }
+      },
+      "2409": {
+        "latest_date": "2026-10-05",
+        "latest_price": 39.05,
+        "latest_pct_change": -3.46,
+        "trends": {
+          "5D": {
+            "from_date": "2026-07-13",
+            "to_date": "2026-10-05",
+            "base_price": 29.25,
+            "latest_price": 39.05,
+            "pct_change": 33.5042735042735
+          }
+        }
+      },
+      "2454": {
+        "latest_date": "2026-10-06",
+        "latest_price": 4920.0,
+        "latest_pct_change": -4.74,
+        "trends": {
+          "5D": {
+            "from_date": "2026-09-29",
+            "to_date": "2026-10-06",
+            "base_price": 4910.0,
+            "latest_price": 4920.0,
+            "pct_change": 0.20366598778004072
+          },
+          "10D": {
+            "from_date": "2026-09-15",
+            "to_date": "2026-10-06",
+            "base_price": 4430.0,
+            "latest_price": 4920.0,
+            "pct_change": 11.060948081264108
+          }
+        }
+      },
+      "6770": {
+        "latest_date": "2026-09-21",
+        "latest_price": 72.7,
+        "latest_pct_change": -1.76,
+        "trends": {
+          "5D": {
+            "from_date": "2026-09-10",
+            "to_date": "2026-09-21",
+            "base_price": 73.5,
+            "latest_price": 72.7,
+            "pct_change": -1.088435374149656
+          },
+          "10D": {
+            "from_date": "2026-08-17",
+            "to_date": "2026-09-21",
+            "base_price": 74.6,
+            "latest_price": 72.7,
+            "pct_change": -2.5469168900804178
+          },
+          "20D": {
+            "from_date": "2026-06-10",
+            "to_date": "2026-09-21",
+            "base_price": 64.4,
+            "latest_price": 72.7,
+            "pct_change": 12.88819875776397
+          }
+        }
+      },
+      "1301": {
+        "latest_date": "2026-07-31",
+        "latest_price": 55.0,
+        "latest_pct_change": 1.85,
+        "trends": {}
+      }
+    },
+    "tickers": [
+      "1301",
+      "1303",
+      "1802",
+      "2344",
+      "2408",
+      "2409",
+      "2454",
+      "3037",
+      "4160",
+      "4958",
+      "6770"
+    ],
+    "reliability_note": "依目前本機回測樣本，20D 命中率 55.6%（n=124）優於 1D/3D/5D 平均 47.1%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。"
+  },
+  "validation_results": [
+    {
+      "id": "2313",
+      "name": "華通",
+      "direction": "多",
+      "trigger": "外資買超第1名且帶量突破MA20，法人鎖貨跡象明顯",
+      "stop_loss_price": 235.5,
+      "stop_loss_desc": "收盤跌破 MA5 元",
+      "price": 246.0,
+      "pct_change": -2.38,
+      "hit": false,
+      "result": "預測未成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": null,
+      "institutional_rank": null,
+      "institutional_est_amount": null,
+      "evidence": [
+        "收盤 246，漲跌 -2.38%",
+        "未觸發停損：收盤跌破 MA5 元"
+      ]
+    },
+    {
+      "id": "4958",
+      "name": "臻鼎-KY",
+      "direction": "多",
+      "trigger": "外資買超第3名，股價回測MA20支撐有成",
+      "stop_loss_price": 502.05,
+      "stop_loss_desc": "收盤跌破 MA20 元",
+      "price": 595.0,
+      "pct_change": 3.66,
+      "hit": true,
+      "result": "預測成立",
+      "stop_loss_triggered": false,
+      "volume_rank": null,
+      "institutional_side": "buy",
+      "institutional_rank": 1,
+      "institutional_est_amount": 38.18,
+      "evidence": [
+        "收盤 595，漲跌 +3.66%",
+        "外資買超第 1 名，+38.2 億",
+        "未觸發停損：收盤跌破 MA20 元"
+      ]
+    }
+  ],
+  "validation_policy": {
+    "source_date": "2026-10-06",
+    "trading_days_gap": 1,
+    "onair_validation_eligible": true,
+    "skip_reason": "",
+    "max_trading_gap": 1
+  },
+  "editorial_frame": {
+    "frame": "major_event_day",
+    "label": "重大事件日",
+    "confidence": 76,
+    "reasons": [
+      "今日有重大事件或跨市場線索，應由事件帶出台股影響。",
+      "昨日驗收有 1 命中、1 失準；4958 臻鼎-KY 波動 3.7%（預設只作短段可信度，不自動佔主軸）。"
+    ],
+    "allowed_tones": [
+      "事件影響",
+      "風險傳導",
+      "隔日風險",
+      "確認條件"
+    ],
+    "prohibited_tones": [
+      "上集點名驗收",
+      "主力還在",
+      "接棒",
+      "暗藏殺機",
+      "背離警訊",
+      "資金續航",
+      "資金輪動",
+      "退潮警報",
+      "驗收上集點名"
+    ],
+    "title_fatigue_report": "# 近期包裝疲勞檢查\n- 檢查最近 8 支影片標題。\n- 檢查最近 10 份縮圖 Prompt。\n- 封面避免再用的 scenario：打賞金庫, 短句實驗。\n- 封面題型家族已連續出現：other；今日必須換另一種問法。\n- 若資料支持換手，請改問：為什麼逆勢、量價哪裡矛盾、明日失效條件是什麼。\n- 連續 3 天內不得重複「榜外吸籌 + 資金換手」A/B 配對。\n- 同一開場關鍵字（如 AMD）連續 ≥3 支：禁止再開場；事件可放描述中後段。\n- 「外資Ｎ億狂掃／狂砍」連兩支即換鉤；B 組不要連用「誰在收？」。\n- 禁止標題出現成交量未進前20的買超／把未公布的升息、非農當結果開場。\n- 標題前 20 字優先：已驗證金額 + 核心股名 + 反直覺矛盾（非品牌事件名）。",
+    "validation_placement": "brief",
+    "validation_story_score": 38,
+    "validation_fatigued": false,
+    "validation_hits": 1,
+    "validation_misses": 1
+  },
+  "supply_chain_event_radar": [
+    {
+      "event": "訂單排到2027！「這PCB大廠」大吃AI伺服器商機　H1獲利年增暴衝逾1.7倍 | 三立iNEWS | 三立新聞網 SETN.COM",
+      "url": "https://inews.setn.com/news/1891956",
+      "snippet": "這大廠訂單排到2027　H1獲利年增逾1.7倍  \n   \n 臻鼎指出，目前光模塊訂單以1.6T高速率板為主力，已有客戶提前敲定2027年產能，訂單能見度相當充足。由於1.6T及後續世代產品必須採用mSAP技術，製造門檻不低，具備量產實力的PCB廠商屈指可數，臻鼎正加緊擴充產能，目標鎖定2027年躍居全球最大高階光模塊PCB供應商寶座。\n\n除了光模塊，臻鼎也同步加碼布局AI伺服器與IC載板領域，並加速調整產品結構，規劃到2030年將伺服器、光模塊、IC載板及其他業務合計營收占比，從2025年的11.7%大幅拉升至45%至50%，藉此降低對行動通訊產品的依賴程度。\n\n法人看好，下半年步入傳統旺季",
+      "impact_score": 48,
+      "raw_score": 48,
+      "freshness": "new",
+      "prior_days": 0,
+      "matched_factors": [
+        "investment",
+        "ai_server",
+        "forward_demand"
+      ],
+      "impacted_roles": [
+        "AI 伺服器 / 機架系統",
+        "基板 / 載板"
+      ]
+    },
+    {
+      "event": "先進封裝CoWoS與HBM如何改變AI伺服器TCO？",
+      "url": "https://readmo.cmoney.tw/article/9274eaa8-5d86-46a3-83fa-c99ece02f93b",
+      "snippet": "全球AI資料中心持續擴充，科技巨頭的資本支出正沿著晶片、記憶體、先進封裝與伺服器組裝向外傳導，帶動運算設備、廠房、電力與製造流程等供應鏈升級。 在晶片與記憶體端，AI晶片需求推動晶圓代工受惠，記憶體廠則迎來HBM規格升級；台灣伺服器代工與製程設備業者也同步承接新增需求。後續幾季的觀察重點，將落在出貨進度、良率與客戶訂單能見度。 這輪成長模式具高度資本密集特徵：雲端業者先投入資金，再由晶片、封裝與伺服器供應鏈完成交付，最後由AI服務收入支撐投資回報。若終端收入成長落後於折舊與營運成本，資本支出的增速可能放緩。 伺服器製造端已有新產能投入。鴻海(2317)德州廠已啟動AI伺服器生產，支援甲骨文的雲",
+      "impact_score": 40,
+      "raw_score": 80,
+      "freshness": "stale",
+      "prior_days": 6,
+      "matched_factors": [
+        "investment",
+        "advanced_packaging",
+        "ai_server",
+        "taiwan"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "AI 伺服器 / 機架系統",
+        "HBM / 記憶體"
+      ]
+    }
+  ],
+  "calendar_events": [
+    {
+      "date": "2026-10-02",
+      "when": "已發生",
+      "kind": "nfp",
+      "priority": 2,
+      "text": "美國非農 NFP（通常 8:30 ET＝台灣晚間約 20:30，台股已收盤）。今日盤中禁止把非農當已公布結果；隔日開盤才定價。"
+    },
+    {
+      "date": "2026-10-09",
+      "when": "尚未發生",
+      "kind": "twse_closed",
+      "priority": 3,
+      "text": "台股休市（國慶日補假）。禁止把這天講成開盤；下一交易日用語跟 session_calendar，不要猜明天／下週一。"
+    }
+  ],
+  "focus_ranking": [
+    {
+      "ticker": "4958",
+      "name": "臻鼎-KY",
+      "base_role": "elastic_attack",
+      "role_label": "彈性攻擊股",
+      "elasticity": 86,
+      "foreign_buy_strength": 100,
+      "volume_confirmation": 72,
+      "validation_credibility": 67,
+      "title_priority": 100,
+      "source_text": "臻鼎-KY (+38.2億)"
+    },
+    {
+      "ticker": "2344",
+      "name": "華邦電",
+      "base_role": "elastic_attack",
+      "role_label": "彈性攻擊股",
+      "elasticity": 86,
+      "foreign_buy_strength": 100,
+      "volume_confirmation": 25,
+      "validation_credibility": 62,
+      "title_priority": 100,
+      "source_text": "華邦電 (+36.9億)"
+    },
+    {
+      "ticker": "3037",
+      "name": "欣興",
+      "base_role": "elastic_attack",
+      "role_label": "彈性攻擊股",
+      "elasticity": 86,
+      "foreign_buy_strength": 82,
+      "volume_confirmation": 25,
+      "validation_credibility": 80,
+      "title_priority": 100,
+      "source_text": "欣興 (+23.7億)"
+    },
+    {
+      "ticker": "2492",
+      "name": "華新科",
+      "base_role": "elastic_attack",
+      "role_label": "彈性攻擊股",
+      "elasticity": 78,
+      "foreign_buy_strength": 92,
+      "volume_confirmation": 25,
+      "validation_credibility": 40,
+      "title_priority": 79,
+      "source_text": "華新科 (+27.1億)"
+    },
+    {
+      "ticker": "2409",
+      "name": "友達",
+      "base_role": "elastic_attack",
+      "role_label": "彈性攻擊股",
+      "elasticity": 78,
+      "foreign_buy_strength": 15,
+      "volume_confirmation": 60,
+      "validation_credibility": 80,
+      "title_priority": 75,
+      "source_text": "2409 友達：成交量全台第一但外資賣超 29.8 億元 (散戶接手)"
+    }
+  ],
+  "broadcast_facts": {
+    "opening": {
+      "hook_line": "臻鼎-KY +38.2億 vs 聯發科 -136.2億；臻鼎-KY成交量未進前20",
+      "contrast_line": "臻鼎-KY +38.2億 vs 聯發科 -136.2億",
+      "index_action": "下跌 16.2點（-0.03%）"
+    },
+    "heroes": [
+      {
+        "ticker": "4958",
+        "name": "臻鼎-KY",
+        "role_label": "彈性攻擊股",
+        "foreign_amount": 38.2,
+        "pct_change": null,
+        "volume_rank": null,
+        "off_rank": true,
+        "one_day_flip": false,
+        "sold_today": false,
+        "volume_confirmation": 72,
+        "foreign_streak_days": 2,
+        "admission": "official",
+        "admission_reason": "已進預測帳本，但含單日矛盾，口播必須標成節奏而非趨勢",
+        "caution": true,
+        "invalidation": "收盤跌破 MA20",
+        "evidence": "臻鼎-KY (+38.2億)；4958 臻鼎-KY：外資買超全台第一但成交量未進前 20 名 (主力低調掃貨)",
+        "say_line": "4958 臻鼎-KY，外資約 +38.2億，成交量未進前 20"
+      },
+      {
+        "ticker": "2344",
+        "name": "華邦電",
+        "role_label": "彈性攻擊股",
+        "foreign_amount": 36.9,
+        "pct_change": null,
+        "volume_rank": null,
+        "off_rank": false,
+        "one_day_flip": false,
+        "sold_today": false,
+        "volume_confirmation": 25,
+        "foreign_streak_days": 2,
+        "admission": "official",
+        "admission_reason": "已進預測帳本",
+        "caution": false,
+        "invalidation": "收盤跌破 MA20",
+        "evidence": "華邦電 (+36.9億)",
+        "say_line": "2344 華邦電，外資約 +36.9億"
+      },
+      {
+        "ticker": "3037",
+        "name": "欣興",
+        "role_label": "彈性攻擊股",
+        "foreign_amount": 23.7,
+        "pct_change": null,
+        "volume_rank": null,
+        "off_rank": false,
+        "one_day_flip": false,
+        "sold_today": false,
+        "volume_confirmation": 25,
+        "foreign_streak_days": 2,
+        "admission": "context",
+        "admission_reason": "對照股，不是下一交易日主盯",
+        "caution": false,
+        "invalidation": "",
+        "evidence": "欣興 (+23.7億)",
+        "say_line": "3037 欣興，外資約 +23.7億"
+      }
+    ],
+    "official_watch": [
+      {
+        "ticker": "4958",
+        "name": "臻鼎-KY",
+        "role_label": "彈性攻擊股",
+        "foreign_amount": 38.2,
+        "pct_change": null,
+        "volume_rank": null,
+        "off_rank": true,
+        "one_day_flip": false,
+        "sold_today": false,
+        "volume_confirmation": 72,
+        "foreign_streak_days": 2,
+        "admission": "official",
+        "admission_reason": "已進預測帳本，但含單日矛盾，口播必須標成節奏而非趨勢",
+        "caution": true,
+        "invalidation": "收盤跌破 MA20",
+        "evidence": "臻鼎-KY (+38.2億)；4958 臻鼎-KY：外資買超全台第一但成交量未進前 20 名 (主力低調掃貨)",
+        "say_line": "4958 臻鼎-KY，外資約 +38.2億，成交量未進前 20"
+      },
+      {
+        "ticker": "2344",
+        "name": "華邦電",
+        "role_label": "彈性攻擊股",
+        "foreign_amount": 36.9,
+        "pct_change": null,
+        "volume_rank": null,
+        "off_rank": false,
+        "one_day_flip": false,
+        "sold_today": false,
+        "volume_confirmation": 25,
+        "foreign_streak_days": 2,
+        "admission": "official",
+        "admission_reason": "已進預測帳本",
+        "caution": false,
+        "invalidation": "收盤跌破 MA20",
+        "evidence": "華邦電 (+36.9億)",
+        "say_line": "2344 華邦電，外資約 +36.9億"
+      }
+    ],
+    "talk_only": [],
+    "ruler_line": "依目前本機回測樣本，20D 命中率 55.6%（n=124）優於 1D/3D/5D 平均 47.1%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。"
+  },
+  "similar_sessions": [
+    {
+      "date": "2026-09-29",
+      "score": 36,
+      "reasons": [
+        "同買 1303、2344、4958",
+        "同賣 2308、2330、2454",
+        "賣超冠軍相同"
+      ],
+      "index_action": "下跌 392.6點（-0.82%）",
+      "index_pct": -0.82,
+      "bought": "1303 南亞 (+71.9億)、4958 臻鼎-KY (+47.2億)、8046 南電 (+17.1億)",
+      "sold": "2454 聯發科 (-246.8億)、2330 台積電 (-92.5億)、國巨* (-88.9億)",
+      "predictions": [
+        {
+          "ticker": "4958",
+          "name": "臻鼎-KY",
+          "direction": "多",
+          "trigger": "外資買超第2名且籌碼乾淨，隨AI伺服器高階載板放量"
+        }
+      ],
+      "next_date": "2026-09-30",
+      "next_day_results": [
+        "4958 臻鼎-KY (+1.71%, 預測成立)"
+      ],
+      "frame_label": "重大事件日"
+    },
+    {
+      "date": "2026-10-06",
+      "score": 34,
+      "reasons": [
+        "同買 1303、3037、4958",
+        "同賣 2330、2454",
+        "賣超冠軍相同"
+      ],
+      "index_action": "上漲 110.5點（+0.22%）",
+      "index_pct": 0.22,
+      "bought": "2313 華通 (+44.1億)、3037 欣興 (+38.6億)、4958 臻鼎-KY (+26.8億)",
+      "sold": "2454 聯發科 (-202.1億)、2317 鴻海 (-50.1億)、2330 台積電 (-43.1億)",
+      "predictions": [
+        {
+          "ticker": "2313",
+          "name": "華通",
+          "direction": "多",
+          "trigger": "外資買超第1名且帶量突破MA20，法人鎖貨跡象明顯"
+        },
+        {
+          "ticker": "4958",
+          "name": "臻鼎-KY",
+          "direction": "多",
+          "trigger": "外資買超第3名，股價回測MA20支撐有成"
+        }
+      ],
+      "next_date": null,
+      "next_day_results": [],
+      "frame_label": "重大事件日"
+    }
+  ]
+}

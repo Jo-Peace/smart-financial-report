@@ -188,10 +188,13 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
     editorial_frame = packaging_context.get("editorial_frame", "")
     event_radar = packaging_context.get("event_radar", "")
     title_fatigue_report = packaging_context.get("title_fatigue_report", "")
-    local_market_memory = packaging_context.get("local_market_memory", "")
+    from modules.narrative_sanitize import sanitize_narrative_text
+
+    local_market_memory = sanitize_narrative_text(packaging_context.get("local_market_memory", ""))
     stock_role_taxonomy = packaging_context.get("stock_role_taxonomy", "")
     audience_profile = packaging_context.get("audience_profile", "")
     compounding_brief = packaging_context.get("compounding_brief", "")
+    calendar_rules = packaging_context.get("calendar_rules", "")
     if not compounding_brief:
         try:
             brief_path = os.path.join(
@@ -258,6 +261,9 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 ===主動消息面事件雷達（若有高分事件，標題可用事件當主軸）===
 {event_radar if event_radar else '（無高分供應鏈事件）'}
 
+===本機日曆約束（解讀用，不是預設標題開場）===
+{calendar_rules if calendar_rules else '（無近窗日曆）'}
+
 ===近期標題疲勞檢查（避免連續使用同一套情緒公式）===
 {title_fatigue_report if title_fatigue_report else '（無標題疲勞檢查）'}
 
@@ -285,11 +291,13 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 {report_content[:1000]}
 
 ===標題撰寫規則（最關鍵）===
-只生成兩個標題，方便累積乾淨的 A/B Test：
-- 標題A：主推高勝率公式。優先檢查今日是否有重大「時事槓桿」；若有，標題A必須從時事切入，再連到台股風險/機會。若沒有時事槓桿，再檢查是否可呼應上集或昨日預測；最後才使用「大盤反差 + 核心股外資金額 + 隱藏買盤標的」。
-  範例格式：「上集說XX是地雷，但外資今天砸了XX億進去！這是接刀還是提前卡位？｜{short_date} AI帶你看股市」
-- 標題B：探索替換版。使用不同角度的好奇心缺口或數據衝擊，作為 48 小時後可替換版本。
-  範例格式：「XX億！外資狂砍權值股，卻反手鎖定這兩檔記憶體｜{short_date} AI帶你看股市」
+只生成兩個標題，方便累積乾淨的 A/B Test。A 與 B 必須同一核心股、同一筆已驗證金額或漲跌；測的是句法，不是換題材。
+- 標題A（對照組／先上架）：完整句。前 20 字必須是「已驗證金額 + 核心股名 + 反直覺」。用「買／砍」，不要用「狂掃／狂砍」開場。不要用【驗收】、AMD、升息、非農、四巫當開場。
+  範例：「聯發科買149億！友達量第一先噴｜{short_date} AI帶你看股市」
+  範例：「南亞科買159億！藥華藥卻被砍109億｜{short_date} AI帶你看股市」
+- 標題B（實驗組／48小時可換）：同一檔、同一個數字，但句子要碎。用殘句或短問句，不要把故事講完。禁止「外資○○億狂砍／狂掃」。禁止【驗收】、上集點名、VERIFIED、誰在收。
+  範例：「聯發科149億，友達先噴？｜{short_date} AI帶你看股市」
+  範例：「南亞科159億，藥華藥砍109億？｜{short_date} AI帶你看股市」
 
 ===複利閉環（自動簡報，高權重）===
 若下方有「本週禁止／可複製」內容：標題A必須遵守禁止開場；優先模仿可複製樣本的金額+矛盾+問句。
@@ -297,20 +305,16 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
 
 ===時間窗可信度（本機回測；自然帶入，勿硬廣）===
 若簡報／數據顯示 20D 命中率明顯優於 1D/3D/5D：標題主角與中期追蹤以 20D 可講的故事為準；
-隔日／3日結果最多當節奏鉤，不要用「昨天點名今天就該噴」當唯一勝敗。
+隔日／3日結果最多當節奏鉤，不要用「上一交易日點名今天就該噴」當唯一勝敗。週五禁止標題寫「明天開盤」；週一禁止「昨天開盤」。
 口播可自然一句：「我們比較看 20 個交易日這條尺子，短線噪音比較大。」
 
 ===已驗證較有效的頻道標題公式（高權重參考）===
 學習門檻：觀看數低於 900 的影片只能視為觀察樣本，不可作為 A/B Test 勝負依據。只有 900 觀看以上的案例，才視為可強化的標題/封面公式。
 
-近期表現較好的標題使用了這種結構：
-「台股大漲/大跌卻暗藏殺機？台積電大漲但外資狂砍XX億！主力反手鎖定『這檔』記憶體股｜AI帶你看股市」
-
-另一個表現較好的標題使用了「上集驗收 / 連續劇」結構：
-「上集說XX是地雷，但外資今天砸了XX億進去！股價卻繼續跌——這是接刀還是提前卡位？」
-
-另一個高觀看樣本使用了「節假日後風險預警」結構：
-「228連假後台股崩盤預警!?」
+可複製的是「金額 + 個股 + 矛盾」，不是開場詞。下面舊樣本只當歷史觀察，禁止再抄「狂砍／驗收／崩盤預警」開場：
+「聯發科買149億！友達量第一先噴」
+「明天台積電除息7元！外資卻先砍101億」
+觀看數低於 900 的舊片不能當公式。
 
 目前最高觀看樣本使用了「地緣政治 / 美股血洗 / 台股風險傳導」結構：
 「戰火引爆美股血洗！台積電 ADR 暴跌 9.5% 週一台股開盤面臨斷頭危機？資金全逃去哪了！」
@@ -318,7 +322,7 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
 請優先模仿這個邏輯，而不是照抄文字：
 1. 先判斷今天是哪一種內容日：驗收日、重大事件日、異常日、續航日、主題日、整理日。
 2. 若有重大時事槓桿：戰爭、美股暴跌、台積電 ADR、輝達、VIX、Fed、匯率、關稅、長假、重大財報、台指期夜盤，標題A順序為：時事事件 → 台股會怎樣 → 核心標的/數字 → 散戶該怕什麼或看什麼。
-3. 若今日資料能呼應昨日或上集的預測，標題可使用「上集說過 / 昨天點名 / 真的驗收」結構，讓觀眾感覺這不是單集資訊，而是連續追蹤。
+3. 若今日資料能呼應上集的預測，標題可使用「上集說過」結構；上一集若不是昨天，禁止用「昨天點名」。
 4. 只有在法人與成交量/股價有明確反直覺數字時，才使用「背離、警訊、誰在賣、誰接手」語氣。
 5. 只有連續 2-3 天有法人、量能、價格結構延續時，才使用「續航、接棒、主力還在」語氣。
 6. 若沒有強訊號，不要硬做警報標題；改用「今天不是追強日」「這幾檔等確認」「訊號普通但觀察條件很清楚」。
@@ -331,20 +335,20 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
 13. 若美股、VIX、台積電 ADR、輝達、油金、地緣政治出現重大異常，標題A可使用「全球風險傳導到台股」結構：全球觸發事件 + 台灣核心資產跌幅 + 下一交易日風險 + 投資人該追問的問題。
 
 標題硬規則：
-1. 每個標題 35-60 字（含符號）；若今日數據很強，可以略長，但前半段必須完整有鉤子
-2. 前 22 字是黃金區——必須出現大盤反差、核心股、或外資金額之一
+1. 標題A 28-60 字（含符號）；標題B 18-40 字，允許殘句，不要為了湊字把故事寫完。
+2. 標題A 前 22 字必須出現核心股或已驗證金額之一。
 3. 末尾固定加「｜AI帶你看股市」作為品牌識別
 4. 數字必須來自今日真實數據，不得捏造
 5. 繁體中文，禁止「穩了」「嗨了」「躺平」等中國大陸流行語
 6. 可加 1-2 個 emoji，放最前面或最後面（末尾品牌標語前）
 7. 不要使用「資金輪動」；標題要講具體事件，例如三大法人買賣超、成交量、量價背離。
-8. 標題必須至少點名 1 檔具體股票或 1 個具體族群；若標題點名族群，描述第一行或第二行必須補上個股。
+8. 標題必須至少點名 1 檔具體股票；A 與 B 必須是同一檔核心股。
 9. 若使用「外資已買 / 偷偷買 / 掃貨」等語氣，必須在標題或描述中放入實際金額或正式資料依據。
 10. 若核心股是權值大股但彈性有限，標題應區分「看方向」與「看彈性」，不要把權值核心包裝成最大飆股。
 11. 不要每天套同一種危機語氣；若日報主軸是整理日或觀察日，標題也必須承認訊號尚未確認。
 12. 若「近期包裝疲勞檢查」列出禁用詞或禁用封面題型，標題A與標題B都不得再使用那些詞，也不得只把字換成同義詞（例如榜外吸籌→沒進榜、被砍→提款、接棒→換車）。
-13. 標題A與標題B必須使用不同題型：不可兩個都寫「外資砍X卻買Y」；至少一個要改成驗收、逆勢原因、事件衝擊、明日失效條件或量價矛盾。
-14. 若連續多日都在講法人換手，今天改問：為什麼逆勢、量價哪裡不一致、哪個價位失效，而不是再問「誰接棒」。
+13. 標題A與標題B必須同一核心股、同一金額；差別只在句法。禁止 B 再寫「外資○○億狂砍／狂掃」。禁止 B 用【驗收】、上集點名、VERIFIED。
+14. 若連續多日都在講法人換手，B 改問缺口（還紅？沒進量榜？誰在撿？），不要再寫完整換手句。
 
 ===描述撰寫規則===
 第1行（≤55字）：今日主軸或關鍵訊號 + 核心數字 + 日期（包含「台股」）
@@ -357,7 +361,7 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
 - 8～20 秒：一句可被影片回答的問句
 - 20～40 秒：今日主線一句話（續航/事件/異常/整理…）
 - 禁止空泛恐嚇（「崩盤」「逃命」）若沒有對應數字
-- 恐懼必須有出口：明天看什麼、哪個價位失效
+- 恐懼必須有出口：下一交易日看什麼、哪個價位失效（週五說下週一，不要說明天開盤）
 
 空一行，加章節標記（請完整照抄下列時間軸，不要自行改回「昨日預測驗收」開場，除非 placement=lead）：
 {chapter_markers}
@@ -435,6 +439,7 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
                 fatigue_state=fatigue_state,
                 local_candidates=local_candidates,
                 short_date=short_date,
+                date_str=date_str,
             )
         if result.get("description"):
             result["description"] = _normalize_description_chapters(
@@ -522,6 +527,7 @@ def build_fallback_youtube_package(structured_data, report_content, date_str, re
         fatigue_state=fatigue_state,
         local_candidates=local_candidates,
         short_date=short_date,
+        date_str=date_str,
     )
     if len(fallback_titles) < 2:
         fallback_titles.extend(
@@ -535,6 +541,7 @@ def build_fallback_youtube_package(structured_data, report_content, date_str, re
             fatigue_state=fatigue_state,
             local_candidates=local_candidates,
             short_date=short_date,
+            date_str=date_str,
         )
     title_a = fallback_titles[0] if fallback_titles else f"{main_target}明日觀察條件？｜{short_date} AI帶你看股市"
     title_b = fallback_titles[1] if len(fallback_titles) > 1 else title_a
@@ -577,7 +584,7 @@ def _build_sand_table_section(structured_data):
     heavyweights = _as_list(structured_data.get("heavyweights_dumped"))
     recent_trends = structured_data.get("recent_trends") or {}
     short_window = structured_data.get("short_term_validation_window") or "1D / 3D / 5D"
-    long_window = structured_data.get("long_term_validation_window") or "20D / 60D"
+    long_window = structured_data.get("long_term_validation_window") or "20D"
     horizon = structured_data.get("short_term_horizon") or "1~5日"
     long_horizon = structured_data.get("long_term_horizon") or "2~6週 / 1~3個月"
 
@@ -684,7 +691,7 @@ def save_youtube_package(result, reports_dir, date_str, structured_data=None):
     lines = [f"# YouTube 上架素材包 {date_str}\n"]
 
     lines.append("## 📝 A/B 標題選項（先用 A，48 小時後再判斷是否換 B）\n")
-    labels = ["A（主推高勝率公式）", "B（探索替換版）"]
+    labels = ["A（對照組：完整句，先上架）", "B（實驗組：殘句／問句，同股同數字）"]
     for i, title in enumerate(result.get("titles", [])[:2]):
         label = labels[i] if i < len(labels) else str(i + 1)
         lines.append(f"**標題 {label}：**\n```\n{title}\n```\n")

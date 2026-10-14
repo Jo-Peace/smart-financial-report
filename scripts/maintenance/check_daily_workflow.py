@@ -33,7 +33,7 @@ def _read(path):
 
 
 def _exists(path):
-    return os.path.exists(path)
+    return bool(path) and os.path.exists(path)
 
 
 def _check_file(label, path, errors, warnings):
@@ -59,7 +59,7 @@ def check_current(date_str, errors, warnings):
         return
 
     content = _read(current_path)
-    if f"更新日期：{date_str}" in content:
+    if f"最近成功 /1 產出日期：{date_str}" in content or f"更新日期：{date_str}" in content:
         print(f"[PASS] CURRENT date is {date_str}")
     else:
         warnings.append(f"CURRENT.md date is not {date_str}")
@@ -114,6 +114,11 @@ def check_youtube_outputs(date_str, errors, warnings):
         ("thumbnail prompt A", resolve_youtube_artifact(REPORTS_DIR, date_str, "thumbnail_1")),
         ("thumbnail prompt B", resolve_youtube_artifact(REPORTS_DIR, date_str, "thumbnail_2")),
     ]
+    if not any(path for _, path in paths):
+        warnings.append(f"YouTube /2 尚未產出: {date_str}")
+        print(f"[SKIP] YouTube /2 尚未產出: {date_str}")
+        return
+
     for label, path in paths:
         _check_file(label, path, errors, warnings)
 
