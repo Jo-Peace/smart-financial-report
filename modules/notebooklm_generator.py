@@ -100,8 +100,8 @@ def _build_mainline(structured_data: dict) -> str:
         bits.append(hook)
     official = facts.get("official_watch") or []
     if official:
-        first = official[0]
-        bits.append(f"收尾盯 {first.get('ticker', '')} {first.get('name', '')}".strip())
+        names = "、".join(f"{c.get('ticker', '')} {c.get('name', '')}".strip() for c in official)
+        bits.append(f"收尾盯 {names}")
     return "；".join(bits)
 
 
@@ -147,12 +147,14 @@ def _must_cover_lines(structured_data: dict, placement: str) -> list[str]:
         last_output_date=last_output_from_structured(structured_data),
     )
     if official:
-        first = official[0]
-        stop = first.get("invalidation") or ""
         next_main = lex.get("next_main") or "明日主盯"
-        lines.append(
-            f"{next_main}：{first.get('ticker', '')} {first.get('name', '')}；失效：{stop or '見資料源主角卡'}"
-        )
+        # Every prediction_target is official tracking; list all of them so the
+        # director card, description and next-day validation name the same stocks.
+        for card in official:
+            stop = card.get("invalidation") or ""
+            lines.append(
+                f"{next_main}：{card.get('ticker', '')} {card.get('name', '')}；失效：{stop or '見資料源主角卡'}"
+            )
     else:
         next_main = lex.get("next_main") or "明日主盯"
         lines.append(f"{next_main}：今日沒有過門檻的正式追蹤檔；只講矛盾與確認條件")
@@ -168,7 +170,8 @@ def _must_not_lines(structured_data: dict, placement: str) -> list[str]:
     lines = [
         "不要唸完整法人榜或完整族群清單",
         "不要說「資金輪動」空話；要講誰買誰賣與金額",
-        "不要說鎖籌碼／靜默入侵／影子建倉；量沒進前20只准講「成交量未進前20」",
+        "不要說鎖籌碼／鎖貨／掃貨／吸籌／靜默或低調買進／影子或隱形買盤等法人意圖用語；"
+        "沒進股數前20只准講「未進股數量榜（不代表量縮）」，量能看個股量增比，其餘只講金額、名次、連續買超天數",
         "土洋對作最多一句備查，不要升級成主線陰謀",
         "不要把短線標的講成長線必漲",
         "不要捏造資料源沒有的數字",
@@ -184,16 +187,38 @@ def _must_not_lines(structured_data: dict, placement: str) -> list[str]:
         lines.append("標題式口吻不要出現「驗收日／驗收現場」")
     # If long-term looks extreme, call it out.
     for pick in _as_list(structured_data.get("long_term_picks"))[:2]:
-        blob = str(pick)
-        if re.search(r"\+?\d{2,}(?:\.\d+)?%", blob):
-            m = re.search(r"([+-]?\d{2,}(?:\.\d+)?)%", blob)
-            if m and abs(float(m.group(1))) >= 40:
-                lines.append("長線背景若含極端漲幅，禁止當「必漲主線」朗讀")
-                break
+        if _pick_max_abs_return(pick) >= 40:
+            lines.append("長線背景若含極端漲幅，禁止當「必漲主線」朗讀")
+            break
     return lines
 
 
-def _opening_hook_block(structured_data: dict, placement: str) -> str:
+def _pick_max_abs_return(pick) -> float:
+    """Largest |window return| of a long-term pick (numeric trends first, text fallback)."""
+    if isinstance(pick, dict) and isinstance(pick.get("trends"), dict):
+        values = []
+        for value in pick["trends"].values():
+            try:
+                values.append(abs(float(value)))
+            except (TypeError, ValueError):
+                continue
+        if values:
+            return max(values)
+    blob = " ".join(
+        str(pick.get(key) or "") for key in ("theme", "thesis", "evidence")
+    ) if isinstance(pick, dict) else str(pick)
+    # Whole numbers only: never start matching after a decimal point ("+1.45%" is not 45).
+    found = re.findall(r"(?<![\d.])([+-]?\d+(?:\.\d+)?)%", blob)
+    return max((abs(float(x)) for x in found), default=0.0)
+
+
+def _title_promise(title: str) -> str:
+    """Title A without the channel suffix — the promise the first 30 seconds must deliver."""
+    text = re.sub(r"[｜|]\s*(?:\d{1,2}/\d{1,2}\s*)?AI帶你看股市.*$", "", str(title or "")).strip()
+    return text
+
+
+def _opening_hook_block(structured_data: dict, placement: str, title_a: str = "") -> str:
     """Director notes for a data-backed sensational cold open."""
     from modules.session_calendar import last_output_from_structured, session_lexicon
 
@@ -201,6 +226,11 @@ def _opening_hook_block(structured_data: dict, placement: str) -> str:
     opening = facts.get("opening") or {}
     mainline = _build_mainline(structured_data)
     hook_line = (opening.get("hook_line") or "").strip() or mainline
+    promise = _title_promise(title_a)
+    if promise:
+        # /2 regenerates the card after titles are final: the cold open must pay off the
+        # title's stock + number first; broadcast_facts stays as the supporting data line.
+        hook_line = f"先兌現標題「{promise}」的同一檔、同一數字（以資料源為準）；補充素材：{hook_line}"
     lex = session_lexicon(
         structured_data.get("date"),
         last_output_date=last_output_from_structured(structured_data),
@@ -211,7 +241,7 @@ def _opening_hook_block(structured_data: dict, placement: str) -> str:
     if placement == "lead":
         return f"""## 開場鉤子（lead：可先驗收，但仍要聳動）
 
-- 0～8 秒：先丟一個可驗證數字（建議：{_first_str(structured_data.get("prev_day_picks_result") or structured_data.get("validation_results")) or hook_line}）
+- 0～8 秒：先丟一個可驗證數字（建議：{hook_line if promise else (_first_str(structured_data.get("prev_day_picks_result") or structured_data.get("validation_results")) or hook_line)}）
 - 8～20 秒：接「上集說了什麼 → 今天數字怎麼走」
 - 20～40 秒：轉入今日主線：{mainline}
 - 禁止空泛恐嚇；每個聳動句子後面都要有資料源數字
@@ -275,6 +305,22 @@ def _short_date_label(date_str: str) -> str:
         return f"{date_str} 台股盤後"
 
 
+def _scene_theme(visual_theme: str) -> str:
+    """
+    Positive scene only (finding 82/91): 「禁止…」 clauses, banned stock names and title
+    rules from --visual-theme / DAILY_VISUAL_THEME never reach the NotebookLM cover.
+    """
+    text = str(visual_theme or "").strip()
+    if not text:
+        return ""
+    try:
+        from modules.packaging_bans import scene_only
+
+        return scene_only(text).rstrip("。")
+    except Exception:
+        return text[:150]
+
+
 def _cover_alignment_block(
     date_str: str,
     *,
@@ -286,6 +332,7 @@ def _cover_alignment_block(
     NotebookLM Video Overview first-slide alignment.
     Role names match channel pack: 張博士 / 阿明（封面可用博士與散戶角色感）。
     """
+    visual_theme = _scene_theme(visual_theme)
     if not any([visual_theme, title_a, title_b]):
         return ""
     main = title_a or "（請使用當日 YouTube 標題 A）"
@@ -324,7 +371,7 @@ def build_compact_notebooklm_prompt(
     mainline = _build_mainline(structured_data)
     must_cover = "\n".join(f"- {x}" for x in _must_cover_lines(structured_data, placement))
     must_not = "\n".join(f"- {x}" for x in _must_not_lines(structured_data, placement))
-    theme = visual_theme or current_theme or ""
+    theme = _scene_theme(visual_theme) or current_theme or ""
     theme_line = f"- 外部視覺/主題（若有）：{theme}" if theme else "- 外部主題：無"
     skill_section = (
         _skill_block(skill_context)
@@ -339,7 +386,7 @@ def build_compact_notebooklm_prompt(
 
     last_output = last_output_from_structured(structured_data)
     order_block = _program_order_block(placement, date_str, last_output_date=last_output)
-    opening_block = _opening_hook_block(structured_data, placement)
+    opening_block = _opening_hook_block(structured_data, placement, title_a=title_a)
     lex = session_lexicon(date_str, last_output_date=last_output)
     session_block = speech_rules_block(date_str, last_output_date=last_output)
     next_watch = lex.get("next_watch") or "明天先看"
@@ -364,7 +411,7 @@ def build_compact_notebooklm_prompt(
 ## 今日唯一主線（請整集繞它轉）
 
 {mainline}
-
+{f"{chr(10)}- 標題承諾（前 30 秒先兌現）：{_title_promise(title_a)}" if title_a else ""}
 - 編輯框架：{frame}
 - 驗收使用：{placement}（lead=可開場；brief=中段一句；omit=不要當主鉤子）
 {theme_line}
@@ -407,6 +454,11 @@ def build_weekend_notebooklm_prompt(structured_data, date_str=None, skill_contex
     defense = structured_data.get("taiwan_monday_defense") or structured_data.get("conservative_strategy") or "見資料源"
     vulture = structured_data.get("taiwan_monday_vulture") or structured_data.get("aggressive_strategy") or "見資料源"
     skill_section = _skill_block(skill_context)
+    # Only ask for 法人/量價 when local Taiwan data was attached; otherwise forbid it.
+    if (structured_data.get("taiwan_week") or {}).get("has_institutional"):
+        chips_line = "2. 法人 vs 成交量的一致或矛盾（2～3 檔，只用資料源中的本機法人榜）"
+    else:
+        chips_line = "2. 本次沒有台股本機法人資料：不談法人買賣超與個股籌碼"
 
     return f"""# 週末特別版導演卡：{date_str}
 
@@ -427,7 +479,7 @@ def build_weekend_notebooklm_prompt(structured_data, date_str=None, skill_contex
 ## 節目順序
 
 1. 本週最大故事 1 條（不要逐日流水帳）
-2. 法人 vs 成交量的一致或矛盾（2～3 檔）
+{chips_line}
 3. 下週只盯 1 個變數 + 失效條件
 4. 穩健 / 波段各一句；不叫買賣
 

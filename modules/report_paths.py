@@ -5,6 +5,7 @@ New layout:
   reports/daily/YYYY-MM-DD/{daily_report,structured_data,notebooklm_*}.md/json
   reports/youtube/YYYY-MM-DD/{youtube_package,yt_thumbnail_prompt_1,2}.md
   reports/shared/{channel_story_log,youtube_packaging_playbook,...}.md
+  reports/special_topics/YYYY-MM-DD_slug/{special_report_*,special_structured_data_*,...}
 """
 
 from __future__ import annotations
@@ -20,6 +21,8 @@ YOUTUBE_DIRNAME = "youtube"
 SHARED_DIRNAME = "shared"
 LEGACY_YOUTUBE_DIRNAME = "06_YouTube_Assets"
 LEGACY_DAILY_OUTPUTS_DIRNAME = "daily_outputs"
+
+SPECIAL_TOPICS_DIRNAME = "special_topics"
 
 DAILY_ARTIFACTS = {
     "report": "daily_report.md",
@@ -61,6 +64,28 @@ def shared_dir(reports_dir: str) -> str:
 
 def legacy_youtube_dir(reports_dir: str) -> str:
     return os.path.join(reports_dir, LEGACY_YOUTUBE_DIRNAME)
+
+
+def special_topic_dir(reports_dir: str, date_str: str, slug: str) -> str:
+    return os.path.join(reports_dir, SPECIAL_TOPICS_DIRNAME, f"{date_str}_{slug}")
+
+
+def special_topic_file(reports_dir: str, date_str: str, slug: str, kind: str, *, ensure: bool = False) -> str:
+    """
+    Path of one special-topic artifact, following the existing folder convention:
+    report -> special_report_<date>_<slug>.md, structured_data ->
+    special_structured_data_<ymd>_<slug>.json, notebooklm_prompt ->
+    notebooklm_prompt_special_<ymd>_<slug>.md.
+    """
+    names = {
+        "report": f"special_report_{date_str}_{slug}.md",
+        "structured_data": f"special_structured_data_{_ymd(date_str)}_{slug}.json",
+        "notebooklm_prompt": f"notebooklm_prompt_special_{_ymd(date_str)}_{slug}.md",
+    }
+    folder = special_topic_dir(reports_dir, date_str, slug)
+    if ensure:
+        os.makedirs(folder, exist_ok=True)
+    return os.path.join(folder, names[kind])
 
 
 def ensure_daily_dir(reports_dir: str, date_str: str) -> str:

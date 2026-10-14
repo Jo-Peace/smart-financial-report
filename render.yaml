@@ -2,12 +2,56 @@ services:
   - type: web
     name: ai-stock-researcher
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    # requirements.txt pins direct deps; constraints.txt pins the transitive set.
+    buildCommand: pip install -r requirements.txt -c constraints.txt
     startCommand: uvicorn app.main_app:app --host 0.0.0.0 --port $PORT
+    # /healthz returns 503 when the DB is not writable or API keys are missing.
+    healthCheckPath: /healthz
+    # Persistent storage needs a paid instance type (free instances cannot mount
+    # disks). Without a disk, the SQLite cache / IP quotas and the Gemini usage
+    # log reset on every deploy or restart (/healthz shows persistent_storage=false).
+    # To enable: add `plan: starter`, uncomment the disk block below and the
+    # STOCK_RESEARCH_DB_PATH / GEMINI_USAGE_LOG_PATH entries in envVars.
+    # disk:
+    #   name: research-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
     envVars:
       - key: GEMINI_API_KEY
         sync: false
       - key: TAVILY_API_KEY
         sync: false
+      # Keep in step with the local pipeline interpreter (/usr/local/bin/python3).
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.14.1
+      # One day boundary for cache keys, quotas and the Gemini usage log.
+      - key: TZ
+        value: Asia/Taipei
+      # Concrete model ID instead of a floating "-latest" alias.
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      # DAILY_GLOBAL_LIMIT (20 reports) x (1 + WEB_GEMINI_MAX_RETRIES) calls.
+      - key: GEMINI_DAILY_CALL_LIMIT
+        value: "40"
+      - key: WEB_GEMINI_MAX_RETRIES
+        value: "1"
+      - key: GEMINI_HTTP_TIMEOUT_MS
+        value: "90000"
+      # Per-IP quota, the failure lockout and view counts key on the client IP:
+      # the TRUSTED_PROXY_HOPS-th X-Forwarded-For hop from the right (internal
+      # 10.x / 172.16-31.x / 192.168.x hops at that position are skipped).
+      # The hop count is an assumption until verified on Render: the first
+      # deploy logs the raw forwarding headers once (LOG_CLIENT_IP_HEADERS).
+      # Read that "client-ip headers:" line, then set TRUSTED_PROXY_HOPS or
+      # CLIENT_IP_HEADER (e.g. True-Client-IP) from what Render really sends,
+      # and set LOG_CLIENT_IP_HEADERS back to "0".
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
+      # - key: CLIENT_IP_HEADER
+      #   value: True-Client-IP
+      - key: LOG_CLIENT_IP_HEADERS
+        value: "1"
+      # - key: STOCK_RESEARCH_DB_PATH
+      #   value: /var/data/stock_research.db
+      # - key: GEMINI_USAGE_LOG_PATH
+      #   value: /var/data/gemini_usage_log.jsonl

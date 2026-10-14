@@ -116,7 +116,11 @@ class NewsOrderTest(unittest.TestCase):
         ]
         topics = news_search_topics(dynamic, radar, focus_names=["聯發科", "友達"])
         self.assertEqual(topics[0], dynamic[0])
-        self.assertEqual(topics[-1], "聯發科 ASIC 資料中心訂單擴大")
+        # Follow-up search is built from the named entity, not the radar headline
+        # (re-searching the title only re-finds the same article).
+        self.assertEqual(topics[-1], "聯發科 訂單 法說 營運")
+        topics = news_search_topics(dynamic, radar, focus_names=[{"id": "2454", "name": "聯發科"}])
+        self.assertEqual(topics[-1], "聯發科 2454 訂單 法說 營運")
 
     def test_stale_radar_never_appended(self):
         dynamic = ["Taiwan stock 2454 聯發科 外資買超 原因"]
@@ -165,7 +169,22 @@ class NarrativeSanitizeTest(unittest.TestCase):
         self.assertNotIn("靜默入侵", text)
         self.assertNotIn("隱形掃貨", text)
         self.assertNotIn("榜外低量買超", text)
-        self.assertIn("成交量未進前20", text)
+        # Neutral rewrite: the sanitizer must not inject an unverified volume-rank fact.
+        self.assertNotIn("成交量未進前20", text)
+        self.assertIn("買超", text)
+        self.assertEqual(text, "聯發科買超、買超、買超")
+
+    def test_replacements_assert_nothing_about_volume(self):
+        """Off the share board is not low volume; the sanitizer must not re-introduce that inference."""
+        from modules.broadcast_facts import is_off_rank
+        from modules.narrative_sanitize import NARRATIVE_REPLACEMENTS
+
+        for old, new in NARRATIVE_REPLACEMENTS:
+            self.assertFalse(is_off_rank(new), (old, new))
+            self.assertNotIn("量", new.replace("數量", ""), (old, new))
+        text = sanitize_narrative_text("欣興外資買超 231 億，機構鎖籌碼意圖明顯；漲停鎖籌碼")
+        self.assertFalse(is_off_rank(text))
+        self.assertNotIn("鎖籌碼", text)
 
     def test_structured_fields_are_walked(self):
         out = sanitize_structured_data(

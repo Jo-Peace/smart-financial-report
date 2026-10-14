@@ -169,7 +169,11 @@ def _resolve_thumbnail_styles(styles=None):
 
 
 def _normalize_custom_style(style_key_or_custom):
-    style = str(style_key_or_custom or "").strip()
+    # Image prompts only get the positive scene: 「禁止…」/title-rule clauses (and the stock
+    # names / scene nouns inside them) are stripped; they live in data/packaging_bans.json.
+    from modules.packaging_bans import scene_only
+
+    style = scene_only(str(style_key_or_custom or "").strip()).rstrip("。")
     normalized = style.lower()
     if _is_jojo_fifa_theme(normalized):
         return (

@@ -1,9 +1,23 @@
 """Deterministic market calendar for /1 inference constraints.
 
 Tavily news is a supplement. These dated rules are the source of truth for
-settlement, US prints, FOMC, NFP, and quadruple witching near the report date.
+settlement, US prints, FOMC, NFP, quadruple witching, and FTSE index
+rebalance sessions near the report date.
 TWSE closed days live in data/twse_closed_days.json and modules/twse_calendar.py.
 3rd-Wednesday settlement may still need a one-off if a holiday shifts TAIFEX.
+
+MSCI quarterly reviews are NOT rule-derived facts: the effective session moves
+(November reviews have landed before month-end, around US Thanksgiving). The
+generated row is an estimated window (kind msci_rebalance_window, priority 1,
+estimated=True) that never counts as mechanical flow. Add the announced date
+as a one_off with kind=msci_rebalance to data/market_calendar_prints.json;
+only that confirmed row flags passive flow and suppresses the estimate.
+
+Known gap: ex-dividend mechanical flow only covers hand-entered ex_div
+one_offs that list tickers. Nothing ingests the TWSE ex-rights/dividend
+schedule (TWT48U) yet, so in ex-div season other names' flow is not
+discounted; the TWSE STOCK_DAY fallback's unadjusted MA20 and 'X' change
+parse are data_fetcher issues tracked separately.
 """
 
 from __future__ import annotations
@@ -67,6 +81,7 @@ ONE_OFFS = (
         "date": "2026-09-16",
         "kind": "ex_div",
         "priority": 3,
+        "tickers": ["2330"],
         "text": "台積電除息 7 元。權值缺口是機械性的，不要寫成棄守。",
     },
 )
@@ -76,6 +91,44 @@ def _prev_twse(day: date) -> date:
     from modules.twse_calendar import prev_session
 
     return prev_session(day)
+
+
+def _last_twse_session_of_month(year: int, month: int) -> date:
+    """Last TWSE session on or before the month's final calendar day."""
+    if month == 12:
+        first_next = date(year + 1, 1, 1)
+    else:
+        first_next = date(year, month + 1, 1)
+    return _prev_twse(first_next)
+
+
+def _twse_session_on_or_before(day: date) -> date:
+    try:
+        from modules.twse_calendar import is_twse_session
+
+        if is_twse_session(day):
+            return day
+    except Exception:
+        return day
+    return _prev_twse(day)
+
+
+# Index-rebalance months. FTSE dates are rule-derived (official notices win);
+# MSCI dates are only an estimated window until a confirmed one_off exists.
+MSCI_REBALANCE_MONTHS = (2, 5, 8, 11)  # usually close of last business day; Nov often earlier
+FTSE_REBALANCE_MONTHS = (3, 6, 9, 12)  # effective after close of 3rd Friday
+MSCI_CONFIRMED_KIND = "msci_rebalance"
+MSCI_ESTIMATE_KIND = "msci_rebalance_window"
+
+# Calendar kinds whose foreign / institutional flow is partly mechanical
+# (passive index trades, ex-dividend gap). Scorers use this to down-weight
+# flow-based anomalies on these sessions. Rows may carry "tickers": an empty
+# list means market-wide (index rebalance); otherwise only those names.
+MECHANICAL_FLOW_KINDS = {
+    "msci_rebalance": "MSCI 季度調整生效（被動資金）",
+    "ftse_rebalance": "FTSE 富時季度調整生效（被動資金）",
+    "ex_div": "除權息（價格缺口是機械性的）",
+}
 
 
 def nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
@@ -144,6 +197,33 @@ def _generated_events(day: date) -> list[dict]:
                     "text": (
                         "美股四巫日（季月第三個週五：指數期貨／選擇權等到期）。"
                         "不是台指期結算日。台股多在下一個交易日吃 ADR／夜盤。"
+                    ),
+                }
+            )
+        if month in FTSE_REBALANCE_MONTHS:
+            ftse_day = _twse_session_on_or_before(nth_weekday(year, month, 4, 3))
+            rows.append(
+                {
+                    "date": ftse_day.isoformat(),
+                    "kind": "ftse_rebalance",
+                    "priority": 2,
+                    "text": (
+                        "FTSE 富時季度指數調整生效（季月第三個週五收盤；依規則推算，以官方公告為準）。"
+                        "尾盤外資大買大賣可能是被動調整，先寫機械性可能，再寫主力意圖。"
+                    ),
+                }
+            )
+        if month in MSCI_REBALANCE_MONTHS:
+            msci_day = _last_twse_session_of_month(year, month)
+            rows.append(
+                {
+                    "date": msci_day.isoformat(),
+                    "kind": MSCI_ESTIMATE_KIND,
+                    "priority": 1,
+                    "estimated": True,
+                    "text": (
+                        f"MSCI {month} 月季度調整生效日未確認（估計在月底前後；11 月常提前到美國感恩節當週）。"
+                        "未經 MSCI 公告確認前不是日曆事實：不得寫成今天生效，也不得用它解釋外資買賣超。"
                     ),
                 }
             )
@@ -217,10 +297,15 @@ def all_event_templates(day) -> list[dict]:
     if not extras:
         extras = list(KNOWN_PRINTS) + list(ONE_OFFS)
     extra_keys = {(str(item.get("date")), str(item.get("kind") or "")) for item in extras}
+    # A confirmed MSCI date replaces that month's estimated window.
+    confirmed_msci_months = {
+        str(item.get("date"))[:7] for item in extras if item.get("kind") == MSCI_CONFIRMED_KIND
+    }
     rows = [
         item
         for item in _generated_events(parsed)
         if (item["date"], item.get("kind") or "") not in extra_keys
+        and not (item.get("kind") == MSCI_ESTIMATE_KIND and item["date"][:7] in confirmed_msci_months)
     ]
     rows.extend(extras)
     return rows
@@ -243,20 +328,38 @@ def nearby_market_events(day, back_days=5, forward_days=4) -> list[dict]:
         else:
             when = "尚未發生"
         key = (event_day.isoformat(), item.get("kind") or item["text"][:24])
-        keyed[key] = {
+        row = {
             "date": event_day.isoformat(),
             "when": when,
             "kind": item.get("kind") or "",
             "priority": int(item.get("priority") or 1),
             "text": item["text"],
         }
+        tickers = [str(t).strip() for t in (item.get("tickers") or []) if str(t).strip()]
+        if tickers:
+            row["tickers"] = tickers
+        if item.get("estimated"):
+            row["estimated"] = True
+        keyed[key] = row
     rows = list(keyed.values())
     rows.sort(key=lambda row: (row["date"], -row["priority"], row["kind"]))
     return rows
 
 
+ESTIMATE_LABEL = "（估計，非事實）"
+
+
+def event_line_text(row) -> str:
+    """Estimated rows are labelled so prompts / sources never read them as calendar facts."""
+    text = str((row or {}).get("text") or "")
+    return f"{ESTIMATE_LABEL}{text}" if (row or {}).get("estimated") else text
+
+
+_row_line_text = event_line_text  # backward-compatible private name
+
+
 def calendar_one_liner(day) -> str:
-    rows = nearby_market_events(day)
+    rows = [row for row in nearby_market_events(day) if not row.get("estimated")]
     live = [row for row in rows if row["when"] in {"今天", "尚未發生"} and row["priority"] >= 2]
     live = live[:4]
     if not live:
@@ -286,9 +389,10 @@ def analyzer_calendar_block(day) -> str:
         "四巫日是美股季月第三個週五，不是台指期結算（第三個週三）。",
         "權值大賣超若落在結算 T-1／除息前夕，先寫機械性可能，再寫主力換股假說。",
         "正文必須有短段「〔日曆約束〕」（3～6 句），用下面事實，不要發明日期。",
+        "標「（估計，非事實）」的列是未確認的估計窗口，只能說「可能」，不可寫成已確定的日期。",
     ]
     for row in rows:
-        lines.append(f"- {row['date']}（{row['when']}）：{row['text']}")
+        lines.append(f"- {row['date']}（{row['when']}）：{_row_line_text(row)}")
     return "\n".join(lines) + "\n"
 
 
@@ -303,10 +407,81 @@ def packaging_calendar_block(day) -> str:
         "四巫日 ≠ 台指期結算。",
     ]
     for row in rows[:8]:
-        lines.append(f"- {row['date']}（{row['when']}／{row['kind']}）{row['text']}")
+        lines.append(f"- {row['date']}（{row['when']}／{row['kind']}）{_row_line_text(row)}")
     return "\n".join(lines)
 
 
 def events_for_structured(day) -> list[dict]:
     """JSON-safe nearby events for structured_data.calendar_events."""
     return nearby_market_events(day)
+
+
+MARKET_WIDE_MECHANICAL_KINDS = {"msci_rebalance", "ftse_rebalance"}
+
+
+def mechanical_flow_events(day, events: list[dict] | None = None) -> list[dict]:
+    """
+    Same-session calendar events that make institutional flow partly mechanical.
+
+    `events` may be a pre-built nearby_market_events / calendar_events list
+    (rows with date / kind / text / optional tickers). Returns [] on any
+    failure so scorers can treat the flag as optional.
+
+    Each row has `tickers`: [] for market-wide index rebalances, otherwise the
+    names the event applies to. An ex-dividend row without tickers is kept for
+    the prompt but applies to no ticker (scope unknown).
+    """
+    parsed = as_date(day)
+    if parsed is None:
+        return []
+    try:
+        rows = events if events is not None else nearby_market_events(parsed, back_days=0, forward_days=0)
+    except Exception:
+        return []
+    out = []
+    for row in rows or []:
+        if not isinstance(row, dict):
+            continue
+        kind = str(row.get("kind") or "")
+        if kind not in MECHANICAL_FLOW_KINDS:
+            continue
+        if as_date(row.get("date")) != parsed:
+            continue
+        tickers = [str(t).strip() for t in (row.get("tickers") or []) if str(t).strip()]
+        if kind in MARKET_WIDE_MECHANICAL_KINDS:
+            scope = "market"
+        elif tickers:
+            scope = "tickers"
+        else:
+            scope = "unknown"
+        out.append(
+            {
+                "date": parsed.isoformat(),
+                "kind": kind,
+                "label": MECHANICAL_FLOW_KINDS[kind],
+                "text": str(row.get("text") or ""),
+                "scope": scope,
+                "tickers": tickers,
+            }
+        )
+    return out
+
+
+def mechanical_flow_for_ticker(mechanical_flow: list[dict] | None, ticker) -> list[dict]:
+    """Rows of mechanical_flow_events that apply to one ticker (market-wide or named)."""
+    sid = str(ticker or "").replace(".TWO", "").replace(".TW", "").strip().upper()
+    out = []
+    for row in mechanical_flow or []:
+        if not isinstance(row, dict):
+            continue
+        scope = row.get("scope")
+        if scope is None:
+            # Older payloads (no scope): index rebalances are market-wide.
+            scope = "market" if row.get("kind") in MARKET_WIDE_MECHANICAL_KINDS else (
+                "tickers" if row.get("tickers") else "unknown"
+            )
+        if scope == "market":
+            out.append(row)
+        elif scope == "tickers" and sid and sid in {str(t).upper() for t in row.get("tickers") or []}:
+            out.append(row)
+    return out

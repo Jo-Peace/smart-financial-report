@@ -42,6 +42,15 @@ from modules.report_paths import (
     resolve_shared_artifact,
     resolve_youtube_artifact,
 )
+from modules.pipeline_support import (
+    PLAYBOOK_MAX_CHARS,
+    TITLE_RULES_MAX_CHARS,
+    _read_tail as _line_aligned_tail,
+    read_markdown_head_sections,
+    read_recent_dated_entries,
+    read_story_table_tail,
+    update_channel_story_cells,
+)
 from modules.youtube_learning import update_youtube_performance_wiki
 
 load_dotenv()
@@ -54,19 +63,48 @@ REPORTS_DIR = os.path.join(BASE_DIR, "reports")
 CHANNEL_STORY_LOG = resolve_shared_artifact(REPORTS_DIR, "channel_story_log")
 YOUTUBE_PERFORMANCE_WIKI = os.path.join(BASE_DIR, "data", "knowledge_wiki", "youtube_performance_patterns.md")
 
-SLEEP_BETWEEN_CALLS = 8  # 秒，避免超過 15 RPM
+PACKAGING_CONTEXT_WARN_CHARS = 30000
+STORY_ROWS_FOR_FATIGUE = 14
 
 
 def _read_tail(path, max_chars=5000):
+    """Line-aligned tail (never starts mid-row / mid-entry)."""
+    return _line_aligned_tail(path, max_chars=max_chars)
+
+
+def _title_guidance_block(bans_state=None):
+    """Structure rotation + structured bans: injected once, into the title prompt only."""
+    blocks = []
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            content = f.read()
-        return content[-max_chars:]
-    except Exception:
-        return ""
+        from modules.youtube_learning import structure_rotation_lines
+
+        blocks.append("\n".join(structure_rotation_lines(log_path=CHANNEL_STORY_LOG)))
+    except Exception as e:
+        print(f"  ⚠️  標題結構輪替計算失敗，略過：{e}")
+    if bans_state is not None:
+        try:
+            from modules.packaging_bans import format_bans_for_title_prompt
+
+            blocks.append(format_bans_for_title_prompt(bans_state))
+        except Exception as e:
+            print(f"  ⚠️  包裝禁令格式化失敗，略過：{e}")
+    return "\n\n".join(b for b in blocks if b)
 
 
-def build_packaging_context(structured_data):
+GUARD_ONLY_CONTEXT_KEYS = ("channel_story_rows",)  # read by the local title guard, never sent to Gemini
+
+
+def _log_context_sizes(context):
+    sizes = {key: len(str(value or "")) for key, value in context.items() if key not in GUARD_ONLY_CONTEXT_KEYS}
+    total = sum(sizes.values())
+    top = "、".join(f"{k}={v:,}" for k, v in sorted(sizes.items(), key=lambda kv: -kv[1])[:5])
+    print(f"  📏 包裝 context 共 {total:,} 字（最大：{top}）")
+    if total > PACKAGING_CONTEXT_WARN_CHARS:
+        print(f"  ⚠️  包裝 context 超過 {PACKAGING_CONTEXT_WARN_CHARS:,} 字，建議再精簡規則檔或縮短頻道紀錄")
+    return total
+
+
+def build_packaging_context(structured_data, bans_state=None):
     from modules.editorial_frame import (
         build_editorial_frame,
         build_title_fatigue_report,
@@ -112,36 +150,64 @@ def build_packaging_context(structured_data):
     else:
         validation_summary = "\n".join(structured_data.get("prev_day_picks_result") or [])
 
-    editorial_frame = structured_data.get("editorial_frame") or build_editorial_frame(
-        run_date=structured_data.get("date") or datetime.datetime.now().strftime("%Y-%m-%d"),
-        validation_results=structured_data.get("validation_results") or [],
-        event_context="\n".join(
-            [
-                str(structured_data.get("index_action", "")),
-                "\n".join(str(item) for item in (structured_data.get("macro_events") or [])),
-                "\n".join(str(item) for item in (structured_data.get("tech_catalyst_events") or [])),
-            ]
-        ),
-        channel_story=_read_tail(CHANNEL_STORY_LOG, max_chars=5000),
-    )
+    editorial_frame = structured_data.get("editorial_frame")
+    if not editorial_frame:
+        try:
+            from modules.similar_sessions import parse_index_pct
 
-    return {
+            index_pct = parse_index_pct(structured_data.get("index_action"))
+        except Exception:
+            index_pct = None
+        editorial_frame = build_editorial_frame(
+            run_date=structured_data.get("date") or datetime.datetime.now().strftime("%Y-%m-%d"),
+            validation_results=structured_data.get("validation_results") or [],
+            event_context="\n".join(
+                [
+                    str(structured_data.get("index_action", "")),
+                    "\n".join(str(item) for item in (structured_data.get("macro_events") or [])),
+                    "\n".join(str(item) for item in (structured_data.get("tech_catalyst_events") or [])),
+                ]
+            ),
+            channel_story=read_story_table_tail(CHANNEL_STORY_LOG, n_rows=STORY_ROWS_FOR_FATIGUE),
+            event_radar=[
+                ev for ev in (structured_data.get("supply_chain_event_radar") or []) if isinstance(ev, dict)
+            ],
+            index_pct=index_pct,
+        )
+
+    try:
+        from modules.youtube_learning import format_compact_channel_story
+
+        channel_story = format_compact_channel_story(CHANNEL_STORY_LOG, n_rows=15)
+    except Exception:
+        channel_story = read_story_table_tail(CHANNEL_STORY_LOG, n_rows=8)
+    # Raw 9-column rows for the local title guard (opener streak / fatigued terms /
+    # local fallback titles): the compact prompt table has no video-ID / title columns.
+    channel_story_rows = read_story_table_tail(CHANNEL_STORY_LOG, n_rows=STORY_ROWS_FOR_FATIGUE)
+    fatigue_report = build_title_fatigue_report(channel_story_rows, youtube_assets_dir=REPORTS_DIR)
+    guidance = _title_guidance_block(bans_state)
+    if guidance:
+        fatigue_report = f"{fatigue_report}\n\n{guidance}"
+
+    context = {
         "validation_summary": validation_summary,
         "editorial_frame": format_editorial_frame_for_prompt(editorial_frame),
         "event_radar": format_event_radar_for_prompt(structured_data.get("supply_chain_event_radar") or []),
-        "title_fatigue_report": build_title_fatigue_report(
-            _read_tail(CHANNEL_STORY_LOG, max_chars=5000),
-            youtube_assets_dir=REPORTS_DIR,
-        ),
+        "title_fatigue_report": fatigue_report,
         "calendar_rules": packaging_calendar_block(structured_data.get("date")),
         "analytics_summary": _read_tail(analytics_path, max_chars=4500),
         "youtube_performance_patterns": _read_tail(youtube_performance_path, max_chars=5000),
-        "channel_story": _read_tail(CHANNEL_STORY_LOG, max_chars=3500),
-        "title_packaging_rules": _read_tail(title_rules_path, max_chars=5000),
-        "thumbnail_testing_rules": _read_tail(thumbnail_rules_path, max_chars=3500),
-        "packaging_playbook": _read_tail(packaging_playbook_path, max_chars=5000),
+        "channel_story": channel_story,
+        "channel_story_rows": channel_story_rows,
+        # Whole sections only. Skill files keep current rules at the top (title rules are
+        # loaded whole); the playbook appends dated rules at the bottom → newest first.
+        "title_packaging_rules": read_markdown_head_sections(title_rules_path, max_chars=TITLE_RULES_MAX_CHARS),
+        "thumbnail_testing_rules": read_markdown_head_sections(thumbnail_rules_path, max_chars=3500),
+        "packaging_playbook": read_markdown_head_sections(
+            packaging_playbook_path, max_chars=PLAYBOOK_MAX_CHARS, prefer_recent=True
+        ),
         "skill_context": skill_context,
-        "local_market_memory": _read_tail(local_memory_path, max_chars=3500),
+        "local_market_memory": read_recent_dated_entries(local_memory_path, max_chars=3500, sanitize=True),
         "stock_role_taxonomy": _read_tail(role_taxonomy_path, max_chars=2500),
         "audience_profile": (
             "觀眾偏好：標題與封面要具體點名個股；先講情境或矛盾，再回答哪幾檔。"
@@ -153,6 +219,66 @@ def build_packaging_context(structured_data):
             "角色判斷必須參照本機 stock_db 的 market_role.evidence，不可只憑印象。"
         ),
     }
+    _log_context_sizes(context)
+    return context
+
+
+# Same skill set main.py (/1) selects, so a rebuilt card keeps /1's 本地技能提示 block.
+DIRECTOR_CARD_SKILLS = (
+    "market_analysis",
+    "prediction_validation",
+    "notebooklm_prompt",
+    "event_radar",
+    "news",
+    "supply_chain",
+)
+
+
+def _director_card_skill_context():
+    try:
+        return format_skill_context(select_skills(list(DIRECTOR_CARD_SKILLS), base_dir=BASE_DIR))
+    except Exception:
+        return ""
+
+
+def _realign_director_card(structured_data, date_str, titles, visual_theme, skill_context=None):
+    """
+    /1 writes the NotebookLM director card before any title exists. Once /2 has the final
+    titles, rebuild it so the 0–8 s hook and cover slide deliver the title's promise
+    (finding 89: always, even with --skip-podcast or when /1's card already exists;
+    opt out with --skip-director-align).
+    """
+    if not titles:
+        print("\n⏭️  無定案標題，導演卡維持 /1 版本")
+        return False
+    try:
+        from modules.notebooklm_generator import generate_notebooklm_prompt
+
+        content = generate_notebooklm_prompt(
+            GEMINI_API_KEY,
+            structured_data,
+            date_str,
+            current_theme=PROJECT_THEME,
+            skill_context=_director_card_skill_context() if skill_context is None else skill_context,
+            visual_theme=visual_theme,
+            title_a=titles[0],
+            title_b=titles[1] if len(titles) > 1 else "",
+        )
+        if not content or is_generation_error(content):
+            print("\n⏭️  NotebookLM prompt 已關閉或生成失敗，導演卡未重產")
+            return False
+        path = daily_artifact_write_path(REPORTS_DIR, date_str, "notebooklm_prompt")
+        existed = os.path.exists(path)
+        from modules.atomic_io import atomic_write_text
+
+        atomic_write_text(path, content)
+        print(f"\n🎬 導演卡已依定案標題重產：{os.path.basename(path)}")
+        if existed:
+            print("  ⚠️  若稍早已把舊導演卡上傳 NotebookLM，請刪除舊檔並重新上傳這一份。")
+        return True
+    except Exception as e:
+        print(f"\n⚠️  導演卡重產失敗，略過：{e}")
+        return False
 
 
 def is_generation_error(content):
@@ -181,37 +307,34 @@ def _youtube_outputs_ready(date_str):
 
 
 def _update_channel_story_visual_theme(date_str, visual_theme, title_used=""):
-    """Update the latest channel log row after /2 chooses the actual visual theme."""
+    """Update the date's channel log row after /2 chooses the actual visual theme (scene only)."""
     if not visual_theme or not os.path.exists(CHANNEL_STORY_LOG):
         return
 
     try:
-        with open(CHANNEL_STORY_LOG, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-        changed = False
-        for idx in range(len(lines) - 1, -1, -1):
-            line = lines[idx]
-            if not line.startswith(f"| {date_str} |"):
-                continue
-
-            cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
-            if len(cells) < 9:
-                break
-
-            cells[4] = visual_theme
-            if title_used and cells[7] in {"-", "", "待更新"}:
-                cells[7] = title_used
-            lines[idx] = "| " + " | ".join(cells) + " |\n"
-            changed = True
-            break
-
-        if changed:
-            with open(CHANNEL_STORY_LOG, "w", encoding="utf-8") as f:
-                f.writelines(lines)
+        if update_channel_story_cells(CHANNEL_STORY_LOG, date_str, visual_theme=visual_theme, title_used=title_used):
             print(f"  ✅ 頻道敘事紀錄已更新視覺主題：{visual_theme}")
     except Exception as e:
         print(f"  ⚠️  頻道敘事紀錄視覺主題更新失敗，略過：{e}")
+
+
+def _finalized_thumbnail_variants(ab_results):
+    """Thumbnail variants as actually generated in Step 3 (not the planner's draft copy)."""
+    variants = []
+    for idx, thumb in enumerate((ab_results or {}).get("thumbnails") or []):
+        path = thumb.get("path", "")
+        content = _read_file(path) if path and os.path.exists(path) else thumb.get("prompt", "")
+        fields = _extract_thumbnail_text_fields(content)
+        variants.append(
+            {
+                "variant": "ab"[idx] if idx < 2 else str(idx + 1),
+                "cover_text": [t for t in (fields.get("primary"), fields.get("secondary")) if t],
+                "badges": [t for t in (fields.get("date"), thumb.get("scenario"), thumb.get("composition")) if t],
+                "prompt": content,
+                "selected": False,
+            }
+        )
+    return variants
 
 
 def _read_file(path):
@@ -279,7 +402,7 @@ def _notebooklm_cover_section_from_thumbnail(first_prompt_content, visual_theme)
         f"封面主標題請使用：「{primary}」",
         f"封面副標題請使用：「{secondary}」",
         f"左上角小字日期請使用：「{date_label}」",
-        f"封面視覺主題請與 YouTube 封面一致：{visual_theme if visual_theme else '今日 /2 指定視覺主題'}。",
+        f"封面視覺主題請與 YouTube 封面一致：{visual_theme.rstrip('。') if visual_theme else '今日 /2 指定視覺主題'}。",
         "請保留博士與韭菜兩個角色感，使用高對比深色背景、白色/黃色大字、紅綠 K 線元素。",
         "請不要自行改寫主標題與副標題。",
         "```",
@@ -363,10 +486,33 @@ def main():
     parser.add_argument("--skip-wiki",      action="store_true", help="跳過 Knowledge Wiki 更新")
     parser.add_argument("--visual-theme", default="", help="/2 指定的封面視覺主題")
     parser.add_argument("--force-youtube", action="store_true", help="即使 YouTube package 已存在也重新產生")
+    parser.add_argument(
+        "--skip-director-align",
+        action="store_true",
+        help="標題定案後不重產 NotebookLM 導演卡（預設會用標題 A/B 重產，確保前 30 秒兌現標題）",
+    )
     args = parser.parse_args()
 
     date_str = args.date
-    visual_theme = args.visual_theme.strip() or DAILY_VISUAL_THEME
+    raw_visual_theme = args.visual_theme.strip() or DAILY_VISUAL_THEME
+    # 「禁止…」等規則子句改存 data/packaging_bans.json（TTL／上限／成效豁免），
+    # 只有正向場景描述會進 channel log、封面與 NotebookLM 圖像指令。
+    bans_state = None
+    visual_theme = raw_visual_theme
+    try:
+        from modules.packaging_bans import apply_visual_theme
+        from modules.youtube_learning import learning_window
+
+        try:
+            window = learning_window(CHANNEL_STORY_LOG)
+        except Exception:
+            window = None
+        visual_theme, bans_state = apply_visual_theme(raw_visual_theme, date_str, window=window)
+        if visual_theme != raw_visual_theme:
+            print(f"  ✂️  視覺主題已拆出規則子句（{len(raw_visual_theme) - len(visual_theme)} 字）→ data/packaging_bans.json")
+    except Exception as e:
+        print(f"  ⚠️  視覺主題拆解失敗，沿用原字串：{e}")
+        visual_theme = raw_visual_theme
     print(f"\n{'='*50}")
     print(f"  素材補跑模式 (scripts/youtube/regen_assets.py)")
     print(f"  目標日期：{date_str}")
@@ -409,14 +555,16 @@ def main():
     try:
         from modules.local_knowledge_compounder import LocalKnowledgeCompounder
 
+        # regen is a rerun path: let a corrected structured_data replace that date's entry.
         compound_result = LocalKnowledgeCompounder().update_from_structured_data(
             structured_data=structured_data,
             report_content=report_content,
             report_date=date_str,
+            replace_existing=True,
         )
         print(
             "  ✅ 本機知識已更新："
-            f"市場記憶 {'新增' if compound_result['memory_appended'] else '已存在'}；"
+            f"市場記憶 {'已寫入' if compound_result['memory_appended'] else '無變更'}；"
             f"個股角色更新 {compound_result['roles_updated']} 檔"
         )
     except Exception as e:
@@ -433,7 +581,11 @@ def main():
             print("\n🎧 正在生成本機 NotebookLM Podcast 指令（不消耗 Gemini）...")
             from modules.notebooklm_generator import generate_notebooklm_prompt
             notebooklm_prompt_content = generate_notebooklm_prompt(
-                GEMINI_API_KEY, structured_data, date_str, current_theme=PROJECT_THEME
+                GEMINI_API_KEY,
+                structured_data,
+                date_str,
+                current_theme=PROJECT_THEME,
+                skill_context=_director_card_skill_context(),
             )
             if notebooklm_prompt_content is None:
                 print("  ⏭  NotebookLM prompt 已關閉（NOTEBOOKLM_PROMPT_MODE=off）")
@@ -460,15 +612,13 @@ def main():
             print(f"   {os.path.basename(yt_package_path)}")
             print("   若要依新視覺主題重產，請加上 --force-youtube")
         else:
-            print(f"\n⏳ [速率限制保護] 等待 {SLEEP_BETWEEN_CALLS} 秒後呼叫 Gemini 生成 YouTube 素材...")
-            time.sleep(SLEEP_BETWEEN_CALLS)
             print("📢 正在生成 YouTube 上架素材（標題/描述/置頂留言）...")
             yt_package = generate_youtube_package(
                 GEMINI_API_KEY,
                 structured_data,
                 report_content,
                 date_str,
-                packaging_context=build_packaging_context(structured_data),
+                packaging_context=build_packaging_context(structured_data, bans_state=bans_state),
             )
             if yt_package.get("titles"):
                 yt_package_path = save_youtube_package(
@@ -505,6 +655,8 @@ def main():
                         date_str=date_str,
                         visual_theme=visual_theme,
                     )
+                    # Planner cover copy is never published; Step 3 records the real covers.
+                    asset_record.pop("thumbnail_variants", None)
                     AnalyticsStore().record_youtube_asset_plan(
                         run_date=date_str,
                         asset_record=asset_record,
@@ -544,6 +696,7 @@ def main():
         print("\n⏭️  跳過 YouTube 素材（--skip-youtube）")
 
     # ── Step 3：縮圖 Prompt ──────────────────────────
+    final_titles = []
     if not args.skip_thumbnail:
         print("\n🎨 正在用本機規則產生 YouTube 情境式縮圖 Prompt（手動生圖用，不呼叫 Gemini）...")
         from modules.thumbnail_generator import generate_ab_test_thumbnails, print_ab_test_summary
@@ -577,10 +730,20 @@ def main():
                 num_titles=2,
                 structured_data=structured_data,
                 run_date=date_str,
-                channel_story=_read_tail(CHANNEL_STORY_LOG, max_chars=5000),
+                channel_story=read_story_table_tail(CHANNEL_STORY_LOG, n_rows=STORY_ROWS_FOR_FATIGUE),
                 preferred_titles=preferred_titles,
             )
             print_ab_test_summary(ab_results)
+            try:
+                from modules.analytics_store import AnalyticsStore
+
+                stored = AnalyticsStore().record_youtube_thumbnail_variants(
+                    date_str, _finalized_thumbnail_variants(ab_results)
+                )
+                print(f"  ✅ analytics.db 已記錄實際封面 {stored} 組（取代 planner 草稿）")
+            except Exception as e:
+                print(f"  ⚠️  封面變體寫入 analytics.db 失敗，略過：{e}")
+            final_titles = list((ab_results or {}).get("titles") or preferred_titles or [])
             if integrate_thumbnail_prompts_into_package(yt_package_path, ab_results, visual_theme=visual_theme):
                 print(f"  ✅ YouTube package 已改用本機完整封面 Prompt：{os.path.basename(yt_package_path)}")
             else:
@@ -590,12 +753,23 @@ def main():
     elif args.skip_thumbnail:
         print("\n⏭️  跳過縮圖 Prompt（--skip-thumbnail）")
 
+    # ── Step 3b：導演卡對齊定案標題（本機模板，不呼叫 Gemini）──────────
+    if not args.skip_director_align:
+        titles_for_card = []
+        if isinstance(yt_package, dict):
+            titles_for_card = [str(t).strip() for t in (yt_package.get("titles") or []) if str(t or "").strip()]
+        if not titles_for_card:
+            titles_for_card = [t for t in final_titles if t]
+        if not titles_for_card and yt_package_path and os.path.exists(yt_package_path):
+            titles_for_card = [
+                t.strip()
+                for t in re.findall(r"\*\*標題 [AB][^*]*\*\*\s*```\s*(.*?)\s*```", _read_file(yt_package_path), flags=re.DOTALL)
+                if t.strip()
+            ]
+        _realign_director_card(structured_data, date_str, titles_for_card, visual_theme)
+
     # ── Step 4：Knowledge Wiki ────────────────────────
     if not args.skip_wiki:
-        wiki_mode = os.getenv("KNOWLEDGE_WIKI_MODE", "local").strip().lower()
-        if wiki_mode in {"ai", "gemini", "llm"}:
-            print(f"\n⏳ [速率限制保護] 等待 {SLEEP_BETWEEN_CALLS} 秒後呼叫 Gemini 更新 Knowledge Wiki...")
-            time.sleep(SLEEP_BETWEEN_CALLS)
         print("🧠 正在更新 Knowledge Wiki...")
         from modules.knowledge_manager import KnowledgeUpdater
         knowledge_updater = KnowledgeUpdater(GEMINI_API_KEY)
@@ -603,6 +777,7 @@ def main():
             report_content,
             structured_data=structured_data if isinstance(structured_data, dict) else None,
             report_date=date_str,
+            replace_existing=True,
         )
     else:
         print("\n⏭️  跳過 Knowledge Wiki（--skip-wiki）")

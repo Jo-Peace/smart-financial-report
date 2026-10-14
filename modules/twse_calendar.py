@@ -59,6 +59,71 @@ def iter_closed_days() -> list[dict]:
     return list(_load_closed().values())
 
 
+def _covered_years() -> set[int]:
+    return {int(key[:4]) for key in _load_closed() if key[:4].isdigit()}
+
+
+def calendar_covers(day) -> bool:
+    """
+    The one coverage check: True when data/twse_closed_days.json lists at least
+    one closed day in ``day``'s year.
+
+    Every TWSE year has weekday holidays (元旦, 春節…). No entry for the year
+    means the calendar was never updated, so is_twse_session would treat real
+    holidays as sessions.
+    """
+    parsed = as_date(day)
+    return bool(parsed and parsed.year in _covered_years())
+
+
+def calendar_coverage() -> tuple[date, date] | None:
+    """
+    (first, last) day of the years the closed-day list covers (None = no data).
+    Descriptive only; whether a given day is covered is calendar_covers(day).
+    """
+    years = sorted(_covered_years())
+    if not years:
+        return None
+    return date(years[0], 1, 1), date(years[-1], 12, 31)
+
+
+def covered_through() -> date | None:
+    """Dec 31 of the last year listed in twse_closed_days.json (None when empty)."""
+    coverage = calendar_coverage()
+    return coverage[1] if coverage else None
+
+
+def is_calendar_covered(day) -> bool:
+    """Backward-compatible alias of calendar_covers."""
+    return calendar_covers(day)
+
+
+def coverage_warning(day) -> str:
+    """
+    Non-empty when `day` is outside the years the closed-day list covers
+    (calendar_covers): session counting then treats unlisted holidays (New
+    Year, Lunar New Year) as trading days, so ledger targets and trend windows
+    may be miscounted.
+    """
+    parsed = as_date(day)
+    if parsed is None:
+        return ""
+    end = covered_through()
+    if end is None:
+        return "data/twse_closed_days.json 沒有休市日資料；交易日窗只排除週末，可能把假日算成交易日。"
+    if calendar_covers(parsed):
+        return ""
+    if parsed > end:
+        return (
+            f"data/twse_closed_days.json 只列到 {end.year} 年休市日；{parsed.isoformat()} 的交易日窗"
+            f"可能把假日算成交易日（驗收目標日/趨勢窗會錯位），請補 {end.year + 1} 年休市日。"
+        )
+    return (
+        f"data/twse_closed_days.json 沒有 {parsed.year} 年休市日；{parsed.isoformat()} 的交易日窗"
+        f"可能把假日算成交易日，請補 {parsed.year} 年休市日。"
+    )
+
+
 def closed_name(day) -> str | None:
     parsed = as_date(day)
     if parsed is None:

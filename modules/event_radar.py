@@ -234,6 +234,33 @@ def build_event_radar(events, min_score=45, history=None, today=None):
     )
 
 
+def carry_forward_radar(rows, from_date=None):
+    """
+    Radar rows reused from an earlier session (e.g. /1 resume copying the
+    previous structured_data): one more prior day seen, freshness re-labelled
+    and the impact decayed, so they stay background and can never act as
+    today's "new" event evidence (editorial frame, mid-term radar pick,
+    thumbnail). Input rows are not mutated.
+    """
+    out = []
+    for row in rows or []:
+        if not isinstance(row, dict):
+            continue
+        prior = int(row.get("prior_days") or 0) + 1
+        raw = row.get("raw_score")
+        raw = int(raw if raw is not None else row.get("impact_score") or 0)
+        carried = dict(row)
+        carried["prior_days"] = prior
+        carried["freshness"] = freshness_label(prior)
+        carried["impact_score"] = decay_impact_score(raw, prior)
+        carried["raw_score"] = raw
+        carried["carried_forward"] = True
+        if from_date:
+            carried["carried_from"] = str(from_date)[:10]
+        out.append(carried)
+    return out
+
+
 def format_event_radar_for_prompt(events):
     if not events:
         return "（未偵測到高分供應鏈事件）"

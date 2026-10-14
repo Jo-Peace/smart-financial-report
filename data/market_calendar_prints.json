@@ -1,5 +1,5 @@
 {
-  "_comment": "公布後把數字寫進來。同一 date+kind 會蓋掉程式產生的「尚未公布」列。FOMC 結果用 kind=fomc_tw、日期=台灣交易日。不要預填未公布數字。",
+  "_comment": "公布後把數字寫進來。同一 date+kind 會蓋掉程式產生的「尚未公布」列。FOMC 結果用 kind=fomc_tw、日期=台灣交易日。不要預填未公布數字。 除權息 one_offs 請加 tickers（代號陣列），評分只對這些代號的外資流量降權。 MSCI 季度調整生效日不再由規則推算成事實：MSCI 公告後在 one_offs 加 kind=msci_rebalance、date=台股生效交易日（例：{\"date\": \"YYYY-MM-DD\", \"kind\": \"msci_rebalance\", \"priority\": 3, \"text\": \"MSCI 季度調整今日收盤生效（官方公告）。尾盤外資買賣超含被動資金。\"}；只有這一列會讓外資流量降權，並取代當月的估計窗口。",
   "prints": [
     {
       "date": "2026-09-10",
@@ -25,6 +25,9 @@
       "date": "2026-09-16",
       "kind": "ex_div",
       "priority": 3,
+      "tickers": [
+        "2330"
+      ],
       "text": "台積電除息 7 元。權值缺口是機械性的，不要寫成棄守。"
     }
   ]

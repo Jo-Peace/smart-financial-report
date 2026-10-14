@@ -147,7 +147,15 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     print(f"\n=== 法人來源對照 date={date} top={args.top} ===\n")
-    twse = _load_twse(date, args.top)
+    try:
+        twse = _load_twse(date, args.top)
+    except Exception as exc:
+        from modules.twse_http import is_connect_failure
+
+        if not is_connect_failure(exc):
+            raise
+        print(f"[Error] TWSE 連線失敗（網路中斷？）：{exc.__class__.__name__}", file=sys.stderr)
+        return 2
     if not twse:
         print("[Error] TWSE T86 無法取得該日資料（可能非交易日或尚未發布）", file=sys.stderr)
         return 2

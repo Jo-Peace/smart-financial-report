@@ -22,6 +22,18 @@
 - 關閉：`DATA_QUALITY_GATE=off`
 - 強制略過 fail：`ALLOW_DATA_QUALITY_FAIL=1`
 
+### /1 執行與資料來源旗標
+
+| 變數 | 預設 | 作用 |
+| --- | --- | --- |
+| `ALLOW_EARLY_RUN` | 關 | `=1` 允許 16:10（Asia/Taipei）前執行 `/1`。 |
+| `ALLOW_STALE_SESSION`（別名 `ALLOW_HOLIDAY_RUN`） | 關 | 休市日（週末或 `data/twse_closed_days.json`）預設不跑 `/1`。設 `=1` 會改用最近交易日的盤後資料**補跑**：`run_date` 改標為資料日，該交易日的日報、structured_data、news_inputs 等產出會被**覆寫**。交易日上 `=1` **不會**改標（法人資料停在前一交易日多半是 T86 尚未發布，閘門 `institutional_stale` 照常擋下，避免覆寫前一日產出）；要在交易日補跑前一交易日，請明確設 `ALLOW_STALE_SESSION=YYYY-MM-DD`（只在法人資料日正是該日時改標），用完即移除。 |
+| `MARKET_EXTRAS` | 開 | `=0` 關閉期貨未平倉／P/C ratio／融資融券／上櫃法人等補充抓取；關閉或抓不到時日報一律寫「未取得」，不得引用數字，主流程不受影響。 |
+| `TWSE_ALLOW_INSECURE_SSL` | 開 | TWSE／TPEx／TAIFEX 請求先驗證憑證，再試放寬 Python 3.13 strict X509 的驗證；兩者都失敗時**預設會改用未驗證連線**（`verify=False`）並在閘門發 `tls_unverified` 警告。設 `=0` 則直接失敗、不用未驗證連線。 |
+| `TWSE_MAX_CONCURRENCY` | `3` | 交易所請求的同時連線上限（無固定 sleep，只在失敗時退避）。 |
+
+休市日曆 `data/twse_closed_days.json` 需每年補上證交所公告的休市日；當年沒有資料時 `/1` 與閘門會警告（`calendar_year_missing`），交易日判斷只剩週末。
+
 ## 三大法人備援（可選）
 
 主路徑仍是證交所 T86。收盤後若 T86 尚未就緒，會自動等待重試；仍失敗且你有 FinMind token 時可開備援：
@@ -107,6 +119,24 @@ python3 cli.py maintenance regen-notebooklm --date 2026-07-08 \
 - `/1` 主要 AI 呼叫：日報 (`analyzer`) + 敘事結構化萃取 (`data_extractor`)
 - 法人榜 / 大盤 / 商品 / 驗收由本機覆寫；Wiki / NotebookLM prompt 預設本機
 
+### Gemini 與日報核對開關（.env）
+
+| 變數 | 預設 | 說明 |
+|------|------|------|
+| `GEMINI_MODEL` | `gemini-2.5-flash` | 主模型；preview / `-latest` 會印一次警告（建議正式環境固定版本） |
+| `GEMINI_FALLBACK_MODELS` | 自動 | 主模型 503／429／逾時／下架時改試的模型（逗號清單）；未設時備援為 `gemini-2.5-flash`，主模型已是它時改用 `gemini-2.5-flash-lite`；`none` 關閉 |
+| `GEMINI_FALLBACK_AFTER_ATTEMPTS` | 最後一次 | 日報／包裝重試時，第幾次嘗試才可改用備援（暫時錯誤先在主模型退避重試；兩次 MAX_TOKENS 就不再重試） |
+| `GEMINI_DAILY_CALL_LIMIT` | `8` | 每日加權呼叫上限；`0` 關閉 |
+| `GEMINI_RESERVED_CALLS` | `3` | 保留給日報／萃取／youtube_package 的額度，其他任務（如新股分類）不可動用 |
+| `GEMINI_ERROR_CALL_WEIGHT` | `0.25` | 失敗呼叫（503 等）的權重；成功與不完整回應算 1，被額度擋下算 0 |
+| `GEMINI_LIGHT_THINKING_LEVEL` | 未設 | gemini-3 系列用於萃取／包裝／分類的 thinking level（例：`low`） |
+| `GEMINI_LIGHT_THINKING_BUDGET` | 未設 | gemini-2.5 系列同上的 thinking token 預算 |
+| `REPORT_SECTION_CHECK` | `strict` | 日報缺〔今日主軸〕〔法人籌碼〕〔觀察焦點〕時重試並中止 `/1`；`warn` 只提醒、`off` 不檢查 |
+| `REPORT_FACT_CHECK` | `annotate` | 日報名次／金額／漲跌與本機資料對帳，嚴重不符加「（本機核對：…）」；`warn` 只記錄、`off` 關閉 |
+| `REPORT_LOCAL_TABLES` | `1` | 用本機 TWSE 資料重建〔成交量排名〕與〔法人籌碼〕前 10 名；`0` 保留 AI 表格 |
+| `YOUTUBE_PACKAGE_MAX_ATTEMPTS` | `3` | `/2` youtube_package 的重試次數（指數退避，無固定等待） |
+| `YOUTUBE_VIDEO_DURATION` | 未設 | 影片長度（秒或 `mm:ss`）；未設時描述只列段落、不加時間軸 |
+
 ## 核心工作流
 
 - `main.py`：每日盤後主流程，現在偏向 orchestrator。
@@ -123,9 +153,16 @@ python3 cli.py maintenance regen-notebooklm --date 2026-07-08 \
   - 列出全部工具：`python3 cli.py list`
   - 每日健康檢查：`python3 cli.py maintenance check-daily-workflow --date YYYY-MM-DD`
   - 盤後 /2：`python3 cli.py youtube regen-assets --date YYYY-MM-DD`
-- 美國盤 / 週末特輯：`main_us.py`、`main_weekly.py`、`weekend_special_main.py`
+- 美國盤 / 週末特輯（手動）：`python3 cli.py special weekend | us-daily | us-weekly`（輸出到 `reports/special_topics/YYYY-MM-DD_slug/`）
 - Web 介面：`app/main_app.py`
 - 舊檔名仍可用：`compat/`（會提示改用 `cli.py`）；canonical 實作在 `scripts/`
+
+## 執行環境、旗標與測試
+
+- 直譯器：`/usr/local/bin/python3`（已裝相依）；安裝：`pip install -r requirements.txt -c constraints.txt`。
+- 環境變數範本：`.env.example`；旗標說明表：`docs/env_flags.md`。`/1` 啟動時會印出所有非預設／高風險旗標。
+- `/1` 退出碼：`0` 成功、`2` 資料未就緒、`3` 閘門擋下、`4` Gemini 失敗、`5` structured_data 失敗、`6` 設定錯誤、`7` 16:10 前、`8` 非交易日（`modules/exit_codes.py`）。排程請用 `run_daily.sh`（鎖檔＋退出碼告警）。
+- 測試（離線、不需 API key）：`python3 -m unittest discover -s tests -q`；GitHub Actions 會在 push 時跑，或啟用本機 hook：`git config core.hooksPath .githooks`。
 
 ## 輸出邊界
 

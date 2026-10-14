@@ -27,7 +27,7 @@
             <div class="quota-group">
                 <div class="quota-display" id="quotaDisplay">
                     <span class="quota-label">👤 個人額度</span>
-                    <span class="quota-value" id="quotaValue">—/3</span>
+                    <span class="quota-value" id="quotaValue">—/5</span>
                 </div>
                 <div class="quota-display quota-global" id="globalQuotaDisplay">
                     <span class="quota-label">🌐 全站</span>
@@ -53,9 +53,8 @@
             <!-- YouTube Subscribe Banner -->
             <div style="text-align: center; margin-bottom: 2rem;">
                 <a href="https://www.youtube.com/channel/UCRWXWHHOs4iSDac1GHLsExw" target="_blank"
-                    style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 0, 0, 0.1); color: #ff6b6b; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 600; border: 1px solid rgba(255, 0, 0, 0.2); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(255,0,0,0.1);"
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255,0,0,0.15)';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255,0,0,0.1)';">
+                    rel="noopener noreferrer" class="subscribe-banner"
+                    style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 0, 0, 0.1); color: #ff6b6b; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 600; border: 1px solid rgba(255, 0, 0, 0.2); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(255,0,0,0.1);">
                     <span style="font-size: 1.2rem;">📺</span> 訂閱【AI帶你看股市】YouTube 頻道
                 </a>
             </div>
@@ -66,7 +65,7 @@
                     <span class="search-icon">🔍</span>
                     <input type="text" id="tickerInput" class="search-input" placeholder="輸入股票代號，例如：2330" maxlength="10"
                         autocomplete="off">
-                    <button class="search-btn" id="searchBtn" onclick="handleSearch()">
+                    <button class="search-btn" id="searchBtn" type="button">
                         <span class="btn-text">分析</span>
                         <span class="btn-loading" style="display:none">
                             <span class="spinner"></span>
@@ -75,7 +74,7 @@
                 </div>
                 <div class="hot-stocks-container" style="margin-top: 1.5rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1.2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                        <span style="font-size: 0.95rem; font-weight: 600; color: #f87171;">🔥 本週精選當紅個股 <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8; margin-left: 6px;">(免扣額度)</span></span>
+                        <span style="font-size: 0.95rem; font-weight: 600; color: #f87171;">🔥 本週熱門報告（近 7 日實際觀看） <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8; margin-left: 6px;">(免扣額度)</span></span>
                     </div>
                     <div id="hotStocksWrapper" style="display: flex; flex-wrap: wrap; gap: 8px;">
                         <span style="color: #64748b; font-size: 0.9rem;">載入中...</span>
@@ -155,7 +154,7 @@
                 <span class="error-icon">⚠️</span>
                 <h2 class="error-title" id="errorTitle">出了點問題</h2>
                 <p class="error-message" id="errorMessage"></p>
-                <button class="retry-btn" onclick="resetToSearch()">重新搜尋</button>
+                <button class="retry-btn" type="button" data-action="reset">重新搜尋</button>
             </div>
         </section>
 
@@ -167,7 +166,7 @@
                     <span class="report-name" id="reportName"></span>
                     <span class="report-badge" id="reportBadge"></span>
                 </div>
-                <button class="back-btn" onclick="resetToSearch()">← 重新搜尋</button>
+                <button class="back-btn" type="button" data-action="reset">← 重新搜尋</button>
             </div>
             <div class="report-content" id="reportContent"></div>
             <div class="report-footer">
@@ -184,10 +183,17 @@
         <p>© 2026 AI 個股研究員 — Powered by Gemini AI</p>
     </footer>
 
-    <!-- Markdown rendering library -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Markdown rendering + sanitizer (exact versions + SRI; app.js falls back to plain text if blocked) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@17.0.6/lib/marked.umd.js"
+        integrity="sha384-BzyiKpbsEpROKue4oNI8o3hOzbw5sfWXi9SZMqKJV0nfntf/MvFRw5N23fKFYHKi"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.11/dist/purify.min.js"
+        integrity="sha384-o44XUELLEnv/iSlA1NWxBweqbD4TSR0qgq2VzVsxtkHS989JJjGKSE9vkfo5MN4K"
+        crossorigin="anonymous"></script>
     <!-- D3.js for industry map -->
-    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"
+        integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i"
+        crossorigin="anonymous"></script>
     <script src="/static/app.js"></script>
     <script src="/static/industry_map.js"></script>
 </body>

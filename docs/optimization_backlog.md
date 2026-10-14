@@ -80,6 +80,23 @@ Last updated: 2026-08-04 (AI memory hub + research-stock)
 - `cli.py maintenance research-stock` local stock history card (stock_db + analytics + channel_story).
 - Skill `stock_history_card` registered; market_analysis_memory paths updated to daily/youtube layout.
 
+## Completed 2026-10-13 (prediction ledger measurement)
+
+- `analytics_store` ledger contract `sessions_v2`: horizon = N TWSE sessions after the prediction-day close; scored only at the target session close (else `status=missing`, never a later day or the daily pct_change); index return over the same TWII window; numeric `stop_loss_price` checked on the close path (`stopped`; judged on the sessions it lasted, and a stopped loss is always a miss); results are upserted every run, so reruns / backfills recompute them. The daily `/1` path only writes new or `sessions_v2` rows and never touches legacy rows.
+- One hit rule (`prediction_validator.classify_hit`) for on-air validation, the ledger and stock_db tracking: excess vs TWII beyond a sqrt(sessions) dead band; neutral / non-directional / missing rows are not in denominators.
+- Predictions keyed by (prediction_date, ticker); stock_db tracking idempotent per (prediction_date, sid).
+- 「X 窗較準」 is published only when the cluster-adjusted 95% Wilson lower bound beats the 50% baseline (`horizon_reliability`); otherwise the fixed 「樣本不足以判定」 sentence. Stored legacy one-liners are not republished.
+- In-flight predictions are fetched every session for the ledger only (`INFLIGHT_PRICE_FETCH_MAX`, default 15, 0 = off); they never join today's analysis universe (`pipeline_stages.ledger_only_symbols` / `fetch_market_universe`).
+- Historical re-grade: `python3 scripts/maintenance/recompute_prediction_results.py` (dry-run; `--apply` backs up first). This is the only path that converts legacy calendar-day rows. `data/twse_closed_days.json` must list next year's holidays before windows cross the year end (the ledger and analytics_summary warn).
+
+## Completed 2026-10-14 (integration final fixes)
+
+- One 成交值 rank per /1 prompt: the market-wide tape rank (`value_ranking`, ETFs excluded) for the signal pack, role scores and the fact check; the 觀察池 pool rank only when the tape is missing, always labelled as such. Role scores map a market rank with its own curve (top 20 confirmed, never < 50 = thin), the pool rank keeps the steep one; `backtest_scores.py` rebuilds the same basis from `daily_closes` and reports how many sessions used each. A bare 「全市場第一」 takes its list from the keyword nearest to it.
+- stock_db tracking takes its verdicts from the on-air `validate_prediction_targets` rows (stop-loss / stale bar / excess rule); one direction parser (`prediction_validator.direction_sign`).
+- TWSE connect failures (DNS / refused / connect timeout) fail fast without tripping on a blip: 3 tries (1 s, 2 s apart) per call; the per-host circuit opens only after ≥ 2 failed calls spanning ≥ 5 s, stays open 10 s, then lets one single-attempt probe through; T86 gets two short connect-recovery waits (5 s, 10 s) before NETWORK. "Not published yet" keeps its readiness waits.
+- Similar sessions: a flat session is comparable with quiet moves of either sign; an empty result prints the closest near miss (CLI) / a date-free reason (prompt).
+- Hand-written /2 rules in `youtube_performance_patterns.md` live in a marked block that regeneration keeps (one lost marker still keeps the block, with a warning); the legacy migration skips rules the pre-090535f generator wrote (`RETIRED_GENERATED_PACKAGING_RULES`) and prints what it moved. Legacy ledger rows (method NULL) produce a one-line /1 warning, never a silent migration.
+
 ## Next High-Value Optimizations
 
 1. Special topic CLI productization
@@ -105,6 +122,7 @@ Last updated: 2026-08-04 (AI memory hub + research-stock)
 - NotebookLM daily/weekend prompts are local templates; do not reintroduce Gemini expansion unless NotebookLM quality regresses.
 - New Gemini call sites must go through `modules/gemini_client.py` (google.genai), not `google.generativeai`.
 - Do not re-add automatic daily「驗收日」main-frame or title exemption for 驗收; validation is a beat, not a monopoly.
+- Do not publish a "20D（或任一窗）較準／成敗尺子" claim from raw hit rates; only the CI-vs-baseline gate in `horizon_reliability` may make that claim.
 
 ## Avoid Recommending Again As New Work
 

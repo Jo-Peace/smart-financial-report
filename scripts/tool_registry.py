@@ -1,5 +1,5 @@
 """
-Canonical catalog of maintenance / YouTube / legacy tools.
+Canonical catalog of maintenance / YouTube / special / legacy tools.
 
 `cli.py` and `compat/` redirects both read from this registry.
 """
@@ -122,6 +122,27 @@ TOOL_SPECS: tuple[ToolSpec, ...] = (
         legacy_names=(),
     ),
     ToolSpec(
+        id="recompute-predictions",
+        category="maintenance",
+        script="scripts/maintenance/recompute_prediction_results.py",
+        description="重算預測帳本（交易日窗＋同窗大盤超額；預設 dry-run，--apply 先備份）",
+        legacy_names=(),
+    ),
+    ToolSpec(
+        id="backtest-scores",
+        category="maintenance",
+        script="scripts/maintenance/backtest_scores.py",
+        description="離線評分回測（IC／分組超額／信心校準，只讀 analytics.db）",
+        legacy_names=(),
+    ),
+    ToolSpec(
+        id="repair-learning-logs",
+        category="maintenance",
+        script="scripts/maintenance/repair_learning_logs.py",
+        description="一次性修復學習紀錄（預設 dry-run，--apply 先備份）",
+        legacy_names=(),
+    ),
+    ToolSpec(
         id="similar-sessions",
         category="maintenance",
         script="scripts/maintenance/similar_sessions.py",
@@ -176,6 +197,25 @@ TOOL_SPECS: tuple[ToolSpec, ...] = (
         script="scripts/youtube/record_youtube_metrics.py",
         description="記錄 YouTube 影片指標",
         legacy_names=("record_youtube_metrics.py",),
+    ),
+    # --- special: weekend / US-holiday scripts (output: reports/special_topics/YYYY-MM-DD_slug/) ---
+    ToolSpec(
+        id="weekend",
+        category="special",
+        script="weekend_special_main.py",
+        description="週末特輯：美股一週＋本週台股本機資料＋下個交易日觀察（呼叫 Gemini）",
+    ),
+    ToolSpec(
+        id="us-daily",
+        category="special",
+        script="main_us.py",
+        description="美股盤後觀察日記（休市期間用；呼叫 Gemini）",
+    ),
+    ToolSpec(
+        id="us-weekly",
+        category="special",
+        script="main_weekly.py",
+        description="美股週報文案＋A/B 標題與封面 prompt（呼叫 Gemini）",
     ),
     ToolSpec(
         id="regen-prompt",

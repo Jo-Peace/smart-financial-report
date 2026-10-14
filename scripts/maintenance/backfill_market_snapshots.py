@@ -1,14 +1,24 @@
+"""
+Backfill market_snapshots (prediction stock path + ^TWII) from yfinance, then
+re-grade the sessions_v2 ledger rows through AnalyticsStore (the single hit
+implementation: TWSE-session horizons, same-window TWII excess, dead band,
+stop path). Legacy rows are left for recompute_prediction_results.py.
+"""
+
 import argparse
 import datetime
 import json
 import os
 import sqlite3
+import sys
 import time
 
 import yfinance as yf
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 DB_PATH = os.path.join(BASE_DIR, "data", "analytics.db")
 HORIZONS = (1, 3, 5, 20)
 
@@ -52,23 +62,31 @@ def _pct_change(current, base):
     return (float(current) - float(base)) / float(base) * 100
 
 
-def _insert_snapshot(cur, snapshot_date, ticker, row):
+def _insert_snapshot(cur, snapshot_date, ticker, row, overwrite=True):
     raw = {
         "symbol": ticker,
         "price": round(float(row["Close"]), 2),
         "volume": int(row["Volume"]) if not str(row["Volume"]) == "nan" else 0,
         "source": "backfill_market_snapshots.py",
+        "bar_date": snapshot_date,
     }
-    cur.execute(
+    conflict = (
         """
-        INSERT INTO market_snapshots (
-            snapshot_date, ticker, price, pct_change, volume, raw_json
-        )
-        VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(snapshot_date, ticker) DO UPDATE SET
             price = excluded.price,
             volume = excluded.volume,
             raw_json = excluded.raw_json
+        """
+        if overwrite
+        else "ON CONFLICT(snapshot_date, ticker) DO NOTHING"
+    )
+    cur.execute(
+        f"""
+        INSERT INTO market_snapshots (
+            snapshot_date, ticker, price, pct_change, volume, raw_json
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+        {conflict}
         """,
         (
             snapshot_date,
@@ -81,70 +99,15 @@ def _insert_snapshot(cur, snapshot_date, ticker, row):
     )
 
 
-def _upsert_result(cur, prediction, horizon, evaluated_date, return_pct, index_return_pct, close_price):
-    direction = prediction["direction"] or "多"
-    hit = None
-    if return_pct is not None:
-        if direction == "空":
-            hit = 1 if return_pct < 0 else 0
-        else:
-            hit = 1 if return_pct > 0 else 0
-
-    excess = None
-    if return_pct is not None and index_return_pct is not None:
-        excess = return_pct - index_return_pct
-
-    if hit is None:
-        result_desc = "無法驗收"
-    else:
-        result_desc = f"{horizon}日驗收: {return_pct:+.2f}% -> {'命中' if hit else '失準'}"
-
-    cur.execute(
-        """
-        INSERT INTO prediction_results (
-            prediction_id, horizon_days, evaluated_date, return_pct,
-            index_return_pct, excess_return_pct, hit, close_price, result_desc
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(prediction_id, horizon_days) DO UPDATE SET
-            evaluated_date = excluded.evaluated_date,
-            return_pct = excluded.return_pct,
-            index_return_pct = excluded.index_return_pct,
-            excess_return_pct = excluded.excess_return_pct,
-            hit = excluded.hit,
-            close_price = excluded.close_price,
-            result_desc = excluded.result_desc
-        """,
-        (
-            prediction["id"],
-            horizon,
-            evaluated_date,
-            return_pct,
-            index_return_pct,
-            excess,
-            hit,
-            close_price,
-            result_desc,
-        ),
-    )
-
-
-def _index_returns(start_date, end_date):
+def _insert_index_snapshots(cur, start_date, end_date):
+    """^TWII closes for the same-window index return (no own hit math here)."""
     _, hist = _fetch_history("^TWII", start_date, end_date)
     if hist is None or hist.empty:
-        return {}
-
-    closes = list(hist["Close"])
-    dates = [_row_date(idx) for idx in hist.index]
-    result = {}
-    for base_idx, base_close in enumerate(closes):
-        base_date = dates[base_idx]
-        for horizon in HORIZONS:
-            target_idx = base_idx + horizon
-            if target_idx >= len(closes):
-                continue
-            result[(base_date, horizon)] = _pct_change(closes[target_idx], base_close)
-    return result
+        print("  ⚠️  ^TWII 歷史下載失敗：同窗大盤報酬只能用既有 snapshot")
+        return 0
+    for idx, row in hist.iterrows():
+        _insert_snapshot(cur, _row_date(idx), "^TWII", row, overwrite=False)
+    return len(hist)
 
 
 def backfill(limit=None, sleep_seconds=0.3):
@@ -169,7 +132,8 @@ def backfill(limit=None, sleep_seconds=0.3):
     max_date = max(datetime.date.fromisoformat(p["prediction_date"]) for p in predictions)
     start_date = (min_date - datetime.timedelta(days=5)).isoformat()
     end_date = (max_date + datetime.timedelta(days=45)).isoformat()
-    index_return_lookup = _index_returns(start_date, end_date)
+    _insert_index_snapshots(cur, start_date, end_date)
+    conn.commit()
 
     updated = 0
     skipped = 0
@@ -202,36 +166,40 @@ def backfill(limit=None, sleep_seconds=0.3):
         _insert_snapshot(cur, base_date, prediction["ticker"], base_row)
 
         print(f"  📊 {prediction['prediction_date']} {prediction['ticker']} {prediction['name']} ({symbol})")
+        # Whole path (stop-loss check) up to the longest horizon; targets overwrite.
+        targets = {base_pos + horizon for horizon in HORIZONS}
+        for pos in range(base_pos + 1, min(len(hist_rows), base_pos + max(HORIZONS) + 1)):
+            path_idx, path_row = hist_rows[pos]
+            _insert_snapshot(cur, _row_date(path_idx), prediction["ticker"], path_row, overwrite=pos in targets)
+            updated += 1
         for horizon in HORIZONS:
             target_pos = base_pos + horizon
-            if target_pos >= len(hist_rows):
-                continue
-
-            target_idx, target_row = hist_rows[target_pos]
-            target_date = _row_date(target_idx)
-            target_close = float(target_row["Close"])
-            return_pct = _pct_change(target_close, base_close)
-            index_return_pct = index_return_lookup.get((base_date, horizon))
-
-            _insert_snapshot(cur, target_date, prediction["ticker"], target_row)
-            _upsert_result(
-                cur,
-                prediction,
-                horizon,
-                target_date,
-                return_pct,
-                index_return_pct,
-                round(target_close, 2),
-            )
-            updated += 1
-            print(f"     {horizon}日: {target_date} {return_pct:+.2f}%")
+            if target_pos < len(hist_rows):
+                target_idx, target_row = hist_rows[target_pos]
+                print(
+                    f"     {horizon}日: {_row_date(target_idx)} "
+                    f"{_pct_change(float(target_row['Close']), base_close):+.2f}%（未扣大盤；正式結果由帳本重算）"
+                )
 
         conn.commit()
         time.sleep(sleep_seconds)
 
     conn.close()
+    from modules.analytics_store import AnalyticsStore
+
+    # sessions_v2 rows only: legacy rows are converted by
+    # recompute_prediction_results.py (dry-run first, --apply backs up).
+    store = AnalyticsStore(DB_PATH)
+    regraded = store.recompute_prediction_results(regrade_legacy=False)
+    legacy = store.legacy_result_count()
     print("\nMarket snapshot backfill complete.")
-    print(f"  Updated result rows: {updated}")
+    print(f"  Snapshot rows written: {updated}")
+    print(f"  Ledger results re-graded: {regraded}")
+    if legacy:
+        print(
+            f"  Legacy (calendar-day) results left untouched: {legacy} — run "
+            "scripts/maintenance/recompute_prediction_results.py (dry-run) and then --apply"
+        )
     print(f"  Skipped predictions: {skipped}")
     print(f"  DB: {DB_PATH}")
 

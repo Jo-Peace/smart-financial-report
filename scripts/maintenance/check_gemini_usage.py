@@ -3,7 +3,12 @@ import collections
 import json
 import os
 
-from modules.ai_usage_guard import get_today_gemini_call_count, usage_log_path
+from modules.ai_usage_guard import (
+    get_today_gemini_call_count,
+    get_today_gemini_usage,
+    get_today_status_counts,
+    usage_log_path,
+)
 
 
 def main():
@@ -36,16 +41,21 @@ def main():
 
     by_date = collections.Counter(row.get("date", "") for row in rows)
     by_task = collections.Counter(row.get("task", "") for row in rows)
+    tokens_by_task = collections.Counter()
+    for row in rows:
+        if isinstance(row.get("total_tokens"), int):
+            tokens_by_task[row.get("task", "")] += row["total_tokens"]
 
     print(f"Log: {path}")
-    print(f"今日 Gemini calls: {get_today_gemini_call_count()}")
+    print(f"今日 Gemini calls: {get_today_gemini_call_count()}（加權用量 {get_today_gemini_usage()}；{get_today_status_counts()}）")
     print("\n依日期：")
     for date, count in sorted(by_date.items()):
         print(f"- {date}: {count}")
 
     print("\n依任務：")
     for task, count in by_task.most_common():
-        print(f"- {task}: {count}")
+        tokens = tokens_by_task.get(task)
+        print(f"- {task}: {count}" + (f"（{tokens:,} tokens）" if tokens else ""))
 
     print("\n最近 10 筆：")
     for row in rows[-10:]:
@@ -54,6 +64,8 @@ def main():
             f"{row.get('script')} {row.get('task')} "
             f"{row.get('model')} {row.get('status')} "
             f"prompt={row.get('prompt_chars')} response={row.get('response_chars')}"
+            + (f" tokens={row.get('total_tokens')}" if row.get("total_tokens") is not None else "")
+            + (f" finish={row.get('finish_reason')}" if row.get("finish_reason") else "")
         )
 
 

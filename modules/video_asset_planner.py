@@ -12,6 +12,8 @@ import os
 import re
 from typing import Any, Dict, List, Optional
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def _as_list(value: Any) -> List[str]:
     if not value:
@@ -137,15 +139,10 @@ def _simulate_100w_lines(structured_data: Dict[str, Any], youtube_package: Dict[
         stop_value = shares * float(stop_price)
         stop_pnl = stop_value - 1_000_000
         stop_pct = (float(stop_price) / current_price - 1) * 100
-        trend = (structured_data.get("recent_trends") or {}).get(ticker) or {}
-        trend_5d = ((trend.get("trends") or {}).get("5D") or {}).get("pct_change")
-        trend_10d = ((trend.get("trends") or {}).get("10D") or {}).get("pct_change")
-        trend_bits = []
-        if isinstance(trend_5d, (int, float)):
-            trend_bits.append(f"若按 5D 驗證窗，約 {1_000_000 * trend_5d / 100:+,.0f} 元")
-        if isinstance(trend_10d, (int, float)):
-            trend_bits.append(f"10D 約 {1_000_000 * trend_10d / 100:+,.0f} 元")
-        trend_text = f"；{'；'.join(trend_bits)}" if trend_bits else ""
+        from modules.youtube_content_generator import past_trend_text
+
+        # Past N-session moves, labelled as history (never a 驗證窗 result in 元).
+        trend_text = past_trend_text((structured_data.get("recent_trends") or {}).get(ticker))
         lines.append(
             f"{ticker} {name}（{direction}）：100萬約買 {shares:.1f} 股；"
             f"若以停損價 {stop_price:.1f} 元出場，帳面約剩 {stop_value:,.0f} 元，"
@@ -322,6 +319,60 @@ Typography: text must be crisp, large, readable at YouTube thumbnail size, bold 
 No watermark, no real company logos, no extra characters. Characters crisp; chart signals and background motion can be dramatic but not cluttered."""
 
 
+def _performance_window(log_path: Optional[str] = None):
+    try:
+        from modules.report_paths import resolve_shared_artifact
+        from modules.youtube_learning import learning_window
+
+        log_path = log_path or resolve_shared_artifact(os.path.join(BASE_DIR, "reports"), "channel_story_log")
+        return learning_window(log_path)
+    except Exception:
+        return None
+
+
+def _packaging_formula_lines(window: Optional[Dict[str, Any]] = None) -> List[str]:
+    """
+    Data-computed replacement for the old hard-coded「已驗證包裝公式」: best structure
+    families and the channel-relative winner threshold from channel_story_log (+ snapshots).
+    """
+    window = window if window is not None else _performance_window()
+    if not window or not window.get("sample"):
+        return [
+            "- 成效樣本不足：本日不宣稱任何「已驗證公式」，A/B 各用不同結構家族累積樣本。",
+            "- 標題要講具體行為：外資砍誰、投信買誰、三大法人反手買誰、哪個題材爆量。",
+        ]
+    from modules.youtube_learning import STRUCTURE_LABELS, load_stock_names, strip_brand, structure_stats
+
+    baseline = window.get("baseline") or {}
+    stats = structure_stats(window["sample"], load_stock_names())
+    ranked = sorted(stats.items(), key=lambda kv: -kv[1]["median"])
+    lines = [f"- 基準：{window.get('basis')}；頻道中位數 {baseline.get('median', 0):.0f} views（n={baseline.get('n', 0)}）"]
+    for family, st in ranked[:3]:
+        lines.append(
+            f"- {STRUCTURE_LABELS.get(family, family)}：n={st['n']}，中位 {st['median']:.0f}；"
+            f"代表 {st['best']['date']}「{strip_brand(st['best']['title'])[:28]}」"
+        )
+    threshold = baseline.get("win_threshold")
+    if threshold:
+        lines.append(f"- 未達頻道中位數 ×2（約 {threshold:.0f} views）不判斷 A/B 勝負，只記錄觀察。")
+    lines.append("- 避免只說「資金輪動」；若要表達資金移動，改寫成可驗證的主力買賣動作。")
+    return lines
+
+
+def _ab_checklist_lines(window: Optional[Dict[str, Any]] = None) -> List[str]:
+    window = window if window is not None else _performance_window()
+    median = ((window or {}).get("baseline") or {}).get("median")
+    median_text = f"頻道中位數（約 {median:.0f} views）" if median else "頻道中位數"
+    return [
+        "- [ ] 先用 A 組上架（可行時改用 YouTube Studio「測試與比較」同時測 A/B，避免循序換版混入自然衰退）",
+        "- [ ] 確認封面中文字清楚可讀",
+        "- [ ] NotebookLM Video Overview 第一張投影片有封面頁",
+        "- [ ] 發布後立即貼置頂留言",
+        "- [ ] 48 小時後到 Studio 記錄 CTR（`record_youtube_metrics.py --ctr`）；觀看數快照由 /1 自動記錄",
+        f"- [ ] 48 小時觀看低於 {median_text} 且 CTR 低於頻道平均時，才測 B 組封面或 B 組標題",
+    ]
+
+
 def _build_100w_section(structured_data: Dict[str, Any], youtube_package: Dict[str, Any]) -> List[str]:
     lines = _simulate_100w_lines(structured_data, youtube_package)
     if not lines:
@@ -329,8 +380,9 @@ def _build_100w_section(structured_data: Dict[str, Any], youtube_package: Dict[s
     return ["- 100 萬模擬倉位："] + [f"  - {line}" for line in lines]
 
 
-def build_video_production_plan(structured_data, report_content, youtube_package, date_str, visual_theme=""):
+def build_video_production_plan(structured_data, report_content, youtube_package, date_str, visual_theme="", performance_window=None):
     """Return a Markdown production plan string."""
+    performance_window = performance_window if performance_window is not None else _performance_window()
     structured_data = structured_data or {}
     youtube_package = youtube_package or {}
     date_label = _date_label(date_str)
@@ -353,12 +405,9 @@ def build_video_production_plan(structured_data, report_content, youtube_package
         f"- 昨日預測驗收 / 預測損益：{', '.join(prev_results) if prev_results else '無可驗收標的'}",
         f"- 今日視覺主題：{visual_theme if visual_theme else 'AI Taiwan stock market analysis, data-driven market battle'}",
         "",
-        "### 已驗證包裝公式",
+        "### 包裝成效參考（本機計算，非寫死公式）",
         "",
-        "- 目前較有效：時事情緒鉤子 + 大盤矛盾 + 核心股外資具體金額 + 隱藏買盤標的。",
-        "- 標題要講具體行為：外資砍誰、投信買誰、三大法人反手買誰、哪個題材爆量。",
-        "- 避免只說「資金輪動」；若要表達資金移動，改寫成可驗證的主力買賣動作。",
-        "- 觀看數低於 900 不判斷 A/B 勝負，只記錄觀察。",
+        *_packaging_formula_lines(performance_window),
         "",
         "### 100 萬模擬損益",
         "",
@@ -444,12 +493,7 @@ def build_video_production_plan(structured_data, report_content, youtube_package
         "",
         "## 上架 Checklist",
         "",
-        "- [ ] 先用 A 組上架",
-        "- [ ] 確認封面中文字清楚可讀",
-        "- [ ] NotebookLM Video Overview 第一張投影片有封面頁",
-        "- [ ] 發布後立即貼置頂留言",
-        "- [ ] 48 小時後記錄 CTR",
-        "- [ ] CTR < 5% 時測 B 組封面或 B 組標題",
+        *_ab_checklist_lines(performance_window),
         "",
         "## 48 小時驗收欄位",
         "",
@@ -465,8 +509,9 @@ def build_video_production_plan(structured_data, report_content, youtube_package
     return "\n".join(lines)
 
 
-def build_youtube_package_addendum(structured_data, report_content, youtube_package, date_str, visual_theme=""):
+def build_youtube_package_addendum(structured_data, report_content, youtube_package, date_str, visual_theme="", performance_window=None):
     """Return the production addendum appended to the daily YouTube package."""
+    performance_window = performance_window if performance_window is not None else _performance_window()
     structured_data = structured_data or {}
     youtube_package = youtube_package or {}
     date_label = _date_label(date_str)
@@ -490,12 +535,9 @@ def build_youtube_package_addendum(structured_data, report_content, youtube_pack
         f"- 昨日預測驗收 / 預測損益：{', '.join(prev_results) if prev_results else '無可驗收標的'}",
         f"- 今日視覺主題：{theme_label}",
         "",
-        "### 已驗證包裝公式",
+        "### 包裝成效參考（本機計算，非寫死公式）",
         "",
-        "- 目前較有效：時事情緒鉤子 + 大盤矛盾 + 核心股外資具體金額 + 隱藏買盤標的。",
-        "- 標題要講具體行為：外資砍誰、投信買誰、三大法人反手買誰、哪個題材爆量。",
-        "- 避免只說「資金輪動」；若要表達資金移動，改寫成可驗證的主力買賣動作。",
-        "- 觀看數低於 900 不判斷 A/B 勝負，只記錄觀察。",
+        *_packaging_formula_lines(performance_window),
         "",
         "### 100 萬模擬損益",
         "",
@@ -603,8 +645,10 @@ def build_video_asset_record(structured_data, youtube_package, date_str, visual_
     copy = _cover_copy(structured_data)
     theme_label = _display_theme(visual_theme)
 
+    # Nothing is "selected" at planning time: the live title is matched to A/B when /1
+    # refreshes YouTube stats (youtube_analytics.match_title_variant).
     title_variants = [
-        {"variant": "a", "title_type": "data", "title": titles["a"], "selected": True},
+        {"variant": "a", "title_type": "data", "title": titles["a"], "selected": False, "planned_first": True},
         {"variant": "b", "title_type": "curiosity", "title": titles["b"], "selected": False},
     ]
     thumbnail_variants = [

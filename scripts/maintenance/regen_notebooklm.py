@@ -34,7 +34,7 @@ from modules.report_paths import (
     resolve_shared_artifact,
     resolve_youtube_artifact,
 )
-from modules.role_scorer import attach_role_scores_to_structured, load_stock_db
+from modules.role_scorer import attach_role_scores_to_structured, load_stock_db, ranking_is_reproducible
 
 
 def _load_json(path: str) -> dict:
@@ -119,6 +119,11 @@ def main() -> int:
         action="store_true",
         help="即使 --refresh-frame 也不覆寫 structured_data.json",
     )
+    parser.add_argument(
+        "--rescore",
+        action="store_true",
+        help="舊檔（role_score_inputs 無 base_roles）也用目前 stock_db 重排主角（可能與 /1 不同）",
+    )
     args = parser.parse_args()
 
     ctx = build_pipeline_context()
@@ -145,12 +150,20 @@ def main() -> int:
                 event_bits.append(str(ev.get("event") or ""))
             else:
                 event_bits.append(str(ev))
+        try:
+            from modules.similar_sessions import parse_index_pct
+
+            index_pct = parse_index_pct(structured.get("index_action"))
+        except Exception:
+            index_pct = None
         frame = build_editorial_frame(
             run_date=date_str,
             signal_pack={},
             validation_results=validation,
             event_context="\n".join(event_bits),
             channel_story=channel_story[-5000:],
+            event_radar=[ev for ev in structured.get("supply_chain_event_radar") or [] if isinstance(ev, dict)],
+            index_pct=index_pct,
         )
         structured["editorial_frame"] = frame
         print(
@@ -198,7 +211,14 @@ def main() -> int:
     )
 
     try:
-        structured = attach_role_scores_to_structured(structured, load_stock_db(), limit=5)
+        # /1 persists the roles it scored with (role_score_inputs.base_roles), so
+        # a re-rank reproduces the published protagonist. Older files lack them:
+        # re-ranking would use roles the compounder wrote after /1, so keep the
+        # /1 ranking unless --rescore.
+        if args.rescore or not structured.get("focus_ranking") or ranking_is_reproducible(structured):
+            structured = attach_role_scores_to_structured(structured, load_stock_db(), limit=5)
+        else:
+            print("  📌 沿用 /1 主角排序（舊檔無 base_roles；要用目前 stock_db 重排請加 --rescore）")
         from modules.broadcast_facts import attach_broadcast_facts
 
         structured = attach_broadcast_facts(structured)

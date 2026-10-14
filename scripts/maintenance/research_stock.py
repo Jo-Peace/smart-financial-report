@@ -25,6 +25,7 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from modules.report_paths import resolve_shared_artifact  # noqa: E402
+from modules.tickers import bare_ticker  # noqa: E402
 
 STOCK_DB = os.path.join(BASE_DIR, "data", "stock_db.json")
 ANALYTICS_DB = os.path.join(BASE_DIR, "data", "analytics.db")
@@ -46,7 +47,7 @@ def _resolve_ticker(query: str, stock_db: dict) -> tuple[str | None, dict | None
     # exact ticker
     if q in stock_db:
         return q, stock_db[q]
-    q_up = q.upper().replace(".TW", "").replace(".TWO", "")
+    q_up = bare_ticker(q)
     for k, v in stock_db.items():
         if str(k).upper() == q_up:
             return k, v
@@ -111,21 +112,19 @@ def _analytics_rows(ticker: str) -> dict:
             for r in results:
                 by_h.setdefault(int(r["horizon_days"]), []).append(dict(r))
             summary = {}
-            for h, rows in sorted(by_h.items()):
-                hits = [x for x in rows if x.get("hit") == 1]
+            for h, all_rows in sorted(by_h.items()):
+                # Ledger semantics: hit=None is neutral (inside the dead band) or
+                # missing (no close on the target session) — not a miss.
+                rows = [x for x in all_rows if x.get("return_pct") is not None]
+                decisive = [x for x in rows if x.get("hit") is not None]
+                hits = [x for x in decisive if x.get("hit") == 1]
+                excess = [x["excess_return_pct"] for x in rows if x.get("excess_return_pct") is not None]
                 summary[h] = {
-                    "n": len(rows),
-                    "hit_rate": round(len(hits) / len(rows), 3) if rows else None,
-                    "avg_return": round(
-                        sum((x.get("return_pct") or 0) for x in rows) / len(rows), 3
-                    )
-                    if rows
-                    else None,
-                    "avg_excess": round(
-                        sum((x.get("excess_return_pct") or 0) for x in rows) / len(rows), 3
-                    )
-                    if rows
-                    else None,
+                    "n": len(decisive),
+                    "due": len(all_rows),
+                    "hit_rate": round(len(hits) / len(decisive), 3) if decisive else None,
+                    "avg_return": round(sum(x["return_pct"] for x in rows) / len(rows), 3) if rows else None,
+                    "avg_excess": round(sum(excess) / len(excess), 3) if excess else None,
                 }
             out["results_by_horizon"] = summary
         flows = con.execute(

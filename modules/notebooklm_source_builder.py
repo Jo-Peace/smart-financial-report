@@ -77,7 +77,7 @@ def _prediction_lines(targets, limit=3):
                 f"- {sid} {name}：方向 {direction}；"
                 f"為何點名：{_clean_source_text(trigger)}；"
                 f"隔日節奏：{_clean_source_text(rhythm) or '（見觸發理由中的短線條件）'}；"
-                f"趨勢成立（≈20 交易日）：{_clean_source_text(trend) or '（中期假說見觸發理由；成敗以趨勢窗為主）'}；"
+                f"趨勢成立（≈20 交易日）：{_clean_source_text(trend) or '（中期假說見觸發理由；尚未經本機回測證實）'}；"
                 f"失效條件：{_clean_source_text(stop)}"
             )
         else:
@@ -231,6 +231,10 @@ def _event_lines(events, limit=2):
     return "\n".join(lines)
 
 
+# |return| at/above which a window is flagged as an outlier (20D gets more room).
+EXTREME_RETURN_LIMITS = {"1D": 40.0, "3D": 40.0, "5D": 40.0, "10D": 40.0, "20D": 50.0}
+
+
 def _flag_extreme_returns(text: str) -> str:
     """Annotate extreme short-window % so hosts don't treat outliers as normal trend."""
     cleaned = _clean_source_text(text)
@@ -240,7 +244,8 @@ def _flag_extreme_returns(text: str) -> str:
         sign = match.group(2) or ""
         num = float(match.group(3))
         signed = num if sign != "-" else -num
-        if abs(signed) >= 40 and window.upper() in {"5D", "10D", "1D", "3D"}:
+        limit = EXTREME_RETURN_LIMITS.get(window.upper())
+        if limit is not None and abs(signed) >= limit:
             return f"{window} {sign}{num:.2f}%（極端值，僅作背景勿當主線）"
         return match.group(0)
 
@@ -254,8 +259,8 @@ def _short_term_pick_lines(structured_data):
         body = _prediction_lines(structured_data.get("prediction_targets"), limit=2)
         if body == "- 無":
             return body
-        return f"- （時間尺度）1～5 日＝節奏參考，不是趨勢成敗主尺子。\n{body}"
-    lines = ["- （時間尺度）1～5 日＝短線節奏參考，不是趨勢成敗主尺子。"]
+        return f"- （時間尺度）1～5 日＝短線節奏參考。\n{body}"
+    lines = ["- （時間尺度）1～5 日＝短線節奏參考。"]
     for pick in picks[:2]:
         if isinstance(pick, dict):
             ticker = pick.get("ticker", "")
@@ -274,22 +279,43 @@ def _short_term_pick_lines(structured_data):
     return "\n".join(lines)
 
 
+def _trend_as_of(structured_data, theme):
+    """'資料截至 YYYY-MM-DD' for a long-term pick whose ticker has trend data."""
+    match = re.search(r"\b(\d{4,6}[A-Z]?)\b", str(theme or ""))
+    if not match:
+        return ""
+    trends = ((structured_data.get("timeframe_history") or {}).get("recent_trends") or {}).get(match.group(1)) or {}
+    latest = trends.get("latest_date")
+    return f"資料截至 {latest}" if latest else ""
+
+
 def _long_term_pick_lines(structured_data):
     picks = _as_list(structured_data.get("long_term_picks"))
     if not picks:
         return "- 無"
     lines = [
-        "- （時間尺度）中期／約 20 交易日＝「趨勢」窗；假說成敗優先看此層，不是隔日漲跌。"
+        "- （時間尺度）中期背景：約 20 交易日的走勢脈絡，只供參考；這些標的未進驗收帳本，"
+        "沒有命中率紀錄，勿拿本機命中率替它背書。"
     ]
     for pick in picks[:2]:
         if isinstance(pick, dict):
             theme = _flag_extreme_returns(pick.get("theme", ""))
             horizon = _clean_source_text(pick.get("horizon", ""))
-            window = _clean_source_text(pick.get("validation_window", ""))
             thesis = _flag_extreme_returns(pick.get("thesis", ""))
             evidence = _flag_extreme_returns(pick.get("evidence", ""))
+            direction = _clean_source_text(pick.get("direction", ""))
+            as_of = _clean_source_text(pick.get("as_of", ""))
+            if pick.get("placeholder"):
+                as_of_text = ""
+            elif as_of:
+                as_of_text = f"資料截至 {as_of}；"
+            else:
+                # Older picks carry no as_of: fall back to the trend data date.
+                fallback = _trend_as_of(structured_data, pick.get("theme", ""))
+                as_of_text = f"{fallback}；" if fallback else ""
+            meta = (f"方向 {direction}；" if direction else "") + as_of_text
             lines.append(
-                f"- {theme}：時間窗 {horizon}；驗證窗 {window}；主軸：{thesis}；證據：{evidence}"
+                f"- {theme}：{meta}時間窗 {horizon}；驗收：未進帳本；主軸：{thesis}；證據：{evidence}"
             )
         else:
             lines.append(f"- {_flag_extreme_returns(pick)}")
@@ -347,15 +373,11 @@ def _render_broadcast_cards(facts: dict) -> str:
     blocks = []
     for i, card in enumerate(cards[:3], start=1):
         label = f"{card.get('ticker', '')} {card.get('name', '')}".strip() or f"標的{i}"
-        from modules.broadcast_facts import format_amount_yi, format_pct
+        from modules.broadcast_facts import format_amount_yi, format_pct, volume_say_bit
 
         amount = format_amount_yi(card.get("foreign_amount")) if card.get("foreign_amount") is not None else ""
         pct = format_pct(card.get("pct_change")) if card.get("pct_change") is not None else ""
-        vol = ""
-        if card.get("volume_rank"):
-            vol = f"成交量第 {card['volume_rank']} 名"
-        elif card.get("off_rank"):
-            vol = "成交量未進前 20"
+        vol = volume_say_bit(card.get("volume_rank"), card.get("vol_ratio"), card.get("off_rank"))
         streak = card.get("foreign_streak_days")
         if card.get("sold_today") or (card.get("foreign_amount") is not None and card.get("foreign_amount") < 0):
             streak_text = "今日賣超（連續買超中斷，勿唸舊天數）"
@@ -371,6 +393,12 @@ def _render_broadcast_cards(facts: dict) -> str:
         ]
         if amount:
             lines.append(f"- 外資金額：{amount}")
+        if card.get("close"):
+            close_text = f"- 收盤：{card['close']:g}"
+            if card.get("ma20"):
+                gap = card.get("ma20_gap_pct")
+                close_text += f"（MA20 {card['ma20']:g}" + (f"，距 MA20 {gap:+.1f}%）" if gap is not None else "）")
+            lines.append(close_text)
         if pct:
             lines.append(f"- 漲跌：{pct}")
         if vol:
@@ -381,7 +409,7 @@ def _render_broadcast_cards(facts: dict) -> str:
         else:
             lines.append("- 失效條件：資料源未指定（勿自行發明）")
         if card.get("caution"):
-            lines.append("- 口播限制：這是單日矛盾／節奏，成敗看約 20 交易日，不要講成隔日必漲")
+            lines.append("- 口播限制：這是單日矛盾／節奏，不要講成隔日必漲；中期是否成立要看後續多日資料")
         blocks.append("\n".join(lines))
     return "\n\n".join(blocks)
 
@@ -493,47 +521,52 @@ def _focus_stock_lines(structured_data):
 
 
 def _timeframe_brief_lines(structured_data):
-    """Keep multi-day stats short — bulk tables dilute the daily story."""
-    history = structured_data.get("timeframe_history") or {}
-    recent_results = _as_list(history.get("recent_results"))
-    lines = []
-    # Natural, data-driven reliability note (often: 20D leads short windows).
-    reliability = structured_data.get("horizon_reliability") or {}
-    one_liner = reliability.get("one_liner") or history.get("reliability_note") or ""
-    if not one_liner:
-        try:
-            from modules.horizon_reliability import reliability_one_liner
+    """
+    Keep multi-day stats short — bulk tables dilute the daily story.
 
-            one_liner = reliability_one_liner(history.get("horizon_performance"))
-        except Exception:
-            one_liner = ""
-    if one_liner:
-        lines.append(f"- {one_liner}")
-    # Short windows only as rhythm context, not the main scoreboard.
-    for row in _as_list(history.get("horizon_performance")):
-        if str(row.get("horizon_days")) in {"1", "1D"} or row.get("horizon_days") == 1:
-            hit_rate = row.get("hit_rate")
-            hit_text = f"{float(hit_rate) * 100:.0f}%" if hit_rate is not None else "N/A"
-            lines.append(
-                f"- 近端 1D 命中率 {hit_text}（樣本 {row.get('samples', 'N/A')}；僅節奏參考）"
-            )
-            break
-    for row in _as_list(history.get("horizon_performance")):
-        if int(row.get("horizon_days") or 0) == 20:
-            hit_rate = row.get("hit_rate")
-            hit_text = f"{float(hit_rate) * 100:.0f}%" if hit_rate is not None else "N/A"
+    Only current-method ledger rows are shown (TWSE-session windows, excess vs
+    the same-window TWII, CI vs 50% baseline); legacy calendar-day stats in an
+    archived structured_data are not republished.
+    """
+    from modules.horizon_reliability import (
+        _fmt_ci,
+        _fmt_hit,
+        analyze_horizon_reliability,
+        current_horizon_rows,
+        current_reliability_line,
+        ledger_disclosure,
+    )
+
+    history = structured_data.get("timeframe_history") or {}
+    rows = current_horizon_rows(structured_data)
+    lines = [f"- {_clean_source_text(current_reliability_line(structured_data))}"]
+    if rows:
+        info = analyze_horizon_reliability(rows)
+        for days in (1, 20):
+            row = info["by_days"].get(days)
+            if not row or row.get("hit_rate") is None:
+                continue
+            if days == 20 and info.get("primary_leads"):
+                role = "主指標"
+            elif days == 1:
+                role = "僅節奏參考"
+            else:
+                role = "對照，未證實較準"
             excess = row.get("avg_excess")
-            excess_text = f"{float(excess):+.1f}%" if excess is not None else "N/A"
+            excess_text = f"、平均超額 {float(excess):+.1f}%" if excess is not None else ""
+            disclosure = ledger_disclosure(row)
+            disclosure_text = f"；樣本組成：{disclosure}" if disclosure else ""
             lines.append(
-                f"- 20D 命中率 {hit_text}、超額 {excess_text}（樣本 {row.get('samples', 'N/A')}；可信度主指標）"
+                f"- {days}D 超額命中率 {_fmt_hit(row['hit_rate'])}（{_fmt_ci(row)}，n={row.get('samples', 'N/A')}；"
+                f"基準 50%{excess_text}；{role}{disclosure_text}）"
             )
-            break
-    if recent_results:
-        lines.append("- 與今日相關的最近驗收：")
+    recent_results = [
+        row for row in _as_list(history.get("recent_results")) if isinstance(row, dict) and row.get("status")
+    ]
+    if rows and recent_results:
+        lines.append("- 與今日相關的最近驗收（收盤對收盤）：")
         seen = set()
         for row in recent_results[:3]:
-            if not isinstance(row, dict):
-                continue
             key = (row.get("ticker"), row.get("horizon_days"), row.get("result_desc"))
             if key in seen:
                 continue
@@ -567,19 +600,21 @@ def build_notebooklm_source(structured_data, date_str=None):
     facts = ensure_broadcast_facts(structured_data)
     opening = facts.get("opening") or {}
     ruler_line = facts.get("ruler_line") or ""
-    ruler_bullet = (
-        f"- 成敗尺子：{_clean_source_text(ruler_line)}"
-        if ruler_line
-        else "- 成敗尺子：隔日～5D＝節奏；約 20 交易日＝趨勢主尺子"
-    )
-    from modules.market_calendar import calendar_one_liner, nearby_market_events
+    if not ruler_line:
+        from modules.horizon_reliability import DEFAULT_RULER_LINE
+
+        ruler_line = DEFAULT_RULER_LINE
+    ruler_bullet = f"- 時間窗可信度：{_clean_source_text(ruler_line)}"
+    from modules.market_calendar import calendar_one_liner, event_line_text, nearby_market_events
 
     calendar_events = structured_data.get("calendar_events") or nearby_market_events(date_str)
     calendar_line = calendar_one_liner(date_str)
     calendar_bullet = f"- 日曆：{_clean_source_text(calendar_line)}" if calendar_line else ""
     calendar_backup = "\n".join(
-        f"- {row.get('date')}（{row.get('when')}）：{_clean_source_text(row.get('text'))}"
+        # Estimated windows keep the （估計，非事實） label (event_line_text).
+        f"- {row.get('date')}（{row.get('when')}）：{_clean_source_text(event_line_text(row))}"
         for row in (calendar_events or [])[:8]
+        if isinstance(row, dict)
     ) or "- （近窗無日曆事件）"
     hook = _clean_source_text(opening.get("hook_line") or "")
     contrast = _clean_source_text(opening.get("contrast_line") or "")
@@ -597,7 +632,7 @@ def build_notebooklm_source(structured_data, date_str=None):
 
 用途：僅供 NotebookLM 引用的可驗證資料。不含主持人口吻、不含導演指令。
 數字以本節「必引」與「主角卡」為準；內部量化分（P/E/F/V）不是口播內容。
-解讀權重：短線節奏可提；假說／選標成敗以中期趨勢窗（≈20 交易日）為主。
+解讀權重：短線節奏可提；哪個時間窗較準只依本節「時間窗可信度」一行（未經統計證實前，勿稱任一窗較準或當成敗尺子）。
 
 ## 1. 今日必引數字（開場先用這段，不要自行重算）
 
@@ -657,12 +692,31 @@ def build_notebooklm_source(structured_data, date_str=None):
 - 穩健：{_clean_source_text(structured_data.get("conservative_strategy", "N/A"))}
 - 波段：{_clean_source_text(structured_data.get("aggressive_strategy", "N/A"))}
 
-### 中期趨勢背景（可略讀；極端報酬已標註）
+### 中期趨勢背景（未進驗收帳本；可略讀；極端報酬已標註）
 {_long_term_pick_lines(structured_data)}
 
-### 多日統計（趨勢窗優先；可略讀）
+### 多日統計（交易日窗、扣同窗大盤；可略讀）
 {_timeframe_brief_lines(structured_data)}
 """
+
+
+def _assert_no_narrative_residue(content):
+    """Write-time check: intent language left after sanitizing is rewritten and reported."""
+    from modules.narrative_sanitize import find_narrative_residue, sanitize_narrative_text
+
+    residue = find_narrative_residue(content)
+    if not residue:
+        return content
+    print(f"  ⚠️  NotebookLM 資料源仍有 {len(residue)} 處意圖用語，寫檔前再改寫：")
+    for row in residue[:5]:
+        print(f"     - {row['term']}：…{row['snippet']}…")
+    cleaned = sanitize_narrative_text(content)
+    left = find_narrative_residue(cleaned)
+    if left:
+        print(f"  ⚠️  改寫後仍殘留 {len(left)} 處（請檢查 narrative_sanitize 規則）：")
+        for row in left[:5]:
+            print(f"     - {row['term']}：…{row['snippet']}…")
+    return cleaned
 
 
 def save_notebooklm_source(structured_data, reports_dir, date_str=None):
@@ -671,6 +725,7 @@ def save_notebooklm_source(structured_data, reports_dir, date_str=None):
     date_str = date_str or structured_data.get("date", "")
     filepath = daily_artifact_write_path(reports_dir, date_str, "notebooklm_source")
     content = build_notebooklm_source(structured_data, date_str=date_str)
+    content = _assert_no_narrative_residue(content)
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
     return filepath

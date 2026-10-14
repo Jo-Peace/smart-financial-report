@@ -2,7 +2,7 @@
 """
 similar_sessions.py — 本機相似盤查詢（不消耗 Gemini）
 
-對某一日的 structured_data（或最新一日）找出 2 個結構相近的歷史交易日，
+對某一日的 structured_data（或最新一日）找出最多 5 個結構相近的歷史交易日（只看查詢日之前），
 並列出當時預測與隔日節奏結果。供 /1 注入與人工核對。
 
 Usage:
@@ -25,6 +25,7 @@ from modules.similar_sessions import (  # noqa: E402
     find_similar_for_structured,
     format_for_prompt,
     load_history,
+    no_analog_reason,
 )
 
 
@@ -56,13 +57,23 @@ def main(argv: list[str] | None = None) -> int:
         print("沒有可用的 structured_data", file=sys.stderr)
         return 1
     data = _load_day(reports_dir, date_str)
-    matches = find_similar_for_structured(data, reports_dir, exclude_date=date_str)
+    diagnostics: dict = {}
+    matches = find_similar_for_structured(data, reports_dir, exclude_date=date_str, diagnostics=diagnostics)
     payload = {"date": date_str, "matches": matches}
+    if not matches:
+        payload["no_analog"] = {"reason": no_analog_reason(diagnostics), **diagnostics}
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
         print(f"查詢日：{date_str}")
-        print(format_for_prompt(matches))
+        print(format_for_prompt(matches, no_analog=no_analog_reason(diagnostics, with_date=False) if not matches else None))
+        if not matches:
+            # Human check only (the /1 prompt never gets the near-miss date).
+            print(f"\n[診斷] {no_analog_reason(diagnostics)}")
+            print(
+                f"[診斷] 比對 {diagnostics.get('compared', 0)} 個歷史盤，其中 {diagnostics.get('comparable', 0)} 個大盤可比；"
+                f"排除最近交易日 {', '.join(diagnostics.get('excluded_recent') or []) or '無'}"
+            )
     return 0
 
 

@@ -50,12 +50,17 @@ The universe should be edited per topic. Do not force all symbols into every rep
 
 ## Output Package
 
-Every special topic should produce these files:
+Every special topic lives in one folder, `reports/special_topics/YYYY-MM-DD_TOPIC/`
+(`modules/report_paths.special_topic_file`), and should produce:
 
-- `reports/special_topics/special_report_YYYY-MM-DD_TOPIC.md`
-- `reports/special_topics/special_structured_data_YYYYMMDD_TOPIC.json`
-- `reports/special_topics/notebooklm_prompt_special_YYYYMMDD_TOPIC.md`
-- `reports/06_YouTube_Assets/youtube_special_package_YYYY-MM-DD_TOPIC.md`
+- `special_report_YYYY-MM-DD_TOPIC.md`
+- `special_structured_data_YYYYMMDD_TOPIC.json`
+- `notebooklm_prompt_special_YYYYMMDD_TOPIC.md`
+- `youtube_special_package_YYYY-MM-DD_TOPIC.md`
+
+`reports/CURRENT.md` lists the folder as「今日獨立專題」when it is dated on or
+after the previous TWSE session, then moves it to「最近完成」automatically.
+Scripted specials: `python3 cli.py special weekend | us-daily | us-weekly`.
 
 ## Report Structure
 

@@ -5,9 +5,10 @@
 ## 1. 入口層
 
 - `main.py`：每日盤後主流程
-- `main_us.py`：美股 / 週末相關流程
-- `main_weekly.py`：週期性彙總流程
-- `weekend_special_main.py`：週末專題
+- `main_us.py`：美股盤後觀察日記（`cli.py special us-daily`，休市期間手動）
+- `main_weekly.py`：美股週報文案（`cli.py special us-weekly`，手動）
+- `weekend_special_main.py`：週末特輯（`cli.py special weekend`，手動）
+  - 三支都輸出到 `reports/special_topics/YYYY-MM-DD_slug/`；台股日曆、ADR 溢價、本週台股數字由 `modules/special_context.py` 本機計算後注入
 - `app/main_app.py`：Web 服務
 
 ## 2. 服務層

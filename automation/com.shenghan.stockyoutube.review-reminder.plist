@@ -8,11 +8,11 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/shenghanchou/Desktop/AntiGravity專案/stock-youtube/smart_financial_report/automation/run_review_reminder.sh</string>
+    <string>/Users/shenghanchou/Developer/AntiGravity專案/stock-youtube/smart_financial_report/automation/run_review_reminder.sh</string>
   </array>
 
   <key>WorkingDirectory</key>
-  <string>/Users/shenghanchou/Desktop/AntiGravity專案/stock-youtube/smart_financial_report</string>
+  <string>/Users/shenghanchou/Developer/AntiGravity專案/stock-youtube/smart_financial_report</string>
 
   <key>StartCalendarInterval</key>
   <dict>

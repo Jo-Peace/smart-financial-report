@@ -27,3 +27,12 @@ venv/
 *.pdf
 *.png
 list_models.py
+
+# Third-party news inputs: local audit trail only (never pushed)
+data/supply_chain_event_cache.json
+reports/daily/*/news_inputs.json
+# Daily local backups (stock_db etc.)
+data/backup/
+
+# Timestamped backups written by maintenance scripts (e.g. recompute_prediction_results.py --apply)
+data/*.bak-*

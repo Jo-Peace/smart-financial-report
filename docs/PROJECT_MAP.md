@@ -32,7 +32,8 @@
 
 ### 根目錄 Python
 
-- `main.py`、`main_us.py`、`main_weekly.py`、`weekend_special_main.py` — 主流程
+- `main.py` — 每日 /1 主流程
+- `main_us.py`、`main_weekly.py`、`weekend_special_main.py` — 手動專題腳本（`cli.py special ...`，輸出到 `special_topics/`）
 - `cli.py` — 所有工具
 
 ## Source of truth（資訊複利）

@@ -1,3 +1,12 @@
+import os
+
+# Ledger predictions whose 1/3/5/20-session window is still open need a close
+# every session (target day + stop-loss path), not only on days they happen to
+# re-enter today's lists. 0 disables; tickers already on the TWSE full tape
+# (daily_closes) are skipped because the ledger reads that close directly.
+INFLIGHT_FETCH_ENV = "INFLIGHT_PRICE_FETCH_MAX"
+INFLIGHT_FETCH_DEFAULT = 15
+
 GENERIC_TOPIC_MARKERS = (
     "taiwan semiconductor",
     "今日強勢族群",
@@ -10,19 +19,79 @@ def _is_generic_news_topic(topic: str) -> bool:
     return any(marker in low for marker in GENERIC_TOPIC_MARKERS)
 
 
-def build_dynamic_universe(base_symbols, base_topics, institutional_data, yesterday_predictions):
+def inflight_prediction_symbols(as_of_date=None, limit=None, store=None, print_fn=print):
+    """yfinance symbols for in-flight ledger predictions (fail-safe: [] on any error)."""
+    if limit is None:
+        try:
+            limit = int(os.getenv(INFLIGHT_FETCH_ENV, str(INFLIGHT_FETCH_DEFAULT)))
+        except ValueError:
+            limit = INFLIGHT_FETCH_DEFAULT
+    if limit <= 0:
+        return []
+    try:
+        if store is None:
+            from modules.analytics_store import AnalyticsStore
+
+            store = AnalyticsStore()
+        tickers = store.get_inflight_prediction_tickers(as_of=as_of_date, limit=limit)
+        # With today's TWSE tape stored, listed names were already skipped, so the
+        # rest are OTC (TPEx) names; without the tape keep the usual .TW guess.
+        has_tape = bool(getattr(store, "has_tape_closes", lambda *_: False)(as_of_date))
+    except Exception as exc:  # analytics DB is optional for the daily run
+        if print_fn:
+            print_fn(f"  ⚠️  在途預測標的讀取略過：{exc}")
+        return []
+    suffix = ".TWO" if has_tape else ".TW"
+    return [f"{ticker}{suffix}" for ticker in tickers if ticker]
+
+
+def _bare_symbol(symbol):
+    # Suffix-only (".TWO" before ".TW"; else "6488.TWO" -> "6488O").
+    from modules.tickers import bare_ticker
+
+    return bare_ticker(symbol)
+
+
+OTC_MARKETS = {"tpex", "otc", "two", "上櫃"}
+
+
+def yf_symbol_for(item) -> str:
+    """Yahoo symbol for a ranking row: .TWO when the row says 上櫃 (FinMind TPEx), else .TW."""
+    sid = str((item or {}).get("id") or "").strip()
+    market = str((item or {}).get("market") or "").strip().lower()
+    return f"{sid}.TWO" if market in OTC_MARKETS else f"{sid}.TW"
+
+
+def build_dynamic_universe(
+    base_symbols,
+    base_topics,
+    institutional_data,
+    yesterday_predictions,
+    inflight_symbols=None,
+):
+    """
+    Analysis universe to fetch today: base symbols, top foreign buy/sell and
+    the previous prediction targets.
+
+    In-flight ledger names are never added here: they only need a close for
+    the prediction ledger, and anything in this list reaches today's analysis
+    (signal pack scoring, report stock list, data-quality gate). Fetch them
+    with ledger_only_symbols(). inflight_symbols is used only to fetch an OTC
+    name that is also a previous target under `.TWO` (the ledger knows it is
+    off the TWSE tape; `.TW` has no data for it on yfinance or STOCK_DAY).
+    """
     dynamic_symbols = list(base_symbols or [])
     tape_topics = []
 
     if institutional_data:
         for item in (institutional_data.get("top_buy", []) or [])[:3]:
-            symbol_yf = f"{item['id']}.TW"
+            symbol_yf = yf_symbol_for(item)
             if symbol_yf not in dynamic_symbols:
                 dynamic_symbols.append(symbol_yf)
             tape_topics.append(f"Taiwan stock {item['id']} {item['name']} 外資買超 原因")
 
         for item in (institutional_data.get("top_sell", []) or [])[:3]:
-            symbol_yf = f"{item['id']}.TW"
+            symbol_yf = yf_symbol_for(item)
             if symbol_yf not in dynamic_symbols:
                 dynamic_symbols.append(symbol_yf)
             tape_topics.append(f"Taiwan stock {item['id']} {item['name']} 外資賣超 原因")
@@ -32,44 +101,113 @@ def build_dynamic_universe(base_symbols, base_topics, institutional_data, yester
             pred_id = pred.get("id")
             if not pred_id:
                 continue
-            pred_symbol = f"{pred_id}.TW"
+            pred_symbol = yf_symbol_for(pred)
             if pred_symbol not in dynamic_symbols:
                 dynamic_symbols.append(pred_symbol)
+
+    otc = {_bare_symbol(s) for s in inflight_symbols or [] if str(s or "").endswith(".TWO")}
+    if otc:
+        upgraded = []
+        for symbol in dynamic_symbols:
+            if str(symbol).endswith(".TW") and _bare_symbol(symbol) in otc:
+                symbol = f"{_bare_symbol(symbol)}.TWO"
+            if symbol not in upgraded:
+                upgraded.append(symbol)
+        dynamic_symbols = upgraded
 
     generic = [str(t).strip() for t in (base_topics or []) if str(t).strip()]
     return dynamic_symbols, tape_topics + generic
 
 
-def tape_focus_names(institutional_data=None, volume_data=None, yesterday_predictions=None, limit=6):
-    names = []
-    for item in ((institutional_data or {}).get("top_buy") or [])[:3]:
-        names.append(item.get("name") or item.get("id"))
-    for item in ((institutional_data or {}).get("top_sell") or [])[:2]:
-        names.append(item.get("name") or item.get("id"))
-    for item in (volume_data or [])[:3]:
-        names.append(item.get("name") or item.get("id"))
-    for pred in yesterday_predictions or []:
-        names.append(pred.get("name") or pred.get("id"))
+def ledger_only_symbols(dynamic_symbols, inflight_symbols, print_fn=print):
+    """
+    In-flight ledger symbols not already in the analysis universe. Their
+    payloads go to the ledger only (record_daily_run market snapshots), never
+    into the market_data used for today's analysis.
+    """
+    covered = {_bare_symbol(s) for s in dynamic_symbols or []}
+    out = []
+    for symbol in inflight_symbols or []:
+        bare = _bare_symbol(symbol)
+        if not bare or bare in covered:
+            continue
+        covered.add(bare)
+        out.append(symbol)
+    if out and print_fn:
+        print_fn(f"  📌 在途預測補抓價：{len(out)} 檔（驗收窗未結束、今日不在榜上；僅寫入驗收帳本，不進今日分析）")
+    return out
+
+
+def fetch_market_universe(fetch_one, analysis_symbols, ledger_symbols=None, max_workers=10, on_result=None):
+    """
+    Fetch analysis + ledger-only symbols in one thread pool.
+
+    fetch_one(symbol) returns the payload dict (falsy on failure).
+    Returns (market_data, ledger_market_data). Only analysis_symbols land in
+    market_data (the dict every analysis step reads); ledger_symbols land in
+    ledger_market_data, which is merged into the ledger write only
+    (persist_daily_artifacts(ledger_market_data=...)). on_result(symbol, data,
+    ledger) is called per symbol (data None on failure) for progress output.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    analysis_symbols = list(analysis_symbols or [])
+    ledger_set = set(ledger_symbols or []) - set(analysis_symbols)
+    symbols = analysis_symbols + [s for s in (ledger_symbols or []) if s in ledger_set]
+    market_data, ledger_market_data = {}, {}
+    if not symbols:
+        return market_data, ledger_market_data
+    workers = max(1, min(max_workers, len(symbols)))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(fetch_one, sym): sym for sym in symbols}
+        for future in as_completed(futures):
+            symbol = futures[future]
+            try:
+                data = future.result()
+            except Exception:  # one failed symbol must not stop /1
+                data = None
+            ledger = symbol in ledger_set
+            if data:
+                (ledger_market_data if ledger else market_data)[symbol] = data
+            if on_result:
+                on_result(symbol, data, ledger)
+    return market_data, ledger_market_data
+
+
+def tape_focus_entities(institutional_data=None, volume_data=None, yesterday_predictions=None, limit=6):
+    """Today's protagonists as {id, name} (the id disambiguates 長榮 2603 vs 長榮航 2618)."""
+    items = []
+    items.extend(((institutional_data or {}).get("top_buy") or [])[:3])
+    items.extend(((institutional_data or {}).get("top_sell") or [])[:2])
+    items.extend((volume_data or [])[:3])
+    items.extend(yesterday_predictions or [])
     out = []
     seen = set()
-    for name in names:
-        text = str(name or "").strip()
-        if not text or text in seen:
+    for item in items:
+        sid = str((item or {}).get("id") or "").strip()
+        name = str((item or {}).get("name") or "").strip() or sid
+        key = sid or name
+        if not key or key in seen or name in seen:
             continue
-        seen.add(text)
-        out.append(text)
+        seen.update({key, name})
+        out.append({"id": sid, "name": name})
         if len(out) >= limit:
             break
     return out
 
 
+def tape_focus_names(institutional_data=None, volume_data=None, yesterday_predictions=None, limit=6):
+    return [
+        row["name"] or row["id"]
+        for row in tape_focus_entities(institutional_data, volume_data, yesterday_predictions, limit=limit)
+    ]
+
+
 def _radar_mentions_focus(event, focus_names):
-    blob = f"{(event or {}).get('event', '')} {(event or {}).get('snippet', '')}".lower()
-    for name in focus_names or []:
-        token = str(name or "").strip().lower()
-        if token and token in blob:
-            return True
-    return False
+    from modules.entity_match import mentions_any
+
+    blob = f"{(event or {}).get('event', '')} {(event or {}).get('snippet', '')}"
+    return mentions_any(blob, focus_names) is not None
 
 
 def news_search_topics(dynamic_topics, supply_chain_event_radar, focus_names=None, max_topics=5):
@@ -93,15 +231,24 @@ def news_search_topics(dynamic_topics, supply_chain_event_radar, focus_names=Non
             if len(topics) >= max(1, max_topics - 1):
                 break
 
+    from modules.entity_match import entity_query, mentions_any
+
     for row in supply_chain_event_radar or []:
         if (row or {}).get("freshness") == "stale":
             continue
-        if focus_names and not _radar_mentions_focus(row, focus_names):
+        blob = f"{(row or {}).get('event', '')} {(row or {}).get('snippet', '')}"
+        entity = mentions_any(blob, focus_names) if focus_names else None
+        if focus_names and entity is None:
             continue
-        event = str((row or {}).get("event") or "").strip()
-        if not event or event in topics:
+        # Search the named company + catalyst theme, not the radar headline itself
+        # (re-searching the title only re-finds the article the radar already has).
+        if entity is not None:
+            topic = entity_query(entity, "訂單 法說 營運")
+        else:
+            topic = str((row or {}).get("event") or "").strip()
+        if not topic or topic in topics:
             continue
-        topics.append(event)
+        topics.append(topic)
         break
 
     return topics[:max_topics]
@@ -115,7 +262,14 @@ def collect_news_bundle(
     unwrap_fetch_result,
     print_fn=print,
     focus_names=None,
+    rejected=None,
 ):
+    """
+    Search the priority topics. Results for a stock topic are screened for
+    同名異公司 (entity_match.screen_homonym_news); rejected items are appended
+    to ``rejected`` (when a list is given) for the news_inputs audit and never
+    enter news_data.
+    """
     news_data = []
     if expand_news:
         priority_topics = news_search_topics(
@@ -127,9 +281,18 @@ def collect_news_bundle(
         if print_fn and priority_topics:
             print_fn(f"  🔎 新聞搜尋順序: {' → '.join(priority_topics)}")
 
+        from modules.entity_match import news_query_for_topic, screen_homonym_news, topic_entity
+
         for topic in priority_topics:
-            query = f"{topic} market news today"
+            query = news_query_for_topic(topic)
             results = unwrap_fetch_result(fetcher.get_news(query), default=[])
+            entity = topic_entity(topic, focus_names)
+            results, dropped = screen_homonym_news(results, entity)
+            if dropped:
+                if rejected is not None:
+                    rejected.extend(dict(item, query=query) for item in dropped)
+                if print_fn:
+                    print_fn(f"  🚫 {topic}: 排除 {len(dropped)} 篇同名異公司文章（非 {entity['name']} {entity['id']}）")
             if results:
                 news_data.extend(results)
                 if print_fn:
@@ -137,7 +300,10 @@ def collect_news_bundle(
             elif print_fn:
                 print_fn(f"  ⚠️  {topic}: 未找到文章")
 
-    unique_news = list({n["url"]: n for n in news_data if n.get("url")}.values())
+    radar_urls = {str((row or {}).get("url") or "") for row in supply_chain_event_radar or []} - {""}
+    unique_news = list(
+        {n["url"]: n for n in news_data if n.get("url") and n.get("url") not in radar_urls}.values()
+    )
 
     return news_data, unique_news
 

@@ -3,7 +3,7 @@ import datetime
 import os
 import sqlite3
 
-from modules.analytics_store import AnalyticsStore
+from modules.analytics_store import EVAL_METHOD, AnalyticsStore
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,8 +12,8 @@ REPORTS_DIR = os.path.join(BASE_DIR, "reports")
 DEFAULT_OUTPUT = os.path.join(REPORTS_DIR, "analytics_summary.md")
 
 
-def _connect():
-    conn = sqlite3.connect(DB_PATH)
+def _connect(db_path=None):
+    conn = sqlite3.connect(db_path or DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -30,10 +30,79 @@ def _fmt_hit_rate(value):
     return f"{float(value) * 100:.1f}%"
 
 
-def _youtube_sample_quality(views):
+def _default_channel_log():
+    from modules.report_paths import resolve_shared_artifact
+
+    return resolve_shared_artifact(REPORTS_DIR, "channel_story_log")
+
+
+def _youtube_channel_baseline(cur, log_path=None, db_path=None):
+    """
+    Channel-relative sample rule (replaces the old fixed 900 views): a
+    measurement is a valid A/B sample only at ≥ channel median × 2.
+
+    The median is youtube_learning.learning_window's baseline — the one /2 and
+    the weekly brief use: the last 30 channel_story rows, off-site-seeded
+    videos excluded, views@48h when ≥ 8 same-age snapshots exist, else the
+    cumulative views of ≥72h videos. Only when the channel_story log gives no
+    sample does it fall back to this DB (latest views of every mature weekday
+    video ever), and ``basis`` / ``shared_basis`` say the basis differs.
+    """
+    import datetime
+
+    from modules.youtube_learning import MATURE_HOURS, channel_baseline, learning_window
+
+    if log_path and os.path.exists(log_path):
+        try:
+            window = learning_window(log_path, db_path=db_path)
+        except Exception:
+            window = None
+        if window and (window.get("baseline") or {}).get("n"):
+            return dict(
+                window["baseline"],
+                basis=f"與 /2、週報同一基準：近 30 支 channel_story、排除站外導流，{window['basis']}",
+                shared_basis=True,
+            )
+
+    rows = cur.execute(
+        """
+        SELECT run_date, video_id, views, hours_since_publish
+        FROM youtube_video_metrics
+        WHERE views IS NOT NULL
+        ORDER BY measured_at, id
+        """
+    ).fetchall()
+    latest = {}
+    for row in rows:
+        try:
+            if datetime.date.fromisoformat(str(row["run_date"])[:10]).weekday() >= 5:
+                continue  # weekend special: different format, not comparable
+        except ValueError:
+            pass
+        latest[row["video_id"] or f"date:{row['run_date']}"] = row
+    sample = [
+        {"metric": int(r["views"])}
+        for r in latest.values()
+        if r["hours_since_publish"] is None or float(r["hours_since_publish"]) >= MATURE_HOURS
+    ]
+    return dict(
+        channel_baseline(sample),
+        basis="channel_story_log 無樣本，改用本機 DB 全部平日影片的最新累積觀看（與 /2、週報基準不同）",
+        shared_basis=False,
+    )
+
+
+def _youtube_sample_quality(views, hours_since_publish=None, win_threshold=None):
+    """valid only at ≥ channel median × 2; <72h is still young; else an observation."""
+    from modules.youtube_learning import MATURE_HOURS
+
     if views is None:
         return "unknown"
-    return "valid" if int(views) >= 900 else "low-sample"
+    if hours_since_publish is not None and float(hours_since_publish) < MATURE_HOURS:
+        return f"young (<{MATURE_HOURS}h)"
+    if not win_threshold:
+        return "no-baseline"
+    return "valid (≥2× median)" if int(views) >= float(win_threshold) else "observe"
 
 
 def _table(headers, rows):
@@ -45,9 +114,86 @@ def _table(headers, rows):
     return "\n".join(lines)
 
 
-def build_report(limit=12):
-    AnalyticsStore()
-    conn = _connect()
+def _fmt_ci(low, high):
+    if low is None or high is None:
+        return "N/A"
+    return f"{float(low) * 100:.0f}–{float(high) * 100:.0f}%"
+
+
+def _hit_cell(hit):
+    if hit == 1:
+        return "Y"
+    if hit == 0:
+        return "N"
+    return "–"
+
+
+def _calendar_warning(today=None):
+    """Warn when a 20-session window opened today runs past the closed-day list."""
+    from modules import twse_calendar
+    from modules.analytics_store import EVAL_HORIZONS, nth_session_after
+
+    today = today or datetime.date.today()
+    return twse_calendar.coverage_warning(nth_session_after(today, max(EVAL_HORIZONS)))
+
+
+def _youtube_variant_stats(cur, limit):
+    """
+    One sample per video (latest measurement), weekend-special formats excluded, median
+    instead of mean: repeated refresh snapshots and two weekend outliers (2/28, 3/7)
+    used to inflate「A 組平均 4,411」 to ~31× the channel median.
+    """
+    import datetime
+    import statistics
+
+    rows = cur.execute(
+        """
+        SELECT run_date, measured_at, video_id, views, ctr,
+               COALESCE(NULLIF(title_variant, ''), 'N/A') AS title_variant,
+               COALESCE(NULLIF(thumbnail_variant, ''), 'N/A') AS thumbnail_variant
+        FROM youtube_video_metrics
+        WHERE views IS NOT NULL
+        ORDER BY measured_at, id
+        """
+    ).fetchall()
+    latest = {}
+    for row in rows:
+        try:
+            weekday = datetime.date.fromisoformat(str(row["run_date"])[:10]).weekday()
+        except ValueError:
+            weekday = 0
+        if weekday >= 5:
+            continue  # weekend special: different format, not comparable
+        key = row["video_id"] or f"date:{row['run_date']}"
+        latest[key] = row
+    groups = {}
+    for row in latest.values():
+        groups.setdefault((row["title_variant"], row["thumbnail_variant"]), []).append(row)
+    stats = []
+    for (title_variant, thumbnail_variant), items in groups.items():
+        views = [int(r["views"]) for r in items]
+        ctrs = [float(r["ctr"]) for r in items if r["ctr"] is not None]
+        stats.append(
+            {
+                "title_variant": title_variant,
+                "thumbnail_variant": thumbnail_variant,
+                "samples": len(items),
+                "median_views": statistics.median(views),
+                "max_views": max(views),
+                "avg_ctr": (sum(ctrs) / len(ctrs)) if ctrs else None,
+            }
+        )
+    stats.sort(key=lambda r: -r["median_views"])
+    return stats[:limit]
+
+
+def build_report(limit=12, db_path=None, log_path=None):
+    db_path = db_path or DB_PATH
+    log_path = log_path or _default_channel_log()
+    store = AnalyticsStore(db_path)
+    horizon_summary = store.get_horizon_performance_summary()
+    attribution = store.get_signal_attribution_summary(horizons=(5, 20))
+    conn = _connect(db_path)
     cur = conn.cursor()
 
     counts = cur.execute(
@@ -55,41 +201,33 @@ def build_report(limit=12):
         SELECT
             (SELECT COUNT(*) FROM daily_runs) AS daily_runs,
             (SELECT COUNT(*) FROM predictions) AS predictions,
-            (SELECT COUNT(*) FROM prediction_results) AS evaluated_results,
+            (SELECT COUNT(*) FROM prediction_results
+             WHERE method = :method AND return_pct IS NOT NULL) AS evaluated_results,
+            (SELECT COUNT(*) FROM prediction_results
+             WHERE method = :method AND return_pct IS NULL) AS missing_results,
             (SELECT COUNT(*) FROM ai_picks) AS ai_picks,
             (SELECT COUNT(*) FROM daily_editorial_frames) AS editorial_frames,
             (SELECT COUNT(*) FROM youtube_asset_plans) AS youtube_asset_plans,
             (SELECT COUNT(*) FROM youtube_video_metrics) AS youtube_metric_samples
-        """
+        """,
+        {"method": EVAL_METHOD},
     ).fetchone()
-
-    by_horizon = cur.execute(
-        """
-        SELECT
-            horizon_days,
-            COUNT(*) AS samples,
-            AVG(hit) AS hit_rate,
-            AVG(return_pct) AS avg_return,
-            AVG(excess_return_pct) AS avg_excess
-        FROM prediction_results
-        GROUP BY horizon_days
-        ORDER BY horizon_days
-        """
-    ).fetchall()
 
     by_direction = cur.execute(
         """
         SELECT
             p.direction,
-            COUNT(*) AS samples,
+            COUNT(r.hit) AS samples,
             AVG(r.hit) AS hit_rate,
             AVG(r.return_pct) AS avg_return,
             AVG(r.excess_return_pct) AS avg_excess
         FROM prediction_results r
         JOIN predictions p ON p.id = r.prediction_id
+        WHERE r.method = ? AND r.return_pct IS NOT NULL
         GROUP BY p.direction
         ORDER BY samples DESC
-        """
+        """,
+        (EVAL_METHOD,),
     ).fetchall()
 
     recent_predictions = cur.execute(
@@ -108,14 +246,15 @@ def build_report(limit=12):
         """
         SELECT
             p.prediction_date, p.ticker, p.name, p.direction,
-            r.horizon_days, r.evaluated_date, r.return_pct,
+            r.horizon_days, r.evaluated_date, r.target_date, r.status, r.return_pct,
             r.index_return_pct, r.excess_return_pct, r.hit
         FROM prediction_results r
         JOIN predictions p ON p.id = r.prediction_id
+        WHERE r.method = ? AND r.return_pct IS NOT NULL
         ORDER BY r.evaluated_date DESC, p.prediction_date DESC, p.ticker, r.horizon_days
         LIMIT ?
         """,
-        (limit,),
+        (EVAL_METHOD, limit),
     ).fetchall()
 
     top_picks = cur.execute(
@@ -133,7 +272,7 @@ def build_report(limit=12):
         """
         SELECT
             run_date, measured_at, views, likes, comments, ctr,
-            title_variant, thumbnail_variant, notes
+            title_variant, thumbnail_variant, notes, hours_since_publish
         FROM youtube_video_metrics
         ORDER BY measured_at DESC, id DESC
         LIMIT ?
@@ -155,22 +294,8 @@ def build_report(limit=12):
         (limit,),
     ).fetchall()
 
-    youtube_variant_stats = cur.execute(
-        """
-        SELECT
-            COALESCE(NULLIF(title_variant, ''), 'N/A') AS title_variant,
-            COALESCE(NULLIF(thumbnail_variant, ''), 'N/A') AS thumbnail_variant,
-            COUNT(*) AS samples,
-            AVG(views) AS avg_views,
-            MAX(views) AS max_views,
-            AVG(ctr) AS avg_ctr
-        FROM youtube_video_metrics
-        GROUP BY title_variant, thumbnail_variant
-        ORDER BY avg_views DESC
-        LIMIT ?
-        """,
-        (limit,),
-    ).fetchall()
+    youtube_variant_stats = _youtube_variant_stats(cur, limit)
+    youtube_baseline = _youtube_channel_baseline(cur, log_path=log_path, db_path=db_path)
 
     conn.close()
 
@@ -183,46 +308,74 @@ def build_report(limit=12):
         f"- Database: `{db_display_path}`",
         f"- Daily runs: {counts['daily_runs']}",
         f"- Predictions: {counts['predictions']}",
-        f"- Evaluated results: {counts['evaluated_results']}",
+        f"- Evaluated results: {counts['evaluated_results']} (due but unpriced → missing: {counts['missing_results']})",
         f"- AI pick records: {counts['ai_picks']}",
         f"- Editorial frames: {counts['editorial_frames']}",
         f"- YouTube asset plans: {counts['youtube_asset_plans']}",
         f"- YouTube metric samples: {counts['youtube_metric_samples']}",
         "",
         "## Performance By Horizon",
+        "",
+        "Horizon = N TWSE sessions after the prediction-day close; hit = excess return vs the "
+        "same-window TWII move beyond a dead band (neutral and missing rows are excluded). "
+        "Close-to-close, stop-loss checked on the close path; not a tradable fill. "
+        "Baseline 50%; 95% Wilson CI on cluster-adjusted n. "
+        "Raw Hit = direction sign only; compare with TWII Same-Dir (share of windows where "
+        "the index itself moved the predicted way). Avg Return / Avg Excess are direction-adjusted "
+        "(a short call on a falling stock is positive). Stop = stop-loss exits (always misses); "
+        "Neutral = inside the dead band (not counted); Cond. = conditional entries in the "
+        "denominator whose condition was not verified (no OHLC); Unjudged = priced but no "
+        "same-window TWII close (not counted).",
+        "",
     ]
+    calendar_warning = _calendar_warning()
+    if calendar_warning:
+        lines.extend([f"> ⚠️ {calendar_warning}", ""])
 
-    if by_horizon:
-        try:
-            from modules.horizon_reliability import natural_reliability_sentences
+    if horizon_summary:
+        from modules.horizon_reliability import analyze_horizon_reliability, natural_reliability_sentences
 
-            for sentence in natural_reliability_sentences([dict(r) for r in by_horizon]):
-                lines.append(f"- {sentence}")
-            lines.append("")
-        except Exception:
-            pass
+        info = analyze_horizon_reliability(horizon_summary)
+        supported = {r["horizon_days"] for r in info["supported"]}
+        for sentence in natural_reliability_sentences(horizon_summary):
+            lines.append(f"- {sentence}")
+        lines.append("")
+
+        def _read_as(days):
+            if info["primary_leads"] and days == 20:
+                return "主指標（CI 下界 > 基準）"
+            if days in supported:
+                return "高於基準"
+            return "樣本不足以判定"
+
         lines.append(
             _table(
-                ["Horizon", "Samples", "Hit Rate", "Avg Return", "Avg Excess", "Read as"],
+                [
+                    "Horizon", "Samples", "Eff. n", "Excess Hit", "95% CI", "Raw Hit", "TWII Same-Dir",
+                    "Avg Return", "Avg Excess", "Coverage", "Stop / Neutral / Cond. / Unjudged", "Read as",
+                ],
                 [
                     [
                         f"{row['horizon_days']}D",
                         row["samples"],
+                        row["effective_samples"],
                         _fmt_hit_rate(row["hit_rate"]),
+                        _fmt_ci(row["hit_ci_low"], row["hit_ci_high"]),
+                        _fmt_hit_rate(row["raw_hit_rate"]),
+                        _fmt_hit_rate(row["index_up_rate"]),
                         _fmt_pct(row["avg_return"]),
                         _fmt_pct(row["avg_excess"]),
-                        (
-                            "主指標"
-                            if int(row["horizon_days"]) == 20
-                            else ("短線參考" if int(row["horizon_days"]) in (1, 3, 5) else "對照")
-                        ),
+                        _fmt_hit_rate(row["coverage"]),
+                        f"{row['stopped']} / {row['neutral']} / {row.get('conditional_entries', 0)} / "
+                        f"{row.get('unjudged', 0)}",
+                        _read_as(int(row["horizon_days"])),
                     ]
-                    for row in by_horizon
+                    for row in horizon_summary
                 ],
             )
         )
     else:
-        lines.append("No evaluated prediction results yet.")
+        lines.append("No evaluated prediction results yet (session-based ledger).")
 
     lines.extend(["", "## Performance By Direction"])
     if by_direction:
@@ -244,11 +397,44 @@ def build_report(limit=12):
     else:
         lines.append("No evaluated direction stats yet.")
 
+    lines.extend(["", "## Performance By Signal Feature (5D / 20D)"])
+    unrecorded = {row["feature"] for row in attribution if row["bucket"] == "未記錄"}
+    attribution = [row for row in attribution if row["samples"] and row["bucket"] != "未記錄"]
+    if attribution:
+        lines.append(
+            "Features observable at prediction time, joined on (prediction_date, ticker). "
+            "Small cells are noise; read the CI."
+            + (f" Not persisted yet (shown as 未記錄): {', '.join(sorted(unrecorded))}." if unrecorded else "")
+        )
+        lines.append("")
+        lines.append(
+            _table(
+                ["Horizon", "Feature", "Bucket", "Samples", "Excess Hit", "95% CI", "Avg Excess"],
+                [
+                    [
+                        f"{row['horizon_days']}D",
+                        row["feature"],
+                        row["bucket"],
+                        row["samples"],
+                        _fmt_hit_rate(row["hit_rate"]),
+                        _fmt_ci(row["hit_ci_low"], row["hit_ci_high"]),
+                        _fmt_pct(row["avg_excess"]),
+                    ]
+                    for row in attribution
+                ],
+            )
+        )
+    else:
+        lines.append("No signal attribution yet.")
+
     lines.extend(["", "## Recent Prediction Results"])
     if recent_results:
         lines.append(
             _table(
-                ["Pred Date", "Ticker", "Name", "Dir", "Horizon", "Eval Date", "Return", "Index", "Excess", "Hit"],
+                [
+                    "Pred Date", "Ticker", "Name", "Dir", "Horizon", "Target", "Exit Date", "Status",
+                    "Return", "Index", "Excess", "Hit",
+                ],
                 [
                     [
                         row["prediction_date"],
@@ -256,11 +442,13 @@ def build_report(limit=12):
                         row["name"] or "",
                         row["direction"] or "",
                         f"{row['horizon_days']}D",
+                        row["target_date"] or "",
                         row["evaluated_date"],
+                        row["status"] or "",
                         _fmt_pct(row["return_pct"]),
                         _fmt_pct(row["index_return_pct"]),
                         _fmt_pct(row["excess_return_pct"]),
-                        "Y" if row["hit"] == 1 else "N",
+                        _hit_cell(row["hit"]),
                     ]
                     for row in recent_results
                 ],
@@ -289,17 +477,17 @@ def build_report(limit=12):
     else:
         lines.append("No predictions yet.")
 
-    lines.extend(["", "## YouTube Title / Thumbnail Metrics"])
+    lines.extend(["", "## YouTube Title / Thumbnail Metrics", "", "（每支影片取最新一次量測、排除週末特輯；顯示中位數）", ""])
     if youtube_variant_stats:
         lines.append(
             _table(
-                ["Title Var", "Thumb Var", "Samples", "Avg Views", "Max Views", "Avg CTR"],
+                ["Title Var", "Thumb Var", "Videos", "Median Views", "Max Views", "Avg CTR"],
                 [
                     [
                         row["title_variant"],
                         row["thumbnail_variant"],
                         row["samples"],
-                        f"{float(row['avg_views']):.0f}" if row["avg_views"] is not None else "N/A",
+                        f"{float(row['median_views']):.0f}" if row["median_views"] is not None else "N/A",
                         row["max_views"] if row["max_views"] is not None else "N/A",
                         f"{float(row['avg_ctr']):.2f}%" if row["avg_ctr"] is not None else "N/A",
                     ]
@@ -329,6 +517,16 @@ def build_report(limit=12):
         lines.append("No editorial frame records yet.")
 
     lines.extend(["", "## Recent YouTube Measurements"])
+    if youtube_baseline.get("win_threshold"):
+        lines.extend(
+            [
+                "",
+                f"（Quality：≥ 頻道中位數 {youtube_baseline['median']:.0f} × 2 = {youtube_baseline['win_threshold']:.0f} views"
+                f" 才是 valid，可判 A/B；未達只作觀察；上架未滿 72 小時不判。n={youtube_baseline['n']}；"
+                f"中位數基準：{youtube_baseline.get('basis') or '—'}）",
+                "",
+            ]
+        )
     if recent_youtube_metrics:
         lines.append(
             _table(
@@ -338,7 +536,9 @@ def build_report(limit=12):
                         row["run_date"],
                         row["measured_at"],
                         row["views"] if row["views"] is not None else "N/A",
-                        _youtube_sample_quality(row["views"]),
+                        _youtube_sample_quality(
+                            row["views"], row["hours_since_publish"], youtube_baseline.get("win_threshold")
+                        ),
                         row["likes"] if row["likes"] is not None else "N/A",
                         row["comments"] if row["comments"] is not None else "N/A",
                         f"{float(row['ctr']):.2f}%" if row["ctr"] is not None else "N/A",
@@ -367,9 +567,9 @@ def build_report(limit=12):
     return "\n".join(lines) + "\n"
 
 
-def write_report(output_path=DEFAULT_OUTPUT, limit=12):
+def write_report(output_path=DEFAULT_OUTPUT, limit=12, db_path=None):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    content = build_report(limit=limit)
+    content = build_report(limit=limit, db_path=db_path)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(content)
     return output_path

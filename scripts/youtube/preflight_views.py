@@ -4,7 +4,7 @@
 
 用途：
   在決定視覺主題、標題主鉤、跑 regen-assets 之前先跑。
-  低於 900 views 只作觀察，不當作 A/B 勝負依據。
+  未達頻道中位數×2（同齡）只作觀察，不當作 A/B 勝負依據；上架未滿 72 小時不列低樣本。
 
 執行：
   cd smart_financial_report
@@ -36,31 +36,29 @@ DEFAULT_WIKI = BASE_DIR / "data" / "knowledge_wiki" / "youtube_performance_patte
 DEFAULT_CHANNEL_ID = os.getenv("YOUTUBE_CHANNEL_ID", "UCRWXWHHOs4iSDac1GHLsExw")
 
 
-def _parse_log(log_path: Path):
-    rows = []
+def _parse_log(log_path: Path, recent_limit: int = 30):
+    """De-duplicated rows (one per video) with age / maturity, newest first."""
     if not log_path.exists():
-        return rows
-    for line in log_path.read_text(encoding="utf-8").splitlines():
-        if not line.startswith("| 20"):
-            continue
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if len(cells) < 9:
-            continue
-        date, core, pred, val, visual, theme, vid, title, views = cells[:9]
-        if views in {"待更新", "-", "", "N/A"}:
-            continue
-        try:
-            view_n = int(str(views).replace(",", "").strip())
-        except ValueError:
+        return []
+    from modules.youtube_learning import learning_window
+
+    window = learning_window(str(log_path), recent_limit=recent_limit)
+    rows = []
+    for r in window["rows"]:
+        if r.get("views") is None:
             continue
         rows.append(
             {
-                "date": date,
-                "views": view_n,
-                "visual": visual,
-                "title": title,
-                "video_id": vid,
-                "core": core,
+                "date": r["date"],
+                "views": r["views"],
+                "visual": r.get("visual_style", ""),
+                "title": r.get("title", ""),
+                "video_id": r.get("video_id", ""),
+                "core": r.get("target", ""),
+                "mature": r.get("mature", True),
+                "age_hours": r.get("age_hours"),
+                "offsite": r.get("offsite", ""),
+                "baseline": window["baseline"],
             }
         )
     rows.sort(key=lambda r: r["date"], reverse=True)
@@ -96,7 +94,7 @@ def refresh_channel(log_path: Path, channel_id: str, max_results: int) -> None:
         print(f"⚠️  成效摘要更新失敗：{exc}")
 
 
-def print_report(rows, recent_n: int = 15) -> dict:
+def print_report(rows, recent_n: int = 15, log_path: Path = DEFAULT_LOG) -> dict:
     if not rows:
         print("❌ channel_story_log 沒有可用觀看數列。")
         return {}
@@ -105,17 +103,20 @@ def print_report(rows, recent_n: int = 15) -> dict:
     vals = [r["views"] for r in recent]
     med = statistics.median(vals)
     mean = sum(vals) / len(vals)
+    mature = [r for r in recent if r.get("mature") and not r.get("offsite")] or recent
+    mature_med = statistics.median([r["views"] for r in mature])
+    win_threshold = 2 * mature_med
 
     print("\n" + "=" * 60)
     print("  /2 前置：近期觀看數回顧")
     print("=" * 60)
     print(f"  樣本：最近 {len(recent)} 支有觀看數的影片")
     print(f"  中位數：{med:.0f}　平均：{mean:.1f}　最高：{max(vals)}　最低：{min(vals)}")
-    print("  規則：views < 900 只作觀察，不作 A/B 勝負依據\n")
+    print(f"  規則：未達中位數×2（≈{win_threshold:.0f} views）只作觀察；上架 <72h 標「新」，不列低樣本\n")
 
     print("  ## 最近清單（新→舊）")
     for r in recent:
-        tag = "觀" if r["views"] < 900 else "可判"
+        tag = "新" if not r.get("mature") else ("觀" if r["views"] < win_threshold else "可判")
         visual = (r["visual"] or "")[:28]
         title = (r["title"] or "")[:42]
         print(f"  [{tag}] {r['date']}  {r['views']:>5}  {visual:<28}  {title}")
@@ -125,8 +126,8 @@ def print_report(rows, recent_n: int = 15) -> dict:
         print(f"  HIGH {r['views']:>5}  {r['date']}  {(r['visual'] or '')[:36]}")
         print(f"       {(r['title'] or '')[:70]}")
 
-    print("\n  ## 近窗低樣本（最多 5）")
-    for r in sorted(recent, key=lambda x: x["views"])[:5]:
+    print("\n  ## 近窗低樣本（最多 5；僅上架 ≥72 小時）")
+    for r in sorted(mature, key=lambda x: x["views"])[:5]:
         print(f"  LOW  {r['views']:>5}  {r['date']}  {(r['visual'] or '')[:36]}")
         print(f"       {(r['title'] or '')[:70]}")
 
@@ -143,8 +144,8 @@ def print_report(rows, recent_n: int = 15) -> dict:
     for r in recent[:5]:
         print(f"  {r['date']}  {r['views']:>5}  {(r['visual'] or '')[:50]}")
 
-    high = sorted(recent, key=lambda x: -x["views"])[0]
-    low = sorted(recent, key=lambda x: x["views"])[0]
+    high = sorted(mature, key=lambda x: -x["views"])[0]
+    low = sorted(mature, key=lambda x: x["views"])[0]
     avoid_visuals = [r["visual"] for r in recent[:3] if r.get("visual")]
 
     # Title opener fatigue (AMD / 驗收 continuous openers)
@@ -152,10 +153,34 @@ def print_report(rows, recent_n: int = 15) -> dict:
     try:
         from modules.packaging_fatigue import format_opener_streak_for_preflight
 
-        for line in format_opener_streak_for_preflight(log_path=str(DEFAULT_LOG)):
+        for line in format_opener_streak_for_preflight(log_path=str(log_path)):
             print(line)
     except Exception as exc:
         print(f"  ## 標題開場疲勞\n  - 檢查失敗：{exc}")
+
+    # Structured packaging bans (TTL / caps / top-quartile exemptions) + recently used scenes
+    print()
+    try:
+        from modules.packaging_bans import (
+            format_bans_for_title_prompt,
+            load_bans,
+            recent_visual_objects,
+            recent_visual_rules,
+            refresh_status,
+        )
+        from modules.youtube_learning import learning_window
+
+        state = refresh_status(load_bans(), window=learning_window(str(log_path)))
+        for line in format_bans_for_title_prompt(state).splitlines():
+            print(f"  {line}")
+        scenes = recent_visual_objects(state)
+        if scenes:
+            print(f"  - 近期已用場景（選新主題時避開，不會進生圖 prompt）：{'／'.join(scenes)}")
+        visual_rules = recent_visual_rules(state)
+        if visual_rules:
+            print(f"  - 畫面禁忌（人工參考；封面 prompt 另有固定 IP／Logo 防護）：{'；'.join(visual_rules)}")
+    except Exception as exc:
+        print(f"  ## 包裝禁令\n  - 讀取失敗：{exc}")
 
     # Closed-loop brief for humans + /2
     print()
@@ -180,8 +205,17 @@ def print_report(rows, recent_n: int = 15) -> dict:
     print(f"    標題感：{(low['title'] or '')[:60]}")
     print(f"  - 近 3 支視覺已用：{' ｜ '.join((v or '')[:24] for v in avoid_visuals)}")
     print("  - 下一步：定 1 個標題主鉤 + 1 個差異化視覺 → 再跑 regen-assets")
+    print("  - --visual-theme 只寫正向場景；「禁止…」子句會自動拆進 data/packaging_bans.json（5 交易日到期）")
     print("  - 若開場疲勞 BLOCK：禁止同一 token 開場；local 高樣本模板優先")
-    print("  - title_priority：n≥3 命中率會自動加減主角權重（見 role_scorer）")
+    try:
+        from modules.role_scorer import HIT_RATE_MIN_SAMPLES, HIT_RATE_MULT_MAX, HIT_RATE_MULT_MIN
+
+        print(
+            f"  - title_priority：n≥{HIT_RATE_MIN_SAMPLES} 命中率會自動乘上 "
+            f"{HIT_RATE_MULT_MIN:.2f}–{HIT_RATE_MULT_MAX:.2f} 主角權重（見 role_scorer）"
+        )
+    except Exception:
+        print("  - title_priority：命中率樣本足夠時會自動加減主角權重（見 role_scorer）")
     try:
         from modules.analytics_store import AnalyticsStore
         from modules.horizon_reliability import reliability_one_liner
@@ -217,7 +251,7 @@ def main():
         refresh_channel(log_path, args.channel_id, args.max_results)
 
     rows = _parse_log(log_path)
-    print_report(rows, recent_n=args.recent)
+    print_report(rows, recent_n=args.recent, log_path=log_path)
     if DEFAULT_WIKI.exists():
         print(f"📄 完整成效摘要：{DEFAULT_WIKI.relative_to(BASE_DIR)}")
     return 0

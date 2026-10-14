@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateQuota();
     loadHotStocks();
     loadRecentReports();
+    bindStaticHandlers();
 
     // Enter key to search
     document.getElementById('tickerInput').addEventListener('keydown', (e) => {
@@ -55,22 +56,18 @@ async function updateQuota() {
             }
         }
 
-        // Disable UI if out of quota
-        const searchBtn = document.getElementById('searchBtn');
+        // Out of quota: only NEW reports are blocked. Cached reports are still free,
+        // so the search stays enabled and the server answers (cache hit, or 429/503
+        // with its own message). Only a notice is shown here.
         const tickerInput = document.getElementById('tickerInput');
-        if (noQuota) {
-            if (searchBtn) {
-                searchBtn.disabled = true;
-                const btnText = searchBtn.querySelector('.btn-text');
-                if (btnText) btnText.textContent = quotaMessage;
-                searchBtn.style.backgroundColor = '#4a5568';
-                searchBtn.style.color = '#a0aec0';
-                searchBtn.style.cursor = 'not-allowed';
+        if (tickerInput) {
+            if (!tickerInput.dataset.defaultPlaceholder) {
+                tickerInput.dataset.defaultPlaceholder = tickerInput.placeholder || '';
             }
-            if (tickerInput) {
-                tickerInput.disabled = true;
-                tickerInput.placeholder = `今日${quotaMessage}，請明日再來`;
-            }
+            tickerInput.placeholder = noQuota
+                ? `今日${quotaMessage}：仍可查詢已生成的報告（不扣額度）`
+                : tickerInput.dataset.defaultPlaceholder;
+            tickerInput.title = noQuota ? `今日${quotaMessage}，新報告明天再產生；已生成的報告仍可免費查閱` : '';
         }
 
     } catch (e) {
@@ -166,37 +163,72 @@ function showReport(data) {
         badge.className = 'report-badge fresh';
     }
 
-    // Render markdown
+    // Render markdown (model output is untrusted: always sanitize before innerHTML)
     const content = document.getElementById('reportContent');
-    if (typeof marked !== 'undefined') {
-        content.innerHTML = marked.parse(data.content || '');
-
-        // Post-process blockquotes for GitHub-style alerts
-        const blockquotes = content.querySelectorAll('blockquote');
-        blockquotes.forEach(bq => {
-            const firstP = bq.querySelector('p');
-            if (firstP) {
-                if (firstP.innerHTML.startsWith('[!TIP]')) {
-                    firstP.innerHTML = firstP.innerHTML.replace('[!TIP]', '').trim();
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'custom-alert alert-tip';
-                    alertDiv.innerHTML = `<div class="alert-icon">💡</div><div class="alert-text">${bq.innerHTML}</div>`;
-                    bq.parentNode.replaceChild(alertDiv, bq);
-                } else if (firstP.innerHTML.startsWith('[!WARNING]')) {
-                    firstP.innerHTML = firstP.innerHTML.replace('[!WARNING]', '').trim();
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'custom-alert alert-warning';
-                    alertDiv.innerHTML = `<div class="alert-icon">⚠️</div><div class="alert-text">${bq.innerHTML}</div>`;
-                    bq.parentNode.replaceChild(alertDiv, bq);
-                }
-            }
-        });
-    } else {
-        content.innerHTML = '<pre>' + (data.content || '') + '</pre>';
-    }
+    renderReportContent(content, data.content || '');
 
     // Scroll to report
     document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+
+// === Safe report rendering ===
+function renderReportContent(container, markdown) {
+    const canRenderHtml = typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined';
+    if (!canRenderHtml) {
+        // Fallback: plain text only (never inject raw model output as HTML)
+        const pre = document.createElement('pre');
+        pre.textContent = markdown;
+        container.replaceChildren(pre);
+        return;
+    }
+    container.innerHTML = DOMPurify.sanitize(marked.parse(markdown), { USE_PROFILES: { html: true } });
+
+    // Post-process blockquotes for GitHub-style alerts (DOM moves only; no string re-parsing)
+    container.querySelectorAll('blockquote').forEach(bq => {
+        const firstP = bq.querySelector('p');
+        if (!firstP) return;
+        const text = firstP.textContent || '';
+        let kind = null;
+        if (text.startsWith('[!TIP]')) kind = { cls: 'alert-tip', icon: '💡', tag: '[!TIP]' };
+        else if (text.startsWith('[!WARNING]')) kind = { cls: 'alert-warning', icon: '⚠️', tag: '[!WARNING]' };
+        if (!kind) return;
+        stripLeadingTag(firstP, kind.tag);
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `custom-alert ${kind.cls}`;
+        const icon = document.createElement('div');
+        icon.className = 'alert-icon';
+        icon.textContent = kind.icon;
+        const body = document.createElement('div');
+        body.className = 'alert-text';
+        while (bq.firstChild) body.appendChild(bq.firstChild);
+        alertDiv.append(icon, body);
+        bq.replaceWith(alertDiv);
+    });
+}
+
+function stripLeadingTag(paragraph, tag) {
+    const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+    const node = walker.nextNode();
+    if (node && node.nodeValue.trimStart().startsWith(tag)) {
+        node.nodeValue = node.nodeValue.trimStart().slice(tag.length).trimStart();
+    }
+}
+
+function bindStaticHandlers() {
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+    document.querySelectorAll('[data-action="reset"]').forEach(btn => {
+        btn.addEventListener('click', resetToSearch);
+    });
+}
+
+function textSpan(text, style) {
+    const span = document.createElement('span');
+    span.textContent = text;
+    if (style) span.style.cssText = style;
+    return span;
 }
 
 
@@ -267,9 +299,12 @@ async function loadRecentReports() {
             // Highlight today's reports
             const twDate = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
             const isToday = item.date === twDate;
-            const badge = isToday ? '<span style="color: #48bb78; margin-left:4px; font-weight:bold;">🆕</span>' : '';
             
-            btn.innerHTML = `<strong>${item.ticker}</strong> ${item.name} <span style="font-size: 0.75rem; opacity: 0.8; margin-left: 4px;">(${item.date.slice(5)})</span>${badge}`;
+            const strong = document.createElement('strong');
+            strong.textContent = item.ticker;
+            btn.append(strong, ' ', item.name || '');
+            btn.appendChild(textSpan(`(${String(item.date || '').slice(5)})`, 'font-size: 0.75rem; opacity: 0.8; margin-left: 4px;'));
+            if (isToday) btn.appendChild(textSpan('🆕', 'color: #48bb78; margin-left:4px; font-weight:bold;'));
             btn.onclick = () => quickSearch(item.ticker);
             container.appendChild(btn);
         });
@@ -317,22 +352,28 @@ async function loadHotStocks() {
                 btn.style.transform = 'none';
             };
             
-            // Format views with commas
-            const formattedViews = new Intl.NumberFormat().format(item.views);
-            
-            // Format date (remove year for cleaner look)
-            const displayDate = item.date.length > 5 ? item.date.substring(5) : item.date;
-            
-            btn.innerHTML = `
-                <strong style="font-size:1rem;">${item.ticker}</strong> 
-                <span>${item.name}</span>
-                <div style="background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 4px; display:flex; gap: 6px;">
-                    <span title="累積觀看次數">👁️ ${formattedViews}</span>
-                    <span style="opacity: 0.6;">|</span>
-                    <span title="資料更新日期">📅 ${displayDate}</span>
-                </div>
-            `;
-            
+            const strong = document.createElement('strong');
+            strong.style.fontSize = '1rem';
+            strong.textContent = item.ticker;
+            btn.append(strong, textSpan(item.name || ''));
+
+            const meta = document.createElement('div');
+            meta.style.cssText = 'background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 4px; display:flex; gap: 6px;';
+            if (item.editor_pick) {
+                // Cold start: editor picks carry no view count or date (never show invented numbers)
+                const pick = textSpan('📌 編輯精選');
+                pick.title = '尚無足夠觀看紀錄，由編輯挑選';
+                meta.appendChild(pick);
+            } else {
+                const views = textSpan(`👁️ ${new Intl.NumberFormat().format(item.views || 0)}`);
+                views.title = '近 7 日實際觀看次數';
+                const date = String(item.date || '');
+                const dateSpan = textSpan(`📅 ${date.length > 5 ? date.substring(5) : date}`);
+                dateSpan.title = '報告生成日期';
+                meta.append(views, textSpan('|', 'opacity: 0.6;'), dateSpan);
+            }
+            btn.appendChild(meta);
+
             btn.onclick = () => quickSearch(item.ticker);
             container.appendChild(btn);
         });

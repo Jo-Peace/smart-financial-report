@@ -68,6 +68,18 @@ class MarketCalendarTest(unittest.TestCase):
         self.assertIn("日曆", source)
         self.assertTrue(calendar_one_liner("2026-09-15"))
 
+    def test_source_keeps_the_estimate_label_on_the_msci_window(self):
+        sd = {
+            "date": "2026-11-27",
+            "index_action": "上漲 10點（+0.05%）",
+            "calendar_events": [
+                {"date": "2026-11-27", "when": "今天", "kind": "msci_rebalance_window", "estimated": True,
+                 "priority": 1, "text": "MSCI 11 月季度調整生效日未確認。未經公告確認前不是日曆事實"},
+            ],
+        }
+        source = build_notebooklm_source(sd, date_str="2026-11-27")
+        self.assertIn("（估計，非事實）MSCI 11 月季度調整生效日未確認", source)
+
 
 if __name__ == "__main__":
     unittest.main()

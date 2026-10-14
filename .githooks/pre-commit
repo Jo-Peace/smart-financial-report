@@ -1,0 +1,8 @@
+#!/bin/bash
+# Run the offline unit tests before every commit.
+# Enable once per clone:  git config core.hooksPath .githooks
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+PYTHON="${PYTHON_BIN:-/usr/local/bin/python3}"
+[ -x "$PYTHON" ] || PYTHON="$(command -v python3)"
+RUN_DAILY_NOTIFY=0 "$PYTHON" -m unittest discover -s tests -q

@@ -1,8 +1,30 @@
 import os
-import datetime
 import time
 import json
 from modules.gemini_client import default_model_name, generate_text
+from modules.tz import today_tpe_str
+from modules.twse_tape import EX_RIGHTS_TEXT, pct_text
+from modules.tickers import bare_ticker
+
+
+def is_report_error(content) -> bool:
+    """True for the "Error generating report: ..." string (or an empty answer)."""
+    return not isinstance(content, str) or not content.strip() or content.strip().startswith("Error generating")
+
+
+def abort_on_generation_error(content, label="報告"):
+    """
+    Entry scripts (weekly / US / weekend special) call this before writing:
+    a Gemini failure must exit non-zero instead of being saved as a report
+    and fed into further Gemini extraction.
+    """
+    if not is_report_error(content):
+        return
+    first = content.strip().splitlines()[0] if isinstance(content, str) and content.strip() else "（空白回應）"
+    print(f"\n❌ {label}生成失敗，停止流程以避免把錯誤字串寫成正式報告。")
+    print(f"   錯誤摘要: {first[:300]}")
+    raise SystemExit(1)
+
 
 class MarketAnalyzer:
     def __init__(self, api_key):
@@ -21,31 +43,79 @@ class MarketAnalyzer:
             return {}
 
 
-    def _call_gemini_with_retry(self, prompt, max_retries=3):
+    def _call_gemini_with_retry(self, prompt, max_retries=3, validate=None):
         """
         Calls Gemini with exponential backoff retry using tenacity.
+
+        ``validate(text)`` may return a list of problems (e.g. missing report
+        sections). A non-empty list raises a retryable GeminiIncompleteResponse,
+        so a truncated / malformed report is retried and, if it never completes,
+        returned as "Error generating report: ..." (callers stop before persist).
         """
         from modules.api_retry import get_api_retry_decorator
-        
+        from modules.gemini_client import GeminiIncompleteResponse, RetryPlan, unwrap_retry_error
+
+        # One plan per report: the fallback model waits for the last attempt
+        # (or a truncated answer), and a second MAX_TOKENS answer stops the retry.
+        plan = RetryPlan(max_retries + 1)
+
         @get_api_retry_decorator(max_attempts=max_retries + 1, min_wait=5, max_wait=60)
         def _do_call():
-            return generate_text(
-                self.api_key,
-                prompt,
-                task_name="market_report",
-                model_name=self.model_name,
-            )
-            
+            use_fallback = plan.start()
+            try:
+                text = generate_text(
+                    self.api_key,
+                    prompt,
+                    task_name="market_report",
+                    model_name=self.model_name,
+                    use_fallback=use_fallback,
+                )
+            except Exception as exc:
+                plan.failed(exc)
+                raise
+            problems = validate(text) if validate else []
+            if problems:
+                raise GeminiIncompleteResponse(
+                    f"report incomplete: {'; '.join(problems)} (chars={len(text or '')})",
+                    reason="MISSING_SECTIONS",
+                    retryable=True,
+                )
+            return text
+
         try:
             return _do_call()
         except Exception as e:
-            return f"Error generating report: {e}"
+            # tenacity wraps the final failure in RetryError; report the real cause.
+            return f"Error generating report: {unwrap_retry_error(e)}"
 
-    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None, previous_prediction_targets=None, previous_validation_summary=None, editorial_frame=None, similar_sessions_summary=None, last_output_date=None):
+    @staticmethod
+    def _daily_report_problems(text, next_observe="明日觀察"):
+        """Missing core sections → problems list (env REPORT_SECTION_CHECK=warn|off relaxes it)."""
+        from modules.report_fact_check import missing_required_sections
+
+        mode = (os.getenv("REPORT_SECTION_CHECK") or "strict").strip().lower()
+        if mode == "off":
+            return []
+        missing = missing_required_sections(text)
+        if not missing:
+            return []
+        labels = [f"〔{next_observe}焦點〕" if key == "觀察焦點" else f"〔{key}〕" for key in missing]
+        if mode == "warn":
+            print(f"  ⚠️  日報缺少章節：{'、'.join(labels)}（REPORT_SECTION_CHECK=warn，仍繼續）")
+            return []
+        return [f"缺少章節 {'、'.join(labels)}（可設 REPORT_SECTION_CHECK=warn 暫時放行）"]
+
+    def generate_report(self, market_data, news_data, institutional_data=None, prev_report_path=None, commodity_data=None, macro_events=None, tech_catalyst_events=None, volume_data=None, deep_dive_data=None, signal_summary=None, previous_prediction_targets=None, previous_validation_summary=None, editorial_frame=None, similar_sessions_summary=None, last_output_date=None, value_ranking=None, report_date=None):
         """
         Generates a Markdown report using Gemini with enhanced data.
+
+        ``report_date`` (YYYY-MM-DD) is the session the report is filed under
+        (main.py passes run_date, which a back-fill relabels to the data
+        session); it drives the 日期 header and 昨日／明天 wording. Defaults to
+        today in Asia/Taipei. ``value_ranking`` (get_top_value_stocks) is the
+        primary 量 axis; ``volume_data`` (MI_INDEX20, shares) is a side table.
         """
-        date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        date_str = str(report_date)[:10] if report_date else today_tpe_str()
         from modules.session_calendar import (
             analyzer_calendar_block,
             analyzer_session_block,
@@ -62,14 +132,16 @@ class MarketAnalyzer:
         editorial_frame = editorial_frame or {}
         validation_placement = str(editorial_frame.get("validation_placement") or "brief").strip().lower()
         frame_label = str(editorial_frame.get("label") or editorial_frame.get("frame") or "").strip()
-        # 尺子分工：隔日=節奏；約 20 交易日=趨勢成敗（本機回測較穩）。口語可說「趨勢」。
+        # 時間尺度分工（中性用語）：1D～5D＝短線節奏；約 20 交易日＝中期脈絡。
+        # 哪個窗「較準」只能由 horizon_reliability 的 CI 門檻決定（見
+        # docs/optimization_backlog.md Standing Decisions），日報 prompt 不預設任何窗為成敗標準。
         horizon_ruler_block = """================================================================
-【時間尺度——寫作與成敗尺子】
+【時間尺度——寫作用語】
 ================================================================
-- 隔日／近幾日（1D～5D）：只當「節奏／天氣」。可寫命中或失準，但禁止用它單獨論定「系統準不準」或整篇升級成史詩驗收日。
-- 中期（約 20 個交易日／2～4 週）：「趨勢」尺子。點名標的是否延續、假說是否成立，以這條為主。
+- 隔日／近幾日（1D～5D）：短線節奏／天氣。可寫命中或失準，但禁止用它單獨論定「系統準不準」或整篇升級成史詩驗收日。
+- 中期（約 20 個交易日／2～4 週）：中期脈絡。可寫點名標的的中期走勢與假說後續要看的條件，但不要把任一時間窗（包括 20 日）寫成判定成敗的標準或「較準的窗」。
 - 口語可用「趨勢」指中期窗；不要暗示在做技術分析趨勢線神單。
-- 若文中提到本機多日回測：用「目前樣本顯示…」的語氣，勿寫成永遠真理。
+- 若文中提到本機多日回測：用「目前樣本顯示…」的語氣，勿寫成永遠真理；本機回測尚未以統計證實哪個時間窗較準，也不要把隔日失準說成「只是雜訊」。
 """
         if validation_placement == "lead":
             validation_step_block = f"""================================================================
@@ -128,9 +200,19 @@ STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，�
         
         # === Stock Data Summary ===
         data_summary = ""
+        def _na(value):
+            return "N/A" if value is None else value
+
         for symbol, data in market_data.items():
             if data:
-                line = f"- {symbol}: 價格 {data['price']}, 漲跌 {data['change']} ({data['pct_change']}%), 成交量 {data['volume']} (5日均量 {data.get('avg_vol_5d', 'N/A')}, 量增比 {data.get('vol_ratio', 'N/A')}x)"
+                bar = f" @ {data['bar_date']}" if data.get('bar_date') else ""
+                if data.get('pct_change') is not None:
+                    move = f"漲跌 {data['change']} ({data['pct_change']}%)"
+                elif data.get('ex_rights'):
+                    move = f"漲跌 {EX_RIGHTS_TEXT}（除權息日收盤不能和前一日收盤直接相比，禁止寫漲跌幅）"
+                else:
+                    move = "漲跌 N/A"
+                line = f"- {symbol}{bar}: 價格 {data['price']}, {move}, 成交量 {_na(data.get('volume'))} (5日均量 {_na(data.get('avg_vol_5d'))}, 量增比 {_na(data.get('vol_ratio'))}{'x' if data.get('vol_ratio') is not None else ''})"
                 if data.get('ma5'):
                     line += f", MA5={data['ma5']}"
                 if data.get('ma20'):
@@ -150,7 +232,8 @@ STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，�
         inst_summary = ""
         if institutional_data and (institutional_data.get("top_buy") or institutional_data.get("top_sell")):
             data_date = institutional_data.get("data_date", "未知")
-            inst_summary = f"\n# 三大法人買賣超（依金額排序 - 資料日期：{data_date}）\n"
+            scope_label = "上市＋上櫃（FinMind 備援）" if institutional_data.get("market_scope") == "TWSE_TPEx" else "上市（TWSE，不含上櫃）"
+            inst_summary = f"\n# 三大法人買賣超｜{scope_label}｜依同日收盤估算金額排序 - 資料日期：{data_date}\n"
             inst_summary += "\n## 外資買超前10名（依估計金額排序）\n"
             for s in institutional_data.get("top_buy", []):
                 amt = s.get('est_amount', 0)
@@ -183,13 +266,40 @@ STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，�
             for ev in tech_catalyst_events:
                 catalyst_summary += f"- {ev['event']}\n  └→ {ev['snippet']}\n"
 
-        # === Volume Ranking Data (今日成交量排名 - 真實市場投票) ===
+        # === 成交值排行（主軸：資金實際流向，上市個股；ETF 另列）===
+        value_summary = ""
+        value_stocks = [r for r in ((value_ranking or {}).get("stocks") or []) if r.get("trade_value_yi") is not None]
+        if value_stocks:
+            value_date = (value_ranking or {}).get("data_date") or "未知"
+            value_summary = f"\n# 💰 今日成交值前20名（依成交金額排序，上市個股，不含 ETF）- 資料日期：{value_date}\n"
+            for s in value_stocks[:20]:
+                pct_str = pct_text(s)
+                value_summary += (
+                    f"- 第{s.get('rank')}名: {s['id']} {s.get('name', '')} | 成交值 {s['trade_value_yi']:.1f}億"
+                    f" | 收盤 {s.get('close_price', 'N/A')} | 漲跌 {pct_str}\n"
+                )
+            etfs = [r for r in ((value_ranking or {}).get("etfs") or []) if r.get("trade_value_yi") is not None]
+            if etfs:
+                value_summary += "ETF 成交值前段（另列，不當個股主角）：" + "、".join(
+                    f"{r.get('name') or r.get('id')} {r['trade_value_yi']:.0f}億" for r in etfs[:5]
+                ) + "\n"
+
+        # === 成交股數排行（副表：MI_INDEX20，股數排序）===
         volume_summary = ""
         if volume_data:
-            volume_summary = "\n# 📊 今日成交量前20名（真實市場行動，分析必須以此為主軸）\n"
-            volume_summary += "⚠️ 警示：這才是今日市場『最有共識』的實際行動。外資買超金額≠成交量。\n"
+            volume_summary = "\n# 📊 今日成交股數前20名（副表：依「股數」排序，上市；ETF／低價股易上榜）\n"
+            volume_summary += "⚠️ 股數排名不是資金焦點，也不是市場共識：高價權值股不在此榜不代表「市場沒跟量」。資金焦點以上方成交值（億元）排行為準。\n"
             for s in volume_data[:20]:
-                volume_summary += f"- 第{s['rank']}名: {s['id']} {s['name']} | 成交量 {s['volume']:,} 股 | 收盤 {s.get('close_price', 'N/A')} | 漲跌 {s.get('pct_change', 0):+.2f}%\n"
+                value = ""
+                if s.get('trade_value_yi') is not None:
+                    if s.get('value_rank'):
+                        value_rank = f"個股成交值第{s['value_rank']}名，不含 ETF，與上方成交值榜同一排名"
+                    elif s.get('value_rank_etf'):
+                        value_rank = f"ETF，ETF 成交值第{s['value_rank_etf']}名，不列入個股成交值排名"
+                    else:
+                        value_rank = "成交值名次未知"
+                    value = f" | 成交值 {s['trade_value_yi']:.1f}億（{value_rank}）"
+                volume_summary += f"- 第{s['rank']}名: {s['id']} {s['name']} | 成交量 {s['volume']:,} 股{value} | 收盤 {s.get('close_price', 'N/A')} | 漲跌 {pct_text(s)}\n"
 
         previous_predictions_summary = ""
         if previous_prediction_targets:
@@ -213,8 +323,13 @@ STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，�
         hist_section = ""
         if prev_report_path:
             try:
+                from modules.narrative_sanitize import sanitize_narrative_text, strip_number_readings
+
                 with open(prev_report_path, "r", encoding="utf-8") as f:
                     prev_content = f.read()
+                # Older reports carry LLM number readings / intent wording; strip them
+                # so the 3000-char window holds verifiable content.
+                prev_content = sanitize_narrative_text(strip_number_readings(prev_content))
                 hist_section = f"\n# 前日報告（供昨日預測驗收用）\n{prev_content[:3000]}\n"
             except Exception:
                 hist_section = ""
@@ -225,7 +340,7 @@ STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，�
         
         # from market_data keys e.g. "2330.TW"
         for symbol in market_data.keys():
-            active_tickers.add(symbol.replace('.TW', '').replace('.TWO', ''))
+            active_tickers.add(bare_ticker(symbol))
             
         # from volume_data
         if volume_data:
@@ -239,72 +354,31 @@ STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，�
             for s in institutional_data.get('top_sell', []):
                 active_tickers.add(str(s['id']))
                 
-        stock_db_str = ""
-        if self.stock_db:
-            appended_count = 0
-            for sid, info in self.stock_db.items():
-                if sid in active_tickers:
-                    stock_db_str += f"- {sid} {info.get('name', '')}：分類為「{info.get('sector', '')}」\n"
-                    stock_db_str += f"  └→ 角色：{info.get('supply_chain_role', '')}\n"
-                    not_class = "、".join(info.get('not_classify_as', []))
-                    if not_class:
-                        stock_db_str += f"  🚫 絕對禁止分類為：{not_class}\n"
-                    appended_count += 1
-            if appended_count == 0:
-                stock_db_str = "（今日主力個股尚無特殊之自訂分類，請依常理判斷）"
-        else:
-            stock_db_str = "（目前資料庫為空，請依常理判斷）"
+        # Unreviewed (Gemini draft / legacy) entries are reference-only; see stock_db_updater.
+        from modules.stock_db_updater import format_stock_db_for_prompt
+
+        stock_db_str = format_stock_db_for_prompt(self.stock_db, active_tickers)
             
-        # === Second Brain: Historical Knowledge Wiki (size-capped) ===
-        wiki_str = ""
-        wiki_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "knowledge_wiki")
-        MAX_WIKI_CHARS = 3500
+        # === Second Brain: Historical Knowledge Wiki (per-file budget, whole entries, fresh digest only) ===
+        from modules.knowledge_manager import build_wiki_prompt_context
 
-        if os.path.exists(wiki_dir):
-            # 優先讀取 weekly_digest（壓縮版，最節省 token）
-            digest_path = os.path.join(wiki_dir, "weekly_digest.md")
-            if os.path.exists(digest_path):
-                try:
-                    with open(digest_path, "r", encoding="utf-8") as f:
-                        digest_content = f.read().strip()
-                    if digest_content:
-                        wiki_str += f"\n=== weekly_digest.md（本週精華）===\n{digest_content[:1500]}\n"
-                except Exception:
-                    pass
-
-            # 再從各 wiki 檔取最近 20 行（補充當週最新動態）
-            for filename in ["capital_rotation.md", "macro_events.md", "trading_strategies.md"]:
-                filepath = os.path.join(wiki_dir, filename)
-                if not os.path.exists(filepath):
-                    continue
-                try:
-                    with open(filepath, "r", encoding="utf-8") as f:
-                        lines = f.readlines()
-                    recent = "".join(lines[-20:]).strip()
-                    if recent:
-                        wiki_str += f"\n=== {filename}（最近20行）===\n{recent}\n"
-                except Exception as e:
-                    print(f"  [Warning] 無法讀取 Wiki 檔案 {filename}: {e}")
-
-            # 硬上限：超過就截斷，防止 prompt 爆炸
-            if len(wiki_str) > MAX_WIKI_CHARS:
-                wiki_str = wiki_str[:MAX_WIKI_CHARS] + "\n...（已截斷，完整歷史請查閱 Wiki 檔案）"
-
-        if not wiki_str.strip():
-            wiki_str = "（尚未累積任何歷史知識）"
+        wiki_str = build_wiki_prompt_context(report_date=date_str, max_chars=3500)
 
         prompt = f"""
 你是一個台股財金節目的「首席偵探型分析師」。
 你的工作不是寫報告。是找到今天「最讓人意外的數據現象」，然後用說故事的方式把它說得讓人無法跳過。
 
-日期：{date_str}（繁體中文，數字需加括號標注中文讀音）
+日期：{date_str}（繁體中文；數字一律用阿拉伯數字，不要加中文讀音括號）
 
 ================================================================
 【原始數據輸入——這些是事實，禁止在事實之外捏造】
 ================================================================
 
-## 今日成交量前20名（市場真實行動，最重要的數據）
-{volume_summary if volume_summary else '（成交量數據未能取得，改以外資買超數據為輔）'}
+## 今日成交值前20名（資金實際流向——量的主軸）
+{value_summary if value_summary else '（成交值排行未能取得：只能參考下方成交股數副表，且不得把「未進股數榜」解讀為沒跟量或市場不認同）'}
+
+## 今日成交股數前20名（副表，只看股數；不是資金焦點）
+{volume_summary if volume_summary else '（成交股數排行未能取得）'}
 
 ## 昨日正式預測標的（最高優先驗收清單）
 {previous_predictions_summary if previous_predictions_summary else '（無 structured_data prediction_targets，才可從前日報告文字補抓）'}
@@ -323,7 +397,7 @@ STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，�
 - 報告必須同時寫清兩層條件：
   (1) 隔日節奏：續量/量縮、守住哪條均線、是否跌破今日低點、法人是否轉買/轉賣；
   (2) 趨勢成立（約 20 交易日／2～4 週）：方向是否延續、籌碼/量價是否仍支持假說。
-- 如果本地訊號包的信心分數低於 50/100，請降低語氣，寫「觀察」而不是「預測」。
+- 如果本地訊號包的信心等級為「弱」（等級皆未經回測校準），請降低語氣，寫「觀察」而不是「預測」；「中」也只能寫成待確認假說。
 
 ## 個股技術指標（含均線與量增比）
 {data_summary}
@@ -349,20 +423,21 @@ STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，�
 ================================================================
 【我們的內部私有財經歷史記憶庫 (The Second Brain)】
 ================================================================
-這些是我們在過去追蹤到的市場敘事、大事件、法人買賣與成交量結構。
-你在分析今日數據時，必須以此為「既有認知基礎」。
-- 如果今天的數據「延續」了記憶庫裡的趨勢，請在報告中點出這個連貫性（例如「正如我們此前的觀察...」）。
-- 如果今天的數據「打破或反轉」了過去的敘事，這就是今日「最強異常」的絕佳題材！
+這些是過去幾個交易日的本機紀錄（法人買賣金額、大盤漲跌、驗收結果）。
+請把它們當成「待驗證假說」，不是既有事實：
+- 只有今日數據（金額、排名、漲跌）重新支持時，才可以點出延續性，並寫出今日支持它的數字。
+- 若今日數據不支持或反轉，直接寫「假說未獲今日數據支持」，這可以是今日的題材。
+- 不得沿用任何意圖推論（鎖貨、吸籌、掃貨、主力布局等）；記憶庫只提供數字與日期。
 {wiki_str}
 {editorial_rule}
 {validation_step_block}
 ================================================================
 STEP 0.5【相似盤對照】本機已比對的歷史日，不是回憶
 ================================================================
-上方「本機相似盤」若列出 1～2 個日期：必須寫「〔相似盤對照〕」短段（每個歷史日 2～4 句），引用那天的買賣超與隔日節奏命中/失敗。
-選今日 prediction_targets 時，若相似盤顯示同一類押注隔日常失敗，要降權或寫明為何今天仍押。
+上方「本機相似盤」若列出日期（最多 5 個）：必須寫「〔相似盤對照〕」短段，先引用「彙總」的隔日預測成立／失準與隔日大盤，再挑 1～2 個最相近的日期各寫 1～2 句（當天買賣超與隔日節奏命中/失敗）。
+選今日 prediction_targets 時，只有至少 3 個相似盤、且彙總顯示隔日預測多數失準，才可據此降權或寫明為何今天仍押；1～2 個個案或標示「樣本不足」時只能當背景對照，不可據此降權。
 若寫「未找到足夠相似盤」：正文只寫「本日無足夠相似歷史盤可對照。」一句。禁止編造沒列到的日期，禁止用「史上第一次」迴避對照。
-相似盤是輔助，不能蓋過今日成交量與法人榜的主線。
+相似盤是輔助，不能蓋過今日成交值與法人榜的主線。
 
 ================================================================
 STEP 1【找出今日的最強異常 / 主線】整集的靈魂，只選一個現象
@@ -370,7 +445,7 @@ STEP 1【找出今日的最強異常 / 主線】整集的靈魂，只選一個�
 優先使用「本地量化訊號包」與「本地主軸分類」。除非原始數據明顯反駁，否則不要自行改選主題。
 從以下類型找出最反直覺、最有衝突感的數據現象（若主軸是整理日，就誠實寫訊號普通）：
 A) 量價矛盾：大成交量但股價小漲（分配訊號）？縮量但大漲（假突破）？
-B) 法人 vs 市場矛盾：外資大買的股票，成交量排名卻在20名以外？
+B) 法人 vs 市場矛盾：外資大買的股票，成交值排名卻在20名以外？（看成交值，不看成交股數）
 C) 族群內部分歧：多支同族群個股同向，但關鍵個股逆勢？（需3支以上才能說「族群」）
 D) 技術位攻防：MA20、月線有無被突破或失守？
 E) 昨日預測 vs 今日現實的反差（僅在 placement=lead 或反差極大時當主線）
@@ -393,7 +468,7 @@ E) 昨日預測 vs 今日現實的反差（僅在 placement=lead 或反差極大
 ```
 【今日深度押注：XXXX ×× 】
 - 基本面：毛利率 X%（趨勢：改善/走弱），營收年增 X%
-- 法人籌碼：今日外資買超 XX 億（全市場第 X 名）
+- 法人籌碼：今日外資買超 XX 億（上市第 X 名）
 - 成交量：[放量/縮量/量平]（今日量 Xx 倍 20日均量）
 - 隔日節奏：若 [具體短線條件]，先觀察 [隔日反應]
 - 趨勢假說（約 20 交易日／2～4 週）：若 [中期條件]，預期將 [回到MA20上方/突破XX元/維持強勢]
@@ -407,8 +482,8 @@ E) 昨日預測 vs 今日現實的反差（僅在 placement=lead 或反差極大
 STEP 2【今日勾魂開場句——讓人停下來的問題】
 ================================================================
 用最強異常設計一個帶衝突感的問題，例如：
-「外資今天買進台積電 358 億，但成交量前三名沒有台積電。那錢去哪了？」
-「大盤漲了X點，但成交量冠軍是一支下跌的股票。誰在逆勢操作？」
+「外資今天賣超台積電 200 億，但台積電仍是成交值第一名。接手的是誰？」
+「大盤漲了X點，但成交值冠軍是一支下跌的股票。誰在逆勢操作？」
 「昨天我們說 XXX 會漲，但它今天跌了。判斷哪裡出了問題？」
 
 必須：(1) 基於真實數據 (2) 有內在衝突或懸念 (3) 讓人想知道答案
@@ -416,24 +491,24 @@ STEP 2【今日勾魂開場句——讓人停下來的問題】
 ================================================================
 【台股供應鏈族群知識庫——必須熟記，不得用產品名稱亂分類】
 ================================================================
-以下是台股供應鏈的正確分類字典，當分析到這些股票時，必須強制使用這裡的「供應鏈角色」：
+以下是本機 stock_db 的產業參考。標示「未審核」的條目是 AI 草稿，只能當參考：不得據此把公司寫成 AI 供應鏈，也不得改稱其本業。
 
 {stock_db_str}
 
-📌 正確的族群分類原則：
-「這家公司的產品，有沒有進入AI伺服器的BOM表（物料清單）？」
-→ 有 = AI供應鏈族群；沒有 = 才是傳產
+📌 族群分類原則：
+以本業（證交所產業別）為主；只有在資料源或「已審核」條目有營收比重／法說會等依據時，才可加註「AI 相關」。
+航運、塑化、面板、水泥等本業不得因題材被改寫成 AI 族群。
 
 ================================================================
-STEP 3【偵探式展開——成交量帶路，法人對比，新聞輔助】
+STEP 3【偵探式展開——成交值帶路，法人對比，新聞輔助】
 ================================================================
 順序：
-1. 成交量前10名完整列表（這才是市場真正的投票結果）
+1. 成交值前10名（資金實際流向；ETF 另列）——成交股數榜只當副表，用來看散戶／低價股熱度
 2. 外資買賣超對比（機構的官方說法）
 3. 兩者一致？→ 趨勢確認。兩者矛盾？→ 這才是最值得挖掘的地方
 4. 新聞事件作補充（只是「可能原因之一」，不是確定答案）
 5. 族群分析（只在有3支以上個股同向時，才能下「族群性」結論）
-6. 【強制應用上方知識庫】：分析個股所屬族群時，先比對知識庫，用「供應鏈角色」分類，而非產品外觀
+6. 【參考上方知識庫】：已審核條目可沿用其分類；未審核條目只作參考，族群判斷以本業為準
 
 ================================================================
 🚫 五條鐵律，違反即失敗：
@@ -448,7 +523,7 @@ STEP 3【偵探式展開——成交量帶路，法人對比，新聞輔助】
 6. 禁用空泛套話：正文不得出現「資金輪動」四字；「資金脈絡」不得作為段落標題。請改為抓出「三大法人與成交量之間的主力買賣邏輯」，每次談買賣方向，都必須具體寫出「誰買、誰賣、金額/成交量、哪個榜單支持、隔日節奏條件、趨勢延續條件」。
 7. 禁止每天硬套警報語氣：不是每天都有「最強異常」「退潮警報」「資金續航」。若今日沒有足夠數據支持，必須誠實寫成「整理日 / 觀察日 / 訊號普通」，不要把常態買賣包裝成重大警訊。
 8. 禁止用「隔日沒漲＝預測失敗、系統失效」當全文結論；短線失準最多修正節奏，趨勢假說要另寫仍有效或已失效。
-9. 禁止把「買超但未進成交量前20」寫成鎖籌碼、靜默入侵、影子建倉、機構級掃貨。只能寫可驗證事實：金額、是否進量榜、連續買超天數。連續買超未滿 3 日、或當日已賣超，不得推論意圖。
+9. 禁止把「買超但未進成交量前20」寫成鎖籌碼、靜默入侵、影子建倉、機構級掃貨。只能寫可驗證事實：金額、成交值名次、連續買超天數。成交股數榜以股數排序，高價股天生上不了榜，「未進股數榜」不是任何訊號。連續買超未滿 3 日、或當日已賣超，不得推論意圖。
 10. 交易日用語：週五禁止寫「明天開盤／明天台股」；週一禁止寫「昨天開盤」。用「下一交易日／上一交易日」或下面的指定口語。
 
 {_session_rules}
@@ -476,7 +551,7 @@ STEP 3.5【每日主軸選擇——先判斷今天是哪一種日子】
 STEP 4【今日唯一重要結論——觀眾明天還記得的那句話】
 ================================================================
 整集只允許一個核心結論。必須具體、有可驗證的方向；可同時點到「{_next_watch}什麼」與「中期趨勢假說」，但不要把隔日當唯一勝敗。
-例如：「今天的關鍵不在台積電漲多少，而在成交量前3名是面板和衛星股，
+例如：「今天的關鍵不在台積電漲多少，而在成交值前3名有兩檔是面板和衛星股，
 但法人偏偏在賣這些——短線先看量能否續得住，趨勢上要看這兩週籌碼是否真的換邊。」
 
 ================================================================
@@ -505,7 +580,7 @@ STEP 6【技術位與商品——簡短補充，不是主角】
 技術位：哪支股票今天剛突破或跌破 MA20？為什麼重要？
 
 ================================================================
-【輸出格式——Markdown，繁體中文，正文數字加中文讀音括號，表格內不需要】
+【輸出格式——Markdown，繁體中文，數字一律用阿拉伯數字，不要加中文讀音括號】
 ================================================================
 
 {validation_output_block}
@@ -520,28 +595,28 @@ STEP 6【技術位與商品——簡短補充，不是主角】
 ---
 
 ## 〔相似盤對照〕
-（有本機相似盤：每個歷史日 2～4 句，含當時預測與隔日節奏。無資料：寫「本日無足夠相似歷史盤可對照。」）
+（有本機相似盤：先寫彙總（成立／失準、隔日大盤），再挑 1～2 個最相近日期各 1～2 句，含當時預測與隔日節奏。無資料：寫「本日無足夠相似歷史盤可對照。」）
 
 ---
 
-## 〔成交量排名〕今日最真實的市場投票
-| 排名 | 代號 | 名稱 | 成交量 | 漲跌幅 | 今日角色 |
-（前10名，最後欄說明它在今日故事中的意義）
+## 〔成交值排名〕今日資金實際流向
+| 排名 | 代號 | 名稱 | 成交值（億） | 漲跌幅 | 今日角色 |
+（成交值前10名，上市個股；ETF 另列一行即可；最後欄說明它在今日故事中的意義。成交值未取得時改列成交股數榜，並在表頭標明「依股數」。排名／成交值／漲跌幅會由本機 TWSE 資料覆寫，請把力氣放在「今日角色」。）
 
 ---
 
 ## 〔法人籌碼〕外資買賣超（資料日期：XXXX-XX-XX）
-（前10買超 + 前10賣超，標注估計金額）
+（前10買超 + 前10賣超，每檔一行「N. **代號 名稱**：約 ±X 億元（一句註記）」；名次與金額會由本機資料覆寫，「最主要／第一」這類說法必須和名次一致。）
 
 ---
 
 ## 〔量價對比〕法人說的 vs 市場做的
-（成交量排名 vs 外資買超的一致或矛盾——這是今集最有料的段落）
+（成交值排名 vs 外資買超的一致或矛盾——這是今集最有料的段落；不要拿成交股數名次和億元金額硬比）
 
 ---
 
-## 〔主力買賣邏輯〕三大法人 vs 成交量證據鏈
-（用具體榜單與數字說明：外資買超/賣超、成交量排名、技術位。必須包含「主力操作假說」：隔日節奏條件 + 趨勢延續條件（約 20 交易日／2～4 週）+ 反證/失效。不要寫抽象口號。）
+## 〔主力買賣邏輯〕三大法人 vs 成交值證據鏈
+（用具體榜單與數字說明：外資買超/賣超、成交值排名、技術位。必須包含「主力操作假說」：隔日節奏條件 + 趨勢延續條件（約 20 交易日／2～4 週）+ 反證/失效。不要寫抽象口號。）
 
 ---
 
@@ -572,7 +647,10 @@ STEP 6【技術位與商品——簡短補充，不是主角】
         """
 
 
-        return self._call_gemini_with_retry(prompt)
+        return self._call_gemini_with_retry(
+            prompt,
+            validate=lambda text: self._daily_report_problems(text, next_observe=_next_observe),
+        )
 
 
     def generate_weekend_special_report(self, market_data, news_data, commodity_data=None, macro_events=None):
@@ -580,16 +658,18 @@ STEP 6【技術位與商品——簡短補充，不是主角】
         Generates a Weekend Special Markdown report focusing on the US Market and Geopolitical events.
         Crucially, this report is generated entirely in TRADITIONAL CHINESE.
         """
-        date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-        
+        date_str = today_tpe_str()
+
         # === US Stock Data Summary (Weekly View) ===
         data_summary = ""
         for symbol, data in market_data.items():
             if data:
-                line = f"- {symbol}: 本週收盤 ${data.get('week_close', data.get('price'))}, 本週漲跌 {data.get('week_change', 'N/A')} ({data.get('week_pct_change', 'N/A')}%), 本週高點 ${data.get('week_high', 'N/A')}, 本週低點 ${data.get('week_low', 'N/A')}"
+                week_span = f"{data.get('week_start')}~{data.get('week_end')}" if data.get('week_start') else "本週"
+                line = f"- {symbol}（{week_span}）: 週收盤 ${data.get('week_close', data.get('price'))}, 週漲跌 {data.get('week_change', 'N/A')} ({data.get('week_pct_change', 'N/A')}%), 週高點 ${data.get('week_high', 'N/A')}, 週低點 ${data.get('week_low', 'N/A')}"
                 if 'daily_series' in data and data['daily_series']:
-                    friday = data['daily_series'][-1]
-                    line += f"  [週五單日表現: 價格 ${friday['close']}, 跌幅 {friday['pct_change']}%]"
+                    last_bar = data['daily_series'][-1]
+                    last_label = last_bar.get('date') or last_bar.get('iso_date') or '最後交易日'
+                    line += f"  [最後交易日 {last_label} 單日: 價格 ${last_bar['close']}, 漲跌幅 {last_bar['pct_change']:+}%]"
                 data_summary += line + "\n"
             else:
                 data_summary += f"- {symbol}: Data unavailable\n"
@@ -602,9 +682,9 @@ STEP 6【技術位與商品——簡短補充，不是主角】
         # === Commodity Data ===
         commodity_summary = ""
         if commodity_data:
-            commodity_summary = "\n# Global Commodities & Safe Havens\n"
+            commodity_summary = "\n# Global Commodities & Safe Havens（以下為「1日」漲跌，不是週漲跌）\n"
             for sym, cdata in commodity_data.items():
-                commodity_summary += f"- {cdata['name']}: ${cdata['price']} ({cdata['pct_change']:+.2f}%)\n"
+                commodity_summary += f"- {cdata['name']}: ${cdata['price']} (1日 {cdata['pct_change']:+.2f}%，報價日 {cdata.get('bar_date') or '不明'})\n"
         
         # === Macro Events ===
         macro_summary = ""

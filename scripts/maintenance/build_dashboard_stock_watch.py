@@ -9,11 +9,14 @@ import json
 import os
 import re
 import sqlite3
+import sys
 from pathlib import Path
 from typing import Any
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 REPORTS_DIR = BASE_DIR / "reports"
 DAILY_DIR = REPORTS_DIR / "daily"
 DB_PATH = BASE_DIR / "data" / "analytics.db"
@@ -251,40 +254,44 @@ def _build_current_watch(data: dict[str, Any]) -> tuple[list[dict[str, Any]], li
     return tracking[:6], warnings[:6], focus[:6]
 
 
-# 回測解讀預設：歷史上 20D 命中率與超額最穩，短線窗噪音高、僅作節奏參考。
+# 20D 是「候選」主指標：只有本機回測（交易日窗、扣同窗大盤）的 95% CI 下界
+# 高於 50% 基準且領先短線窗時，才標成主指標（modules/horizon_reliability.py）。
 PRIMARY_RELIABILITY_HORIZON = 20
 SHORT_HORIZONS = {1, 3, 5}
 
 
-def _build_interpretation(by_horizon_rows: list[dict], primary_row: dict | None) -> dict[str, Any]:
+def _build_interpretation(
+    summary_rows: list[dict],
+    primary_row: dict | None,
+    primary_leads: bool = False,
+) -> dict[str, Any]:
     """Natural, sample-aware copy for dashboard / UI."""
+    from modules.horizon_reliability import DEFAULT_RULER_LINE
+
     try:
         from modules.horizon_reliability import natural_reliability_sentences, reliability_one_liner
 
-        summary = reliability_one_liner(by_horizon_rows) or (
-            f"{PRIMARY_RELIABILITY_HORIZON}D 是可信度主指標；"
-            "1D/3D/5D 僅作短線節奏參考，噪音高，不單獨當勝負依據。"
-        )
-        sentences = natural_reliability_sentences(by_horizon_rows)
+        summary = reliability_one_liner(summary_rows) or DEFAULT_RULER_LINE
+        sentences = natural_reliability_sentences(summary_rows)
     except Exception:
-        summary = (
-            f"{PRIMARY_RELIABILITY_HORIZON}D 是可信度主指標；"
-            "1D/3D/5D 僅作短線節奏參考，噪音高，不單獨當勝負依據。"
-        )
+        summary = DEFAULT_RULER_LINE
         sentences = []
 
     primary_hit = (primary_row or {}).get("hitRatePct")
     primary_n = (primary_row or {}).get("samples")
+    current = f"（目前超額命中率 {_hit_rate_display(primary_hit)}，n={primary_n}）" if primary_hit is not None else ""
     return {
         "primaryHorizonDays": PRIMARY_RELIABILITY_HORIZON,
+        "primaryLeads": bool(primary_leads),
         "summary": summary,
         "sentences": sentences,
         "shortTerm": "1D / 3D / 5D → 內容節奏、隔日驗收用；命中率接近隨機時勿強化敘事。",
         "primary": (
-            f"{PRIMARY_RELIABILITY_HORIZON}D → 選標、標題主角、中期追蹤的主要依據"
-            + (f"（目前 {_hit_rate_display(primary_hit)}，n={primary_n}）" if primary_hit is not None else "。")
+            f"{PRIMARY_RELIABILITY_HORIZON}D → 已通過 CI 基準檢定，可作選標參考{current}"
+            if primary_leads
+            else f"{PRIMARY_RELIABILITY_HORIZON}D → 尚未被樣本證實較準，與其他窗並列{current}"
         ),
-        "doNot": "不要用 1D 成敗定義系統準不準；本機樣本若顯示 20D 領先，尺子放在 20D。",
+        "doNot": "不要用單一時間窗定義系統準不準；CI 下界未高於基準前，勿稱任一窗較準。",
     }
 
 
@@ -297,14 +304,20 @@ def _hit_rate_display(value: Any) -> str:
         return str(value)
 
 
-def _horizon_role(horizon_days: int) -> dict[str, str]:
+def _horizon_role(horizon_days: int, primary_leads: bool = False) -> dict[str, str]:
     """How the UI/script should describe each evaluation window."""
     h = int(horizon_days or 0)
-    if h == PRIMARY_RELIABILITY_HORIZON:
+    if h == PRIMARY_RELIABILITY_HORIZON and primary_leads:
         return {
             "role": "primary",
             "label": "主指標",
-            "readAs": "可信度主指標：選標／標題主角／中期追蹤以 20D 為準",
+            "readAs": "95% CI 下界高於 50% 基準且領先短線窗（交易日窗、扣同窗大盤）",
+        }
+    if h == PRIMARY_RELIABILITY_HORIZON:
+        return {
+            "role": "candidate",
+            "label": "中期對照",
+            "readAs": "樣本尚未證實較準；與短線窗並列",
         }
     if h in SHORT_HORIZONS:
         return {
@@ -321,8 +334,14 @@ def _horizon_role(horizon_days: int) -> dict[str, str]:
     return {
         "role": "secondary",
         "label": "次指標",
-        "readAs": "輔助對照，勿凌駕 20D",
+        "readAs": "輔助對照",
     }
+
+
+def _ledger_method() -> str:
+    from modules.horizon_reliability import LEDGER_METHOD
+
+    return LEDGER_METHOD
 
 
 def _stock_score_for_tickers(cur, tickers: list[str]) -> list[sqlite3.Row]:
@@ -333,17 +352,18 @@ def _stock_score_for_tickers(cur, tickers: list[str]) -> list[sqlite3.Row]:
     return cur.execute(
         f"""
         SELECT p.ticker, p.name,
-               COUNT(*) AS samples,
+               COUNT(r.hit) AS samples,
                AVG(r.hit) AS hit_rate,
                AVG(r.excess_return_pct) AS avg_excess,
                MAX(r.evaluated_date) AS latest_eval
         FROM prediction_results r
         JOIN predictions p ON p.id = r.prediction_id
-        WHERE r.horizon_days = ? AND p.ticker IN ({placeholders})
+        WHERE r.horizon_days = ? AND r.method = ? AND r.return_pct IS NOT NULL
+          AND p.ticker IN ({placeholders})
         GROUP BY p.ticker, p.name
         ORDER BY hit_rate DESC, avg_excess DESC, samples DESC
         """,
-        (PRIMARY_RELIABILITY_HORIZON, *wanted),
+        (PRIMARY_RELIABILITY_HORIZON, _ledger_method(), *wanted),
     ).fetchall()
 
 
@@ -351,28 +371,27 @@ def _build_analytics(limit: int = 12, today_tickers: list[str] | None = None) ->
     if not DB_PATH.is_file():
         return {"available": False, "reason": "analytics.db not found"}
 
+    from modules.analytics_store import AnalyticsStore
+    from modules.horizon_reliability import analyze_horizon_reliability
+
+    method = _ledger_method()
+    by_horizon = AnalyticsStore(str(DB_PATH)).get_horizon_performance_summary()
+    reliability = analyze_horizon_reliability(by_horizon)
+    primary_leads = bool(reliability.get("primary_leads"))
     conn = _connect()
     cur = conn.cursor()
-    by_horizon = cur.execute(
-        """
-        SELECT horizon_days, COUNT(*) AS samples, AVG(hit) AS hit_rate,
-               AVG(return_pct) AS avg_return, AVG(excess_return_pct) AS avg_excess
-        FROM prediction_results
-        GROUP BY horizon_days
-        ORDER BY horizon_days
-        """
-    ).fetchall()
     recent_results = cur.execute(
         """
         SELECT p.prediction_date, p.ticker, p.name, p.direction,
                r.horizon_days, r.evaluated_date, r.return_pct,
-               r.excess_return_pct, r.hit, p.trigger
+               r.excess_return_pct, r.hit, r.status, p.trigger
         FROM prediction_results r
         JOIN predictions p ON p.id = r.prediction_id
+        WHERE r.method = ? AND r.return_pct IS NOT NULL
         ORDER BY r.evaluated_date DESC, p.prediction_date DESC, p.ticker, r.horizon_days
         LIMIT ?
         """,
-        (limit,),
+        (method, limit),
     ).fetchall()
     open_predictions = cur.execute(
         """
@@ -390,36 +409,37 @@ def _build_analytics(limit: int = 12, today_tickers: list[str] | None = None) ->
     stock_score = cur.execute(
         """
         SELECT p.ticker, p.name,
-               COUNT(*) AS samples,
+               COUNT(r.hit) AS samples,
                AVG(r.hit) AS hit_rate,
                AVG(r.excess_return_pct) AS avg_excess,
                MAX(r.evaluated_date) AS latest_eval
         FROM prediction_results r
         JOIN predictions p ON p.id = r.prediction_id
-        WHERE r.horizon_days = ?
+        WHERE r.horizon_days = ? AND r.method = ? AND r.return_pct IS NOT NULL
         GROUP BY p.ticker, p.name
-        HAVING COUNT(*) >= 2
+        HAVING COUNT(r.hit) >= 2
         ORDER BY hit_rate DESC, avg_excess DESC, samples DESC
         LIMIT ?
         """,
-        (PRIMARY_RELIABILITY_HORIZON, limit),
+        (PRIMARY_RELIABILITY_HORIZON, method, limit),
     ).fetchall()
     # 全窗對照（除錯用；UI 不應當主表）
     stock_score_all = cur.execute(
         """
         SELECT p.ticker, p.name,
-               COUNT(*) AS samples,
+               COUNT(r.hit) AS samples,
                AVG(r.hit) AS hit_rate,
                AVG(r.excess_return_pct) AS avg_excess,
                MAX(r.evaluated_date) AS latest_eval
         FROM prediction_results r
         JOIN predictions p ON p.id = r.prediction_id
+        WHERE r.method = ? AND r.return_pct IS NOT NULL
         GROUP BY p.ticker, p.name
-        HAVING COUNT(*) >= 2
+        HAVING COUNT(r.hit) >= 2
         ORDER BY hit_rate DESC, avg_excess DESC, samples DESC
         LIMIT ?
         """,
-        (limit,),
+        (method, limit),
     ).fetchall()
     today_score = _stock_score_for_tickers(cur, today_tickers or [])
     conn.close()
@@ -427,20 +447,34 @@ def _build_analytics(limit: int = 12, today_tickers: list[str] | None = None) ->
     by_horizon_rows = []
     primary_row = None
     for row in by_horizon:
-        role = _horizon_role(row["horizon_days"])
+        role = _horizon_role(row["horizon_days"], primary_leads=primary_leads)
         item = {
             "horizonDays": row["horizon_days"],
+            "horizonUnit": "sessions",
             "samples": row["samples"],
+            "effectiveSamples": row.get("effective_samples"),
             "hitRatePct": _hit_rate(row["hit_rate"]),
+            "hitBasis": "excess_vs_twii_dead_band",
+            "ciLowPct": _hit_rate(row.get("hit_ci_low")),
+            "ciHighPct": _hit_rate(row.get("hit_ci_high")),
+            "baselinePct": _hit_rate(row.get("baseline")),
+            "rawHitRatePct": _hit_rate(row.get("raw_hit_rate")),
+            "indexSameDirectionPct": _hit_rate(row.get("index_up_rate")),
+            "coveragePct": _hit_rate(row.get("coverage")),
+            "stopped": row.get("stopped"),
+            "neutral": row.get("neutral"),
+            "conditionalEntries": row.get("conditional_entries"),
+            "unjudged": row.get("unjudged"),
+            "returnBasis": "direction_adjusted",
             "avgReturnPct": _percent(row["avg_return"]),
             "avgExcessPct": _percent(row["avg_excess"]),
             "role": role["role"],
             "roleLabel": role["label"],
             "readAs": role["readAs"],
-            "isPrimary": int(row["horizon_days"] or 0) == PRIMARY_RELIABILITY_HORIZON,
+            "isPrimary": primary_leads and int(row["horizon_days"] or 0) == PRIMARY_RELIABILITY_HORIZON,
         }
         by_horizon_rows.append(item)
-        if item["isPrimary"]:
+        if int(row["horizon_days"] or 0) == PRIMARY_RELIABILITY_HORIZON:
             primary_row = item
 
     today_ids = {str(t).strip() for t in (today_tickers or []) if str(t).strip()}
@@ -468,7 +502,7 @@ def _build_analytics(limit: int = 12, today_tickers: list[str] | None = None) ->
     return {
         "available": True,
         "primaryHorizonDays": PRIMARY_RELIABILITY_HORIZON,
-        "interpretation": _build_interpretation(by_horizon_rows, primary_row),
+        "interpretation": _build_interpretation(by_horizon, primary_row, primary_leads),
         "primaryHorizon": primary_row,
         "byHorizon": by_horizon_rows,
         "recentResults": [
@@ -481,7 +515,8 @@ def _build_analytics(limit: int = 12, today_tickers: list[str] | None = None) ->
                 "evaluatedDate": row["evaluated_date"],
                 "returnPct": _percent(row["return_pct"]),
                 "excessPct": _percent(row["excess_return_pct"]),
-                "hit": bool(row["hit"]),
+                "hit": None if row["hit"] is None else bool(row["hit"]),
+                "status": row["status"] or "",
                 "trigger": row["trigger"] or "",
                 "isPrimaryHorizon": int(row["horizon_days"] or 0) == PRIMARY_RELIABILITY_HORIZON,
             }
@@ -544,7 +579,7 @@ def build_payload(date: str | None = None) -> dict[str, Any]:
             "此檔為 Dashboard 展示用摘要，不是投資建議。",
             "命中率來自 analytics.db 的 prediction_results；未驗收標的會留在 openPredictions。",
             "今日追蹤股優先取最新 structured_data 的 short_term_picks / prediction_targets。",
-            "解讀權重：20D = 可信度主指標；1D/3D/5D = 短線節奏參考（噪音高）。",
+            "解讀：命中＝扣同窗大盤後的超額報酬超過 dead band；時間窗以 TWSE 交易日計；CI 下界未高於 50% 基準前，勿稱任一窗較準。",
             "stockScoreboard 預設只統計 20D；全窗混合見 stockScoreboardAllHorizons。",
         ],
     }

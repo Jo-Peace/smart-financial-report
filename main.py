@@ -1,5 +1,5 @@
 import os
-import datetime
+import sys
 import logging
 from dotenv import load_dotenv
 from modules.data_fetcher import DataFetcher
@@ -13,11 +13,32 @@ from modules.pipeline_support import (
     find_previous_structured_data,
     is_generation_error,
 )
-from modules.pipeline_stages import build_dynamic_universe
+from modules.pipeline_stages import (
+    build_dynamic_universe,
+    fetch_market_universe,
+    inflight_prediction_symbols,
+    ledger_only_symbols,
+)
 from modules.pipeline_analysis import build_analysis_bundle
 from modules.pipeline_persist import persist_daily_artifacts
 from modules.monthly_consolidate import maybe_run_before_daily_main
-from modules.data_quality_gate import apply_data_quality_gate, evaluate_data_quality
+from modules.data_quality_gate import apply_data_quality_gate, drop_off_session_bars, evaluate_data_quality
+from modules.exit_codes import (
+    EXIT_CONFIG,
+    EXIT_DATA_NOT_READY,
+    EXIT_GEMINI_FAILED,
+    EXIT_NOT_SESSION,
+    EXIT_OK,
+    EXIT_PERSIST_FAILED,
+    EXIT_QUALITY_GATE,
+    EXIT_TOO_EARLY,
+    normalize as normalize_exit_code,
+)
+from modules.runtime_flags import print_active_flags
+from modules.tz import now_tpe_naive
+from modules.twse_tape import pct_text
+from modules.pipeline_context import allow_stale_session, session_guard, stale_relabel_decision, stale_session_target
+from modules.twse_calendar import is_twse_session
 
 logging.basicConfig(
     level=logging.INFO,
@@ -46,25 +67,43 @@ YOUTUBE_PERFORMANCE_WIKI = os.path.join(CTX.base_dir, "data", "knowledge_wiki", 
 
 
 def main():
+    # Asia/Taipei wall clock regardless of host TZ (16:10 cutoff + run_date).
+    now = now_tpe_naive()
     print(f"{'='*50}")
     print(f"  智慧財經新聞助理 (V21 Pro)")
-    print(f"  日期: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"  日期: {now.strftime('%Y-%m-%d %H:%M')}（Asia/Taipei）")
     print(f"{'='*50}\n")
+    print_active_flags(prefix="  ")
+    try:
+        # Read-only: hit-rate stats only count sessions_v2 rows; never migrated here.
+        from modules.analytics_store import ledger_legacy_status, legacy_ledger_warning
 
-    now = datetime.datetime.now()
+        ledger = ledger_legacy_status()
+        if ledger.get("legacy"):
+            print(f"  {legacy_ledger_warning(ledger['legacy'], ledger.get('current'))}")
+    except Exception:
+        pass
+
     cutoff = now.replace(hour=16, minute=10, second=0, microsecond=0)
     if now < cutoff and not ALLOW_EARLY_RUN:
         print("  ⛔ 16:10 前不執行 /1，避免資料未齊與 Gemini/API 成本浪費。")
         print("  若確定要強制執行，請設定 ALLOW_EARLY_RUN=1 後再跑。")
         print_today_usage(prefix="  ")
-        return
+        return EXIT_TOO_EARLY
 
     print_today_usage(prefix="  ")
     run_date = now.strftime("%Y-%m-%d")
+    stale_ok = allow_stale_session()
+    session_ok, session_msg = session_guard(run_date, allow_stale=stale_ok)
+    if session_msg:
+        print(f"  {'⚠️ ' if session_ok else '⛔'} {session_msg}")
+    if not session_ok:
+        print("  若要補跑最近交易日，請設定 ALLOW_STALE_SESSION=1（產出會標為該資料日）。")
+        return EXIT_NOT_SESSION
     
     if not TAVILY_API_KEY or not GEMINI_API_KEY:
         print("[Error] 請在 .env 檔案中設定 TAVILY_API_KEY 和 GEMINI_API_KEY")
-        return
+        return EXIT_CONFIG
 
     maybe_run_before_daily_main(REPORTS_DIR, now=now)
 
@@ -118,6 +157,9 @@ def main():
     # ========================================
     # 1. Fetch Institutional Data (三大法人 — Top 10 動態排名)
     # ========================================
+    from modules.twse_http import insecure_events, reset_insecure_events
+
+    reset_insecure_events()
     institutional_data = unwrap_fetch_result(
         fetcher.get_institutional_data(top_n=10),
         default={"top_buy": [], "top_sell": [], "data_date": None},
@@ -126,67 +168,12 @@ def main():
     if not has_inst_data:
         print("  ❌ 無法取得三大法人數據（今日資料尚未發布），停止執行。")
         print("  💡 請等待台灣證交所發布後（通常下午 4 點後）再重新執行。")
-        return
+        return EXIT_DATA_NOT_READY
 
     # ========================================
-    # [優化 B] 讀取前次 structured_data，取得預測標的供後續驗收
-    # 若前次產出距今 >1 交易日（中間沒跑 /1），不當作「昨日/上集驗收」
-    # ========================================
-    print("\n🔍 [優化 B] 讀取前次預測標的...")
-    from modules.pipeline_support import resolve_onair_prediction_targets
-
-    previous_predictions, yesterday_structured, validation_meta = find_previous_structured_data(
-        REPORTS_DIR,
-        as_of_date=run_date,
-    )
-    # Universe 仍可用前次標的做追蹤；內容驗收僅用「上一交易日有產出」的標的
-    yesterday_predictions = resolve_onair_prediction_targets(previous_predictions, validation_meta)
-
-    # 動態決定今日分析標的 (大盤 + 台積電 + 外資買賣超前三名)
-    dynamic_symbols, dynamic_topics = build_dynamic_universe(
-        BASE_SYMBOLS,
-        BASE_TOPICS,
-        institutional_data,
-        previous_predictions or yesterday_predictions,
-    )
-
-    # ========================================
-    # 2. Fetch Market Data (with Technical Indicators)
-    # ========================================
-    market_data = {}
-    print("\n📊 正在獲取動態股票數據與技術指標（平行處理）...")
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    
-    def fetch_and_format(sym):
-        return sym, unwrap_fetch_result(fetcher.get_stock_data(sym))
-        
-    # max_workers = min(10, max(1, len(dynamic_symbols)))
-    worker_count = min(10, len(dynamic_symbols)) if dynamic_symbols else 1
-    with ThreadPoolExecutor(max_workers=worker_count) as executor:
-        future_to_symbol = {executor.submit(fetch_and_format, sym): sym for sym in dynamic_symbols}
-        for future in as_completed(future_to_symbol):
-            symbol, data = future.result()
-            if data:
-                market_data[symbol] = data
-                indicator_str = ""
-                if data.get('ma5'):
-                    indicator_str += f" MA5={data['ma5']}"
-                if data.get('ma20'):
-                    indicator_str += f" MA20={data['ma20']}"
-                if data.get('rsi') is not None:
-                    indicator_str += f" RSI={data['rsi']}"
-                print(f"  ✅ {symbol}: ${data['price']} ({data['pct_change']:+.2f}%){indicator_str}")
-            else:
-                print(f"  ❌ {symbol}: 失敗")
-    
-    # ========================================
-    # 2.5 Fetch Commodity Data (油金銀)
-    # ========================================
-    print("\n🛢️  正在獲取國際商品行情...")
-    commodity_data = unwrap_fetch_result(fetcher.get_commodity_data(), default={})
-
-    # ========================================
-    # 2.6 Fetch Top Volume Stocks (今日成交量前20名 - 真實市場投票)
+    # 1.5 Fetch Top Volume Stocks (成交股數前20名) + align trade dates
+    #     Done before the universe / market data so every later fetch uses the
+    #     final trade date (previously the universe came from pre-alignment lists).
     # ========================================
     volume_result = fetcher.get_top_volume_stocks(top_n=20)
     volume_data = unwrap_fetch_result(volume_result, default=[])
@@ -222,7 +209,101 @@ def main():
         if institutional_date != volume_date:
             print("\n  ❌ 仍無法對齊交易日，停止執行以避免跨日污染。")
             print("  💡 通常等 2～5 分鐘後重跑即可；證交所法人榜偶爾比成交量晚幾分鐘。")
-            return
+            return EXIT_DATA_NOT_READY
+
+    if institutional_date and institutional_date != run_date and stale_ok:
+        # Explicit back-fill: label every artifact with the data's own session.
+        # On a TWSE session day a bare ALLOW_STALE_SESSION=1 never relabels
+        # (late T86 would overwrite the previous day's artifacts); the gate
+        # then fails institutional_stale. Only =<data date> back-fills it.
+        relabel, relabel_msg = stale_relabel_decision(run_date, institutional_date, target=stale_session_target())
+        print(f"  ⚠️  {relabel_msg}")
+        if relabel:
+            run_date = institutional_date
+        elif not is_twse_session(run_date):
+            return EXIT_NOT_SESSION
+    trade_date = institutional_date or run_date
+
+    # ========================================
+    # [優化 B] 讀取前次 structured_data，取得預測標的供後續驗收
+    # 若前次產出距今 >1 交易日（中間沒跑 /1），不當作「昨日/上集驗收」
+    # ========================================
+    print("\n🔍 [優化 B] 讀取前次預測標的...")
+    from modules.pipeline_support import resolve_onair_prediction_targets
+
+    previous_predictions, yesterday_structured, validation_meta = find_previous_structured_data(
+        REPORTS_DIR,
+        as_of_date=run_date,
+    )
+    # Universe 仍可用前次標的做追蹤；內容驗收僅用「上一交易日有產出」的標的
+    yesterday_predictions = resolve_onair_prediction_targets(previous_predictions, validation_meta)
+
+    # 動態決定今日分析標的 (大盤 + 台積電 + 外資買賣超前三名 + 前次標的)
+    # 在途預測（驗收窗未結束）只為驗收帳本補收盤價，不進今日分析。
+    inflight_symbols = inflight_prediction_symbols(as_of_date=run_date)
+    dynamic_symbols, dynamic_topics = build_dynamic_universe(
+        BASE_SYMBOLS,
+        BASE_TOPICS,
+        institutional_data,
+        previous_predictions or yesterday_predictions,
+        inflight_symbols=inflight_symbols,
+    )
+    ledger_symbols = ledger_only_symbols(dynamic_symbols, inflight_symbols)
+
+    # ========================================
+    # 2. Fetch Market Data (with Technical Indicators), bars dated trade_date
+    # ========================================
+    print(f"\n📊 正在獲取動態股票數據與技術指標（平行處理，K 棒日期須為 {trade_date}）...")
+
+    def fetch_one(sym):
+        return unwrap_fetch_result(fetcher.get_stock_data(sym, expected_date=trade_date))
+
+    def report_fetch(symbol, data, ledger):
+        tag = "（帳本）" if ledger else ""
+        if data:
+            indicator_str = ""
+            if data.get('ma5'):
+                indicator_str += f" MA5={data['ma5']}"
+            if data.get('ma20'):
+                indicator_str += f" MA20={data['ma20']}"
+            if data.get('rsi') is not None:
+                indicator_str += f" RSI={data['rsi']}"
+            print(f"  ✅ {symbol}{tag}: ${data['price']} ({pct_text(data)}){indicator_str} @ {data.get('bar_date')}")
+        else:
+            print(f"  ❌ {symbol}{tag}: 失敗")
+
+    # market_data = today's analysis universe only; ledger_market_data (in-flight
+    # names) is written to the analytics ledger and read by nothing else.
+    market_data, ledger_market_data = fetch_market_universe(
+        fetch_one,
+        dynamic_symbols,
+        ledger_symbols,
+        max_workers=10,
+        on_result=report_fetch,
+    )
+    # Keep failed analysis keys so prompts say 「數據無法取得」 instead of silently dropping them.
+    for symbol in dynamic_symbols:
+        market_data.setdefault(symbol, None)
+    
+    # ========================================
+    # 2.5 Fetch Commodity Data (油金銀) + 海外／匯率 + 期貨/籌碼 + 成交值榜（皆為本機 ground truth）
+    # ========================================
+    print("\n🛢️  正在獲取國際商品行情...")
+    commodity_data = unwrap_fetch_result(fetcher.get_commodity_data(), default={})
+    print("\n🌏 正在獲取海外／匯率行情（台積電 ADR、費半、VIX、那指期、美元兌台幣）...")
+    global_overnight = unwrap_fetch_result(fetcher.get_global_overnight(), default={}) or {}
+    market_extras = {}
+    try:
+        from modules.market_extras import fetch_market_extras, format_extras_lines, missing_extras
+
+        market_extras = fetch_market_extras(trade_date)
+        for line in format_extras_lines(market_extras):
+            print(f"  ✅ {line}")
+        if missing_extras(market_extras):
+            print(f"  ⚠️  未取得（不引用）：{'、'.join(missing_extras(market_extras))}")
+    except Exception as extras_err:
+        print(f"  ⚠️  期貨／籌碼補充資料略過：{extras_err}")
+    value_ranking = unwrap_fetch_result(fetcher.get_top_value_stocks(trade_date), default={}) or {}
 
     quality_report = evaluate_data_quality(
         run_date=run_date,
@@ -232,9 +313,15 @@ def main():
         volume_date=volume_date,
         yesterday_predictions=yesterday_predictions,
         expected_symbols=dynamic_symbols,
+        tls_events=insecure_events(),
     )
     if not apply_data_quality_gate(quality_report):
-        return
+        return EXIT_QUALITY_GATE
+    # A dated stale bar was kept only so the gate could see it; never narrate
+    # or score it as this session's move.
+    market_data, off_session = drop_off_session_bars(market_data, trade_date)
+    if off_session:
+        print(f"  ⚠️  K 棒不是 {trade_date}，改標為「數據無法取得」：{'、'.join(off_session[:8])}")
 
     # ========================================
     # 2.6 Fetch Macro Economic Events (日曆事件)
@@ -258,6 +345,7 @@ def main():
         base_dir=os.path.dirname(os.path.abspath(__file__)),
         gemini_api_key=GEMINI_API_KEY,
         report_date=run_date,
+        value_ranking=value_ranking,
     )
 
     validation_results = analysis_bundle["validation_results"]
@@ -270,6 +358,18 @@ def main():
     editorial_frame = analysis_bundle["editorial_frame"]
     signal_summary = analysis_bundle["signal_summary"]
     tech_catalyst_events = []
+    try:
+        from modules.structured_facts import format_local_market_prompt_block
+
+        local_market_block = format_local_market_prompt_block(
+            institutional_data=institutional_data,
+            global_overnight=global_overnight,
+            market_extras=market_extras,
+            value_ranking=value_ranking,
+        )
+        signal_summary = "\n\n".join(part for part in (signal_summary, local_market_block) if part)
+    except Exception as block_err:
+        print(f"  ⚠️  本機補充數據區塊略過：{block_err}")
 
     # ========================================
     # 4. Historical Comparison
@@ -297,12 +397,14 @@ def main():
         editorial_frame=editorial_frame,
         similar_sessions_summary=analysis_bundle.get("similar_sessions_summary") or "",
         last_output_date=(validation_meta or {}).get("source_date"),
+        value_ranking=value_ranking,
+        report_date=run_date,
     )
     if is_generation_error(report_content):
         print("\n❌ AI 報告生成失敗，停止流程以避免覆蓋正式報告。")
         print(f"   錯誤摘要: {report_content.splitlines()[0]}")
         print("   已抓取的市場資料未寫成正式日報；請稍後更換/恢復 Gemini 額度後重跑。")
-        return
+        return EXIT_GEMINI_FAILED
     
     date_str = run_date
     persist_result = persist_daily_artifacts(
@@ -315,6 +417,7 @@ def main():
         editorial_frame=editorial_frame,
         supply_chain_event_radar=supply_chain_event_radar,
         market_data=market_data,
+        ledger_market_data=ledger_market_data,
         institutional_data=institutional_data,
         volume_data=volume_data,
         commodity_data=commodity_data,
@@ -323,9 +426,26 @@ def main():
         channel_story_log=CHANNEL_STORY_LOG,
         youtube_assets_dir=YOUTUBE_ASSETS_DIR,
         similar_sessions=analysis_bundle.get("similar_sessions"),
+        local_extras={
+            "global_overnight": global_overnight,
+            "market_extras": market_extras,
+            "value_ranking": value_ranking,
+            "data_dates": {
+                "institutional": institutional_data.get("data_date"),
+                "volume": volume_date,
+            },
+            "news_inputs": {
+                "searches": list(getattr(fetcher, "search_log", []) or []),
+                "prompt_news": unique_news,
+                "rejected_news": analysis_bundle.get("rejected_news") or [],
+                "radar": supply_chain_event_radar,
+                "macro_events": macro_events,
+                "deep_dive": deep_dive_data,
+            },
+        },
     )
     if not persist_result.get("ok"):
-        return
+        return EXIT_PERSIST_FAILED
 
     structured_data = persist_result["structured_data"]
     notebooklm_prompt_content = persist_result.get("notebooklm_prompt_content")
@@ -342,6 +462,7 @@ def main():
     print(f"  📺 頻道紀錄: {os.path.basename(CHANNEL_STORY_LOG)}")
     print("  🧠 Knowledge Wiki 已更新 (Append-Only)")
     print("="*50)
+    return EXIT_OK
 
 if __name__ == "__main__":
-    main()
+    sys.exit(normalize_exit_code(main()))

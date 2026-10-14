@@ -5,6 +5,19 @@ logger = logging.getLogger(__name__)
 
 def is_retryable_exception(exception: BaseException) -> bool:
     """Check if the exception should trigger a retry."""
+    # Daily budget refusals never succeed on retry.
+    try:
+        from modules.ai_usage_guard import GeminiUsageLimitError
+
+        if isinstance(exception, GeminiUsageLimitError):
+            return False
+    except ImportError:
+        pass
+    # gemini_client.GeminiResponseError (empty / truncated / incomplete answer)
+    # carries its own retry decision.
+    retryable_flag = getattr(exception, "retryable", None)
+    if isinstance(retryable_flag, bool):
+        return retryable_flag
     error_str = str(exception)
     # Check for HTTP rate limits and server errors
     if any(code in error_str for code in ["429", "500", "502", "503", "504"]):

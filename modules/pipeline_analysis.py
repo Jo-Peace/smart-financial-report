@@ -15,7 +15,7 @@ from modules.market_signal_scorer import (
     load_stock_db,
 )
 from modules.fetch_result import unwrap_fetch_result
-from modules.pipeline_stages import collect_news_bundle, pick_deep_dive_focus, tape_focus_names
+from modules.pipeline_stages import collect_news_bundle, pick_deep_dive_focus, tape_focus_entities
 from modules.prediction_validator import (
     format_validation_results_for_prompt,
     validate_prediction_targets,
@@ -42,6 +42,7 @@ def build_analysis_bundle(
     gemini_api_key,
     report_date=None,
     validation_meta=None,
+    value_ranking=None,
 ):
     report_date = report_date or datetime.datetime.now().strftime("%Y-%m-%d")
     validation_meta = validation_meta or {}
@@ -70,7 +71,8 @@ def build_analysis_bundle(
             for line in validation_summary.splitlines()[1:]:
                 print(f"  {line}")
 
-    focus_names = tape_focus_names(
+    # {id, name} entities: the code keeps 長榮(2603) from matching 長榮航(2618) news.
+    focus_names = tape_focus_entities(
         institutional_data=institutional_data,
         volume_data=volume_data,
         yesterday_predictions=yesterday_predictions,
@@ -129,17 +131,32 @@ def build_analysis_bundle(
                 yesterday_predictions=yesterday_predictions,
                 todays_market_data=market_data,
                 todays_institutional_data=institutional_data,
+                as_of_date=report_date,
+                prediction_date=validation_meta.get("source_date"),
+                # Same verdict rows as the on-air 驗收 above (one hit rule).
+                validation_results=validation_results,
             )
     except Exception as e:
         print(f"  [Error] 自動資料庫調查/績效追蹤失敗: {e}")
 
     print("\n🧮 正在計算本地量化訊號包（不消耗 Gemini 額度）...")
     stock_db = load_stock_db(base_dir)
+    try:
+        from modules.market_calendar import mechanical_flow_events
+
+        mechanical_flow = mechanical_flow_events(report_date)
+    except Exception:
+        mechanical_flow = []
+    if mechanical_flow:
+        print("  📅 機械性籌碼日：" + "、".join(str(row.get("label")) for row in mechanical_flow))
     signal_pack = build_market_signal_pack(
         market_data=market_data,
         institutional_data=institutional_data,
         volume_data=volume_data,
         stock_db=stock_db,
+        mechanical_flow=mechanical_flow,
+        # Market-wide 成交值 rank (same as the prompt's 成交值前20 table) when known.
+        value_ranking=value_ranking,
     )
     skill_context = format_skill_context(active_skills)
 
@@ -159,6 +176,7 @@ def build_analysis_bundle(
         print("📰 正在獲取新聞（數據/事件觸發後的精準搜尋）...")
     else:
         print("  ⏭️  跳過擴大新聞搜尋，避免為普通盤面消耗 API/算力。")
+    rejected_news = []  # 同名異公司 results kept out of the prompt (archived in news_inputs.json)
     news_data, unique_news = collect_news_bundle(
         fetcher=fetcher,
         expand_news=expand_news,
@@ -166,6 +184,7 @@ def build_analysis_bundle(
         supply_chain_event_radar=supply_chain_event_radar,
         unwrap_fetch_result=unwrap_fetch_result,
         focus_names=focus_names,
+        rejected=rejected_news,
     )
     print(f"\n  📋 獨特新聞文章總數: {len(unique_news)}")
 
@@ -195,6 +214,11 @@ def build_analysis_bundle(
         + [str(item.get("event", "")) for item in (supply_chain_event_radar or [])]
         + [str(item.get("title", "")) for item in unique_news[:12]]
     )
+    index_pct = None
+    for index_key in ("^TWII", "TWII"):
+        if isinstance((market_data or {}).get(index_key), dict):
+            index_pct = market_data[index_key].get("pct_change")
+            break
     editorial_frame = build_editorial_frame(
         run_date=report_date,
         signal_pack=signal_pack,
@@ -202,6 +226,8 @@ def build_analysis_bundle(
         event_context=event_context,
         channel_story=_read_tail(channel_story_log, max_chars=5000),
         validation_meta=validation_meta,
+        event_radar=supply_chain_event_radar,
+        index_pct=index_pct,
     )
     editorial_frame_summary = format_editorial_frame_for_prompt(editorial_frame)
     event_radar_summary = format_event_radar_for_prompt(supply_chain_event_radar)
@@ -209,8 +235,9 @@ def build_analysis_bundle(
     similar_sessions = []
     similar_sessions_summary = ""
     try:
-        from modules.similar_sessions import find_similar_for_live, format_for_prompt
+        from modules.similar_sessions import find_similar_for_live, format_for_prompt, no_analog_reason
 
+        similar_diag: dict = {}
         similar_sessions = find_similar_for_live(
             report_date,
             market_data=market_data,
@@ -218,15 +245,19 @@ def build_analysis_bundle(
             editorial_frame=editorial_frame,
             reports_dir=os.path.join(base_dir, "reports"),
             stock_db=stock_db,
+            diagnostics=similar_diag,
         )
-        similar_sessions_summary = format_for_prompt(similar_sessions)
+        similar_sessions_summary = format_for_prompt(
+            similar_sessions,
+            no_analog=None if similar_sessions else no_analog_reason(similar_diag, with_date=False),
+        )
         if similar_sessions:
             preview = "、".join(
                 f"{row.get('date')}({row.get('score')})" for row in similar_sessions
             )
             print(f"  ✅ 相似盤: {preview}")
         else:
-            print("  ⚠️  無足夠相似歷史盤可對照")
+            print(f"  ⚠️  無足夠相似歷史盤可對照：{no_analog_reason(similar_diag)}")
     except Exception as similar_err:
         print(f"  ⚠️  相似盤比對略過: {similar_err}")
         similar_sessions_summary = (
@@ -276,6 +307,7 @@ def build_analysis_bundle(
         "news_reason": news_reason,
         "news_data": news_data,
         "unique_news": unique_news,
+        "rejected_news": rejected_news,
         "deep_dive_data": deep_dive_data,
         "editorial_frame": editorial_frame,
         "editorial_frame_summary": editorial_frame_summary,

@@ -134,7 +134,15 @@ SCHEMA:
             task_name="weekend_structured_data_extraction",
             model_name=model_name,
         )
-        return json.loads(raw)
+        data = _loads_json_object(raw)
+        if isinstance(data, list) and data:
+            data = data[0]
+        if not isinstance(data, dict):
+            return {
+                "error": "Failed to extract weekend structured data.",
+                "raw_error": f"unexpected type: {type(data).__name__}",
+            }
+        return data
     except Exception as e:
         print(f"Error extracting weekend structured data: {e}")
         return {

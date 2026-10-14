@@ -83,6 +83,9 @@ OPENER_HOOK_PATTERNS = [
     ("驗收開場", re.compile(r"^[\s🚀🚨]*【?驗收")),
     ("驗收上集", re.compile(r"^[\s🚀🚨]*驗收上集")),
     ("外資金額開場", re.compile(r"^[\s🚀🚨📉📈]*外資\s*[\d.]+億狂[掃砍]")),
+    # Skeleton-level opener (finding 87): 「{股名}{買/賣/砍/少}{N}億！…」. Checked last so the
+    # specific hooks above keep their own labels.
+    ("股名金額開場", re.compile(r"^[\s🚀🚨📉📈🔥]*[\u4e00-\u9fffA-Za-z\-＊*]{2,8}?(?:買|賣|砍|少|倒|抽)\s*\d+(?:\.\d+)?億")),
 ]
 
 # Soft limit: 2 consecutive same openers = warn; 3+ = block as fatigued opener.
@@ -90,7 +93,23 @@ OPENER_WARN_STREAK = 2
 OPENER_BLOCK_STREAK = 3
 OPENER_BLOCK_STREAK_BY_LABEL = {
     "外資金額開場": 2,  # 連兩支「外資Ｎ億狂掃／狂砍」就換鉤
+    # The amount-first skeleton is also required by hard title rules, so it only WARNs
+    # (rotate the B structure); it never blocks or strips a title.
+    "股名金額開場": 10**6,
 }
+OPENER_WARN_STREAK_BY_LABEL = {
+    "股名金額開場": 5,
+}
+
+# Panic wording never reaches a published title (finding 93); soft replacements keep the line.
+PANIC_TERM_REPLACEMENTS = [
+    ("斷頭危機", "風險"),
+    ("崩盤預警", "風險提醒"),
+    ("血洗", "重挫"),
+    ("斷頭", "風險"),
+    ("逃命", "撤出"),
+    ("全逃", "撤出"),
+]
 
 SHADOW_TITLE_RE = re.compile(r"影子建倉|影子資金|隱形掃貨")
 WHO_RECEIVES_RE = re.compile(r"誰在收[？?]")
@@ -114,7 +133,12 @@ COMPOUND_REPLACEMENTS = [
 
 
 def _parse_channel_story_titles(channel_story="", limit=7):
-    titles = []
+    """
+    Recent titles oldest→newest, one per video: duplicate rows (same video_id, or the same
+    date+title without an ID) are counted once so a rerun cannot fake an opener streak.
+    """
+    keyed = {}
+    order = []
     for line in (channel_story or "").splitlines():
         if not line.startswith("| ") or "日期" in line or "---" in line:
             continue
@@ -123,7 +147,13 @@ def _parse_channel_story_titles(channel_story="", limit=7):
             title = cells[7]
             if title in {"-", "待更新", ""}:
                 continue
-            titles.append(title)
+            video_id = cells[6] if len(cells) > 6 and cells[6] not in {"", "-"} else ""
+            key = f"id:{video_id}" if video_id else f"row:{cells[0]}|{title}"
+            if key in keyed:
+                order.remove(key)
+            keyed[key] = title
+            order.append(key)
+    titles = [keyed[key] for key in order]
     return titles[-limit:]
 
 
@@ -168,7 +198,7 @@ def analyze_title_opener_streaks(titles: list[str], lookback: int = 8) -> dict:
                 break
 
     block_n = OPENER_BLOCK_STREAK_BY_LABEL.get(trailing_label, OPENER_BLOCK_STREAK)
-    warn_n = max(1, block_n - 1)
+    warn_n = OPENER_WARN_STREAK_BY_LABEL.get(trailing_label, max(1, block_n - 1))
     warn = bool(trailing_label and streak >= warn_n)
     block = bool(trailing_label and streak >= block_n)
     advice = ""
@@ -176,6 +206,11 @@ def analyze_title_opener_streaks(titles: list[str], lookback: int = 8) -> dict:
         advice = (
             f"標題開場「{trailing_label}」已連續 {streak} 支（≥{OPENER_BLOCK_STREAK}）："
             "今日禁止再用同一開場；前 20 字改放已驗證金額＋股名＋矛盾。"
+        )
+    elif warn and trailing_label == "股名金額開場":
+        advice = (
+            f"標題骨架「{trailing_label}」已連續 {streak} 支：A 可保留金額+股名，"
+            "B 組改用另一種結構家族（矛盾句／問句／漲跌開場）測試，見「標題結構輪替」。"
         )
     elif warn:
         advice = (
@@ -499,6 +534,8 @@ def enforce_opener_fatigue_on_title(title, fatigue_state=None):
     if not (opener.get("warn") or opener.get("block")):
         return text
     label = opener.get("trailing_label")
+    if label not in {"AMD", "驗收開場", "驗收上集", "外資金額開場"}:
+        return text  # e.g. 股名金額開場 only rotates structure; never rewrite the title
     if label == "AMD":
         # Drop "AMD…！" / "AMD砸3200億利多！" style leads in one pass.
         text = re.sub(
@@ -516,9 +553,16 @@ def enforce_opener_fatigue_on_title(title, fatigue_state=None):
     return text.strip(" ！!？?，,|｜")
 
 
+def replace_panic_terms(text):
+    result = str(text or "")
+    for phrase, replacement in PANIC_TERM_REPLACEMENTS:
+        result = result.replace(phrase, replacement)
+    return result
+
+
 def sanitize_title(title, fatigue_state):
     # Opener strip first (whole lead token+phrase), then soft term replace, then CTR rules.
-    text = enforce_opener_fatigue_on_title(title, fatigue_state)
+    text = enforce_opener_fatigue_on_title(replace_panic_terms(title), fatigue_state)
     text = _soft_replace_fatigued_terms(text, fatigue_state)
     text = enforce_packaging_title_rules(text)
     return text or str(title or "")

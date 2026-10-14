@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import logging
 import os
-from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import requests
@@ -30,6 +29,12 @@ FOREIGN_NAMES = {
     "外資",
     "Foreign Investors",
 }
+FOREIGN_DEALER_NAMES = {"Foreign_Dealer_Self", "外資自營商"}
+TRUST_NAMES = {"Investment_Trust", "InvestmentTrust", "投信"}
+DEALER_NAMES = {"Dealer_self", "Dealer_Self", "Dealer_Hedging", "Dealer", "自營商", "自營商(自行買賣)", "自營商(避險)"}
+
+# FinMind covers 上市 + 上櫃 in one dataset.
+MARKET_SCOPE = "TWSE_TPEx"
 
 
 def finmind_fallback_enabled() -> bool:
@@ -75,10 +80,7 @@ def _as_int(value) -> int | None:
         return None
 
 
-def _foreign_net_from_row(row: dict) -> int | None:
-    name = str(row.get("name") or "").strip()
-    if name and name not in FOREIGN_NAMES:
-        return None
+def _row_net(row: dict) -> int | None:
     buy = _as_int(row.get("buy"))
     sell = _as_int(row.get("sell"))
     if buy is not None and sell is not None:
@@ -86,42 +88,109 @@ def _foreign_net_from_row(row: dict) -> int | None:
     return _as_int(row.get("buy_sell"))
 
 
-def _stock_name_map(timeout: float) -> dict[str, str]:
-    payload = _get_json({"dataset": DATASET_INFO}, timeout=timeout)
-    if not payload:
-        return {}
-    out: dict[str, str] = {}
-    for row in payload.get("data") or []:
+def _foreign_net_from_row(row: dict) -> int | None:
+    name = str(row.get("name") or "").strip()
+    if name and name not in FOREIGN_NAMES:
+        return None
+    return _row_net(row)
+
+
+def _category(name: str) -> str | None:
+    name = str(name or "").strip()
+    if not name or name in FOREIGN_NAMES:
+        return "foreign_net"
+    if name in FOREIGN_DEALER_NAMES:
+        return "foreign_dealer_net"
+    if name in TRUST_NAMES:
+        return "trust_net"
+    if name in DEALER_NAMES:
+        return "dealer_net"
+    return None
+
+
+def aggregate_institutional_rows(rows: list[dict]) -> dict[str, dict]:
+    """
+    FinMind rows (one per stock × investor type) → per-stock nets.
+
+    ``foreign_net`` keeps the TWSE T86 meaning (外陸資, 不含外資自營商);
+    ``total_net`` is the sum of every investor type (三大法人合計), so 合計 means
+    the same thing on both paths.
+    """
+    out: dict[str, dict] = {}
+    for row in rows or []:
+        sid = str(row.get("stock_id") or "").strip()
+        if not sid:
+            continue
+        key = _category(row.get("name"))
+        net = _row_net(row)
+        if key is None or net is None:
+            continue
+        rec = out.setdefault(
+            sid,
+            {"foreign_net": None, "foreign_dealer_net": 0, "trust_net": 0, "dealer_net": 0},
+        )
+        if key == "foreign_net":
+            rec["foreign_net"] = (rec["foreign_net"] or 0) + net
+        else:
+            rec[key] += net
+    for rec in out.values():
+        rec["total_net"] = (rec["foreign_net"] or 0) + rec["foreign_dealer_net"] + rec["trust_net"] + rec["dealer_net"]
+    return {sid: rec for sid, rec in out.items() if rec["foreign_net"] is not None}
+
+
+# TaiwanStockInfo.type → the row's market (T86 rows say TWSE_listed).
+INFO_MARKETS = {"twse": "TWSE_listed", "tpex": "TPEx"}
+
+
+def parse_stock_info(rows) -> dict[str, dict]:
+    """TaiwanStockInfo rows → {stock_id: {"name", "market"}} (market None when unknown)."""
+    out: dict[str, dict] = {}
+    for row in rows or []:
         sid = str(row.get("stock_id") or "").strip()
         sname = str(row.get("stock_name") or "").strip()
-        if sid and sname:
-            out[sid] = sname
+        if not sid:
+            continue
+        rec = out.setdefault(sid, {"name": "", "market": None})
+        if sname and not rec["name"]:
+            rec["name"] = sname
+        market = INFO_MARKETS.get(str(row.get("type") or "").strip().lower())
+        if market and not rec["market"]:
+            rec["market"] = market
     return out
 
 
-def _attach_prices(stocks: list[dict], top_n: int) -> None:
-    ranked = sorted(stocks, key=lambda x: abs(x["foreign_net"]), reverse=True)
-    candidates = ranked[: max(top_n * 4, 20)]
+def _stock_info_map(timeout: float) -> dict[str, dict]:
+    payload = _get_json({"dataset": DATASET_INFO}, timeout=timeout)
+    if not payload:
+        return {}
+    return parse_stock_info(payload.get("data"))
 
-    def _price(stock: dict) -> None:
-        try:
-            import yfinance as yf
 
-            hist = yf.Ticker(f"{stock['id']}.TW").history(period="5d")
-            if hist.empty:
-                hist = yf.Ticker(f"{stock['id']}.TWO").history(period="5d")
-            if not hist.empty:
-                close_price = float(hist["Close"].iloc[-1])
-                stock["close_price"] = close_price
-                stock["est_amount"] = round(stock["foreign_net"] * close_price / 1e8, 2)
-                return
-        except Exception:
-            pass
-        stock["close_price"] = None
-        stock["est_amount"] = 0
+def _stock_name_map(timeout: float) -> dict[str, str]:
+    return {sid: rec["name"] for sid, rec in _stock_info_map(timeout).items() if rec.get("name")}
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        list(executor.map(_price, candidates))
+
+def _price_rows(stocks: list[dict], top_n: int, date: str) -> tuple[list[dict], dict]:
+    """Same-session pricing shared with the TWSE path (no stale prices, no est_amount=0)."""
+    from modules.institutional_ranking import price_rows_same_session, yf_same_day_close
+
+    tape_rows: list[dict] = []
+    try:
+        from modules.twse_tape import fetch_twse_tape
+
+        tape = fetch_twse_tape(date, quiet=True)
+        tape_rows = list((tape or {}).get("rows") or [])
+    except Exception:
+        logger.debug("FinMind pricing: TWSE tape unavailable", exc_info=True)
+    rows, meta = price_rows_same_session(
+        stocks,
+        date,
+        tape_rows=tape_rows,
+        lookup_one=lambda sid: yf_same_day_close(sid, date),
+        share_cap=max(top_n * 4, 40),
+    )
+    meta["market_scope"] = MARKET_SCOPE
+    return rows, meta
 
 
 def fetch_foreign_institutional_top(
@@ -161,51 +230,52 @@ def fetch_foreign_institutional_top(
     if not payload or not payload.get("data"):
         return None
 
-    nets: dict[str, int] = {}
-    for row in payload["data"]:
-        sid = str(row.get("stock_id") or "").strip()
-        if not sid:
-            continue
-        net = _foreign_net_from_row(row)
-        if net is None:
-            continue
-        nets[sid] = net
-
+    nets = aggregate_institutional_rows(payload["data"])
     if not nets:
         print("  [FinMind] 有回應但無法解析外資買賣超（需 Foreign_Investor 列）。")
         return None
 
-    name_map = _stock_name_map(timeout=min(timeout, 20.0))
+    from modules.institutional_ranking import find_trust_conflicts, rank_by_amount
+
+    info_map = _stock_info_map(timeout=min(timeout, 20.0))
     all_stocks = [
         {
             "id": sid,
-            "name": name_map.get(sid, sid),
-            "foreign_net": foreign_net,
-            "trust_net": 0,
-            "total_net": foreign_net,
-            "est_amount": 0,
+            "name": (info_map.get(sid) or {}).get("name") or sid,
+            **rec,
+            # 上櫃 names need a .TWO Yahoo symbol downstream (build_dynamic_universe).
+            "market": (info_map.get(sid) or {}).get("market"),
+            "est_amount": None,
             "close_price": None,
         }
-        for sid, foreign_net in nets.items()
+        for sid, rec in nets.items()
     ]
-    _attach_prices(all_stocks, top_n=top_n)
+    all_stocks, pricing = _price_rows(all_stocks, top_n=top_n, date=date)
+    top_buy, top_sell = rank_by_amount(all_stocks, top_n=top_n)
+    if not top_buy and not top_sell:
+        # No same-session price at all: an 億元 leaderboard cannot be built
+        # honestly (the old code wrote est_amount=0 and ranked by shares).
+        print(f"  [FinMind] {date} 無任何同日股價可估算金額，不使用此備援。")
+        return None
+    pricing["basis"] = "amount"
+    trust_conflicts = find_trust_conflicts(all_stocks)
 
-    if any(s.get("est_amount") for s in all_stocks):
-        top_buy = sorted(all_stocks, key=lambda x: x.get("est_amount") or 0, reverse=True)[:top_n]
-        top_sell = sorted(all_stocks, key=lambda x: x.get("est_amount") or 0)[:top_n]
-    else:
-        top_buy = sorted(all_stocks, key=lambda x: x["foreign_net"], reverse=True)[:top_n]
-        top_sell = sorted(all_stocks, key=lambda x: x["foreign_net"])[:top_n]
+    def _amt(row):
+        value = row.get("est_amount")
+        return f"{value:+.1f}億" if isinstance(value, (int, float)) else "未定價"
 
-    print(f"  [FinMind] ✅ 備援成功 date={date} stocks={len(all_stocks)}")
+    print(f"  [FinMind] ✅ 備援成功 date={date} stocks={len(all_stocks)}（上市＋上櫃，排序依據：{pricing['basis']}）")
     for s in top_buy[:3]:
-        print(f"     買 {s['id']} {s['name']}: {s['foreign_net']:+,} 股 ({s.get('est_amount', 0):+.1f}億)")
+        print(f"     買 {s['id']} {s['name']}: {s['foreign_net']:+,} 股 ({_amt(s)})")
     for s in top_sell[:3]:
-        print(f"     賣 {s['id']} {s['name']}: {s['foreign_net']:+,} 股 ({s.get('est_amount', 0):+.1f}億)")
+        print(f"     賣 {s['id']} {s['name']}: {s['foreign_net']:+,} 股 ({_amt(s)})")
 
     return {
         "top_buy": top_buy,
         "top_sell": top_sell,
+        "trust_conflicts": trust_conflicts,
         "data_date": date,
         "source": "finmind",
+        "market_scope": MARKET_SCOPE,
+        "pricing": pricing,
     }

@@ -1,14 +1,20 @@
+# Direct dependencies, pinned to the versions the local pipeline runs on
+# (/usr/local/bin/python3 3.14). Transitive pins live in constraints.txt:
+#   pip install -r requirements.txt -c constraints.txt
+# Upgrade deliberately (yfinance needs periodic bumps when Yahoo changes):
+#   1. pip install -U <pkg>   2. run tests   3. update both files.
+
 # Primary Gemini SDK (production modules use modules/gemini_client.py)
-google-genai
+google-genai==1.52.0
 
 # Legacy only: scripts/legacy/* still import this; safe to remove after those scripts are dropped
-google-generativeai
+google-generativeai==0.8.6
 
-tavily-python
-yfinance
-python-dotenv
-fastapi
-uvicorn
-requests
-openai
-tenacity
+tavily-python==0.7.19
+yfinance==1.1.0
+numpy==2.4.2
+python-dotenv==1.2.2
+fastapi==0.131.0
+uvicorn==0.41.0
+requests==2.33.0
+tenacity==9.1.4

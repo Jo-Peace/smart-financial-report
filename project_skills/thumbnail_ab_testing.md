@@ -82,8 +82,8 @@ Track the thumbnail concept type for future learning:
 
 ## Evaluation Rule
 
-- Views below 900: observation only.
-- CTR below 5% with sufficient impressions: consider replacing thumbnail.
+- Same-age views below 2× the channel median (see youtube_performance_patterns.md): observation only.
+- CTR below the channel's own average with sufficient impressions: consider replacing thumbnail.
 - High CTR but low retention: thumbnail/title attracted clicks but video opening may not match.
 - High views and high comments: consider a follow-up episode.
 - If Browse features are the main source, CTR and first 30 seconds retention are the primary thumbnail diagnostics.

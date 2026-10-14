@@ -6,17 +6,18 @@ Purpose: produce two clean title candidates for daily Taiwan stock videos and ke
 
 Generate only two title candidates:
 
-- A: control. Full sentence, current formula (`外資○○億狂砍／狂掃` + core stock + contradiction). Upload A first.
-- B: experiment. Same core stock and same verified number, but fragmented: short question, telegram, or incomplete clause. Do not start B with `外資○○億狂砍／狂掃`. Do not use 驗收 / 上集點名 / VERIFIED.
+- A: control. Full sentence: verified amount + core stock + contradiction in the first 20 characters (use 買／砍, never open with `外資○○億狂砍／狂掃`). Pick the structure family suggested by「標題結構輪替」. Upload A first.
+- B: experiment. Same core stock and same verified number, but a different structure family (contradiction clause, short question, telegram). Do not start B with `外資○○億狂砍／狂掃`. Do not use 驗收 / 上集點名 / VERIFIED.
 
 Do not generate C titles. Three-way testing creates too much noise for the current channel scale.
 
 ## Learning Threshold
 
-- Views below 900: observation only. Do not decide A/B winner.
-- Views 900 or above: valid sample for title and thumbnail learning.
-- 24-hour data is directional.
-- 48-hour data is the default evaluation point.
+- The threshold is relative: a valid "winner" needs views ≥ 2× the channel median at the same age
+  (computed in `data/knowledge_wiki/youtube_performance_patterns.md`). Below that: observation only.
+- Videos younger than 72 hours are still collecting views: never a low sample, never a ban source.
+- 24-hour data is directional; 48-hour same-age views are the default evaluation point (snapshots are
+  recorded automatically on every /1 refresh).
 
 ## Browse-First Packaging Rule
 
@@ -119,7 +120,8 @@ Priority:
 5. Quiet setup / confirmation conditions.
 6. Hidden institutional buying/selling logic.
 
-If there is a strong current-event hook, title A should use it. Daily stock data should support the current-event claim, not replace it.
+If there is a strong, verified current-event hook, put it in the second half of title A or the
+description; title A still opens with the core stock + verified number (one rule, no exceptions).
 
 Useful news leverage:
 
@@ -149,57 +151,42 @@ Why it works:
 - Shows the channel remembers and verifies prior calls.
 - Gives the viewer a reason to follow the series, not only one video.
 
-### Market Reversal With Hidden Buyer
+### Market Reversal With Named Buyer
 
 Use when the market headline and institutional behavior conflict.
 
-Pattern:
-
-```text
-台股狂飆卻暗藏殺機？台積電大漲外資竟狂砍XX億！主力反手鎖定「這檔」記憶體股｜AI帶你看股市
-```
+Structure (abstract — do not copy wording): market headline → contradiction with a verified
+institutional number → the specific stock the video answers. No 暗藏殺機 / 主力鎖定 wording.
 
 Why it works:
 
-- Begins with a broad market hook.
-- Adds contradiction.
+- Begins with the market surface (verified index move).
+- Adds the contradiction with a verified amount.
 - Uses a recognizable core stock or large number.
-- Offers a specific hidden answer.
+- Offers a specific answer instead of a hidden-buyer story.
 
-### Holiday Risk Warning
+### Holiday / Event Risk (verified event days only)
 
-Use when the video is published before/after a long weekend, market closure, election, geopolitical event, tariff shock, or major earnings/Fed event.
+Use only when the local editorial frame is 重大事件日 and the event radar has a
+fresh (freshness=new) event scoring 60 or more, or when the next session is
+right after a long market closure.
 
-Validated example:
-
-```text
-228連假後台股崩盤預警!?
-```
-
-Why it works:
-
-- Ties the market topic to a concrete calendar event.
-- Creates urgency before the next trading session.
-- Speaks to viewer anxiety about holding positions through uncertainty.
-- Works best when paired with specific risk evidence, not generic fear.
-
-### Geopolitical / US Market Crash Transmission
-
-Use when a war headline, US market selloff, VIX spike, ADR crash, or major global risk could transmit into the next Taiwan trading day.
-
-Validated example:
+Structure (abstract, no fixed sample to copy):
 
 ```text
-戰火引爆美股血洗！台積電 ADR 暴跌 9.5% 週一台股開盤面臨「斷頭」危機？資金全逃去哪了！
+事件 → 台股數字 → 觀察條件
+（事件名稱）＋（核心股已驗證外資金額或漲跌）＋（下一交易日要看的價位／條件）？｜AI帶你看股市
 ```
 
-Why it works:
+Rules:
 
-- Starts with a clear global trigger.
-- Shows direct transmission into Taiwan stocks.
-- Names a familiar asset, such as 台積電 ADR.
-- Adds an urgent next-session consequence.
-- Ends with a practical investor question.
+- The event and every number must come from the day's structured data, event
+  radar or report; no event, no event-led title.
+- Risk is stated as numbers and a condition to watch, never as panic words:
+  斷頭、逃命、全逃、血洗、崩盤 are banned (the generator rewrites them).
+- Older event-led samples are history only; the current high-sample formula
+  is 「金額 + 個股 + 矛盾」 (see youtube_performance_patterns).
+- The old weekend-special samples (2/28, 3/7) are a different format and are not a template.
 
 ## Language Rules
 
@@ -221,5 +208,5 @@ Why it works:
 4. After 48 hours, record evaluation metrics.
 5. Record whether traffic source is mainly Browse features, Suggested videos, or Search.
 6. If Browse features dominate, compare CTR and first 30 seconds retention before search performance.
-7. If views are below 900, keep the record but do not judge.
-8. If views are 900 or above, compare CTR, views, retention, and comments.
+7. If same-age views are below 2× the channel median, keep the record but do not judge.
+8. Above that, compare CTR, views, retention, and comments (Studio "Test & compare" when available).

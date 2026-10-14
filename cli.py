@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-Unified entry point for maintenance / YouTube / legacy tools.
+Unified entry point for maintenance / YouTube / special / legacy tools.
 
 Examples:
   python3 cli.py list
+  python3 cli.py special weekend
+  python3 cli.py special us-weekly
   python3 cli.py maintenance check-daily-workflow --date 2026-06-30
   python3 cli.py youtube regen-assets --date 2026-06-30 --visual-theme "FIFA 32強"
   python3 cli.py youtube check-youtube-package --date 2026-06-30
@@ -70,7 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser = subparsers.add_parser("list", help="列出所有工具")
     list_parser.add_argument(
         "--category",
-        choices=["maintenance", "youtube", "legacy"],
+        choices=list(tools_by_category()),
         help="只列出指定分類",
     )
 

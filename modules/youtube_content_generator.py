@@ -5,6 +5,7 @@ for Taiwan stock analysis YouTube videos.
 """
 
 import os
+import re
 import datetime
 from modules.gemini_client import default_model_name, generate_text
 from modules.packaging_fatigue import build_fatigue_state, guard_youtube_titles
@@ -74,7 +75,7 @@ def build_opening_hook(structured_data):
     if buy and sell:
         return f"今日主線矛盾：買超 {buy} vs 賣超 {sell}"
     if buy and index_action:
-        return f"今日主線矛盾：{index_action}，外資卻先鎖 {buy}"
+        return f"今日主線矛盾：{index_action}，外資卻先買 {buy}"
     if sell and index_action:
         return f"今日主線矛盾：{index_action}，外資先砍 {sell}"
     if index_action:
@@ -82,77 +83,375 @@ def build_opening_hook(structured_data):
     return "今日主線：盤後最大可驗證矛盾"
 
 
-def build_chapter_markers(structured_data, packaging_context=None):
-    """YouTube description chapter list; opening depends on validation_placement."""
+# Chapter plans follow the NotebookLM program order (notebooklm_generator
+# _program_order_block): (start share of the video, title).
+_CHAPTER_PLANS = {
+    "lead": [
+        (0.00, "昨日預測驗收（說到做到）"),
+        (0.20, "今日主軸與關鍵訊號"),
+        (0.35, "成交量排名完整解析"),
+        (0.55, "外資法人籌碼深挖"),
+        (0.75, "明日觀察標的 + 停損設定"),
+        (0.95, "操作建議"),
+    ],
+    "omit": [
+        (0.00, None),
+        (0.10, "今日主軸與關鍵訊號"),
+        (0.20, "成交量 / 籌碼深挖"),
+        (0.70, "明日觀察標的 + 失效條件"),
+        (0.95, "操作建議"),
+    ],
+    "brief": [
+        (0.00, None),
+        (0.10, "今日主軸與關鍵訊號"),
+        (0.20, "上集一句驗收（可信度）"),
+        (0.30, "成交量 / 籌碼深挖"),
+        (0.75, "明日觀察標的 + 失效條件"),
+        (0.95, "操作建議"),
+    ],
+}
+_MIN_CHAPTER_SEC = 10
+_TIMESTAMP_LINE = re.compile(r"^\s*(?:\d{1,2}:)?\d{1,2}:\d{2}\s+\S")
+# Viewer-facing (it is published with the description). The "no timestamps"
+# instruction lives only in the youtube_package.md checklist (step 4.5).
+_OUTLINE_HEADER = "📌 節目段落："
+# Older packages / Gemini copies still carry the internal-instruction header.
+_OUTLINE_HEADERS = frozenset({_OUTLINE_HEADER, "📌 節目段落（未提供影片長度，未加時間軸；上傳前可依實際長度補上）："})
+
+
+def parse_video_duration(value) -> int | None:
+    """「754」「12:34」「1:02:03」「12m34s」 → seconds; None when unknown."""
+    if value in (None, ""):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value) if value > 0 else None
+    text = str(value).strip().lower()
+    if not text:
+        return None
+    if text.isdigit():
+        return int(text) or None
+    if re.fullmatch(r"\d{1,2}(?::\d{1,2}){1,2}", text):
+        total = 0
+        for part in text.split(":"):
+            total = total * 60 + int(part)
+        return total or None
+    m = re.fullmatch(r"(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:(\d+)s)?", text)
+    if m and any(m.groups()):
+        h, mi, sec = (int(g or 0) for g in m.groups())
+        return h * 3600 + mi * 60 + sec or None
+    return None
+
+
+def resolve_video_duration(packaging_context=None, video_duration_sec=None) -> int | None:
+    for candidate in (
+        video_duration_sec,
+        (packaging_context or {}).get("video_duration_sec"),
+        os.getenv("YOUTUBE_VIDEO_DURATION"),
+    ):
+        seconds = parse_video_duration(candidate)
+        if seconds:
+            return seconds
+    return None
+
+
+def _format_timestamp(seconds: int) -> str:
+    seconds = max(0, int(seconds))
+    hours, rem = divmod(seconds, 3600)
+    minutes, sec = divmod(rem, 60)
+    if hours:
+        return f"{hours}:{minutes:02d}:{sec:02d}"
+    return f"{minutes:02d}:{sec:02d}"
+
+
+def build_chapter_markers(structured_data, packaging_context=None, video_duration_sec=None):
+    """
+    YouTube description chapters. Timestamps are derived from the real video
+    length (``video_duration_sec`` / packaging_context / env
+    ``YOUTUBE_VIDEO_DURATION``) and the program order shares; without a length
+    the chapters are an untimed outline instead of fixed, usually-wrong times.
+    """
     placement = _validation_placement(structured_data, packaging_context)
     hook = build_opening_hook(structured_data)
     # Keep chapter titles short for mobile description readability.
     hook_short = hook
     if len(hook_short) > 28:
         hook_short = hook_short[:25].rstrip() + "…"
-
-    if placement == "lead":
-        return [
-            "00:00 昨日預測驗收（說到做到）",
-            "01:30 今日主軸與關鍵訊號",
-            "04:00 成交量排名完整解析",
-            "07:00 外資法人籌碼深挖",
-            "10:00 明日觀察標的 + 停損設定",
-            "12:00 操作建議",
-        ]
-    if placement == "omit":
-        return [
-            f"00:00 {hook_short}",
-            "01:20 今日主軸與關鍵訊號",
-            "04:00 成交量 / 籌碼深挖",
-            "08:00 明日觀察標的 + 失效條件",
-            "11:00 操作建議",
-        ]
-    # brief (default): lead with contradiction; validation is a mid beat only
-    return [
-        f"00:00 {hook_short}",
-        "01:20 今日主軸與關鍵訊號",
-        "03:30 上集一句驗收（可信度）",
-        "04:30 成交量 / 籌碼深挖",
-        "08:00 明日觀察標的 + 失效條件",
-        "11:00 操作建議",
-    ]
+    plan = _CHAPTER_PLANS.get(placement) or _CHAPTER_PLANS["brief"]
+    titles = [(share, title or hook_short) for share, title in plan]
+    duration = resolve_video_duration(packaging_context, video_duration_sec)
+    if not duration:
+        return [_OUTLINE_HEADER] + [f"・{title}" for _share, title in titles]
+    markers = []
+    last = None
+    for share, title in titles:
+        start = int(round(duration * share))
+        if last is not None and (start - last < _MIN_CHAPTER_SEC or duration - start < _MIN_CHAPTER_SEC):
+            continue
+        markers.append(f"{_format_timestamp(start)} {title}")
+        last = start
+    if len(markers) < 3:
+        # YouTube needs >= 3 chapters of >= 10s; too short a video gets the outline.
+        return [_OUTLINE_HEADER] + [f"・{title}" for _share, title in titles]
+    return markers
 
 
-def _normalize_description_chapters(description, structured_data, packaging_context=None):
-    """Rewrite description TOC so brief/omit never opens with 驗收 ritual."""
+def _normalize_description_chapters(description, structured_data, packaging_context=None, video_duration_sec=None):
+    """
+    Replace whatever chapter block Gemini wrote with the local one, so the
+    timestamps always come from the real video length (or are omitted).
+    """
     text = (description or "").strip()
     if not text:
         return text
-    markers = build_chapter_markers(structured_data, packaging_context)
-    placement = _validation_placement(structured_data, packaging_context)
-
-    # Replace a leading 00:00 line if it still starts with validation ritual.
+    markers = build_chapter_markers(structured_data, packaging_context, video_duration_sec)
     lines = text.splitlines()
-    rewritten = []
-    replaced_zero = False
-    for line in lines:
+    out = []
+    inserted = False
+    index = 0
+    while index < len(lines):
+        line = lines[index]
         stripped = line.strip()
-        if (
-            not replaced_zero
-            and stripped.startswith("00:00")
-            and placement != "lead"
-            and any(token in stripped for token in ("昨日預測", "預測驗收", "上集驗收", "驗收（說到做到）"))
-        ):
-            rewritten.append(markers[0])
-            replaced_zero = True
+        is_block = _TIMESTAMP_LINE.match(stripped) or stripped in _OUTLINE_HEADERS
+        if is_block:
+            while index < len(lines):
+                cur = lines[index].strip()
+                if _TIMESTAMP_LINE.match(cur) or cur in _OUTLINE_HEADERS or (cur.startswith("・") and len(cur) <= 40):
+                    index += 1
+                    continue
+                break
+            if not inserted:
+                out.extend(markers)
+                inserted = True
             continue
-        rewritten.append(line)
-
-    text2 = "\n".join(rewritten)
-    # If Gemini omitted chapters entirely, append the local TOC before disclaimer.
-    if "00:00" not in text2:
+        out.append(line)
+        index += 1
+    text2 = "\n".join(out)
+    if not inserted:
         insert = "\n".join(markers)
         if "⚠️" in text2:
             text2 = text2.replace("⚠️", insert + "\n\n⚠️", 1)
         else:
             text2 = text2.rstrip() + "\n\n" + insert + "\n"
     return text2
+
+
+def build_horizon_packaging_rule(structured_data):
+    """
+    Time-window rule for the /2 packaging prompt, gated on the session ledger.
+
+    A preferred window (20D-led titles) is allowed only when
+    horizon_reliability.primary_leads_from_structured() is True, i.e. the 20D
+    excess-hit CI lower bound beats the 50% baseline and leads 1D/3D/5D.
+    Otherwise the prompt gets the neutral line and an explicit ban on
+    「20D 尺子」 / 「短線噪音」 framing. The analytics_summary and compounding
+    brief in the same prompt carry raw rates (a stale generated brief may
+    still hold the legacy 20D claim), so Gemini must not judge from them.
+    """
+    from modules.horizon_reliability import current_reliability_line, primary_leads_from_structured
+
+    line = current_reliability_line(structured_data)
+    common = (
+        "隔日／3日結果最多當節奏鉤，不要用「上一交易日點名今天就該噴」當唯一勝敗。"
+        "週五禁止標題寫「明天開盤」；週一禁止「昨天開盤」。"
+    )
+    if primary_leads_from_structured(structured_data):
+        return (
+            f"本機回測結論：{line}\n"
+            "此結論已通過統計門檻（20D 信賴區間下界高於基準且領先短線窗）：標題主角與中期追蹤可參考 20D 可講的故事；"
+            "口播若提及，只能照上句的數字與「目前樣本」語氣，不可說成保證。\n"
+            f"{common}"
+        )
+    return (
+        f"本機回測結論：{line}\n"
+        "未通過統計門檻：不可在標題、描述、置頂留言或口播稱任一時間窗（包括 20D）較準、是成敗標準，"
+        "也不可把隔日失準說成「只是短線雜訊」；不要依 Analytics 摘要或複利簡報裡的原始命中率自行判斷哪個窗較準。\n"
+        f"{common}"
+    )
+# ---------------------------------------------------------------------------
+# Official watch consistency (description / pinned comment vs prediction_targets)
+# ---------------------------------------------------------------------------
+
+_WATCH_SENTENCE = re.compile(r"[^。！？!?\n]*(?:主盯|正式追蹤|追蹤標的|觀察標的)[^。！？!?\n]*")
+
+
+def _official_watch(structured_data):
+    out = []
+    for target in _as_list((structured_data or {}).get("prediction_targets")):
+        if isinstance(target, dict):
+            ticker = str(target.get("id") or "").strip()
+            name = str(target.get("name") or "").strip()
+            if ticker or name:
+                out.append((ticker, name))
+    return out
+
+
+def _known_stock_names(structured_data):
+    from modules.broadcast_facts import normalize_name, parse_ticker_name
+
+    structured_data = structured_data or {}
+    names = {}
+
+    def _add(name, ticker):
+        name = normalize_name(name)
+        if len(name) < 2:
+            return
+        if not names.get(name):
+            names[name] = str(ticker or "")
+
+    for ticker, name in _official_watch(structured_data):
+        _add(name, ticker)
+    for ticker, row in ((structured_data.get("local_market_facts") or {}).get("stocks") or {}).items():
+        _add(row.get("name"), ticker)
+    for row in structured_data.get("focus_ranking") or []:
+        if isinstance(row, dict):
+            _add(row.get("name"), row.get("ticker"))
+    for key in ("safe_havens_bought", "heavyweights_dumped", "price_volume_divergence", "ai_data_picks"):
+        for raw in _as_list(structured_data.get(key)):
+            ticker, name = parse_ticker_name(str(raw))
+            _add(re.split(r"[\s(（：:]", name)[0] if name else "", ticker)
+    return names
+
+
+_WATCH_KEYWORDS = ("主盯", "正式追蹤")
+_CLAUSE_BREAK = re.compile(r"[，,；;]")
+# 「台積電只當對照」「僅供參考」: the stock before the marker is a comparison, not a watch.
+_CONTRAST_MARKER = re.compile(r"(?:只|僅|則|就)?(?:當|作為|做為|列為|供)?(?:對照|參考|比較|對比)")
+_CONTRAST_PAREN = re.compile(r"[（(][^（）()]*(?:對照|參考|比較|對比)[^（）()]*[)）]")
+_LIST_JOINER = re.compile(r"[、與和及而但]")
+_WATCH_TICKER = re.compile(r"(?<![\d.])(\d{4,6}[A-Z]?)(?![\d.]|\s*(?:元|點|%|％|億|萬|張|股|/))")
+
+
+def _watch_clauses(sentence):
+    """The clauses of a 主盯 sentence that name the watch set (comparison stocks cut off)."""
+    sentence = _CONTRAST_PAREN.sub("", sentence)
+    out = []
+    for clause in _CLAUSE_BREAK.split(sentence):
+        if not any(key in clause for key in _WATCH_KEYWORDS):
+            continue
+        key_pos = min(clause.find(key) for key in _WATCH_KEYWORDS if key in clause)
+        marker = _CONTRAST_MARKER.search(clause, key_pos)
+        if marker:
+            joiners = [m.start() for m in _LIST_JOINER.finditer(clause, key_pos, marker.start())]
+            clause = clause[: joiners[-1] if joiners else marker.start()]
+        out.append(clause)
+    return out
+
+
+def check_main_watch_consistency(texts, structured_data):
+    """
+    Warnings when the description / pinned comment name a 「主盯」 set that is
+    not exactly the official watch list (prediction_targets).
+
+    Only the 主盯 clause counts (it ends at ，；, and a stock marked 對照／參考
+    is dropped), and a bare number counts only when it is a known ticker, so
+    「失效價 8100」 or 「台積電只當對照」 never read as an extra watch.
+    """
+    official = _official_watch(structured_data)
+    official_keys = {ticker or name for ticker, name in official}
+    names = _known_stock_names(structured_data)
+    known_tickers = {ticker for ticker, _name in official if ticker} | {t for t in names.values() if t}
+    known_tickers |= set(((structured_data or {}).get("local_market_facts") or {}).get("stocks") or {})
+    warnings = []
+    mentioned = set()
+    saw_watch_sentence = False
+    for text in _as_list(texts):
+        for m in _WATCH_SENTENCE.finditer(str(text or "")):
+            sentence = m.group(0)
+            if not any(key in sentence for key in _WATCH_KEYWORDS):
+                continue
+            saw_watch_sentence = True
+            for clause in _watch_clauses(sentence):
+                for name in sorted(names, key=len, reverse=True):
+                    if name in clause:
+                        mentioned.add(names[name] or name)
+                        clause = clause.replace(name, "")
+                for ticker in _WATCH_TICKER.findall(clause):
+                    if ticker in known_tickers:
+                        mentioned.add(ticker)
+    if not saw_watch_sentence:
+        return warnings
+    label = {ticker or name: f"{ticker} {name}".strip() for ticker, name in official}
+    by_key = {(ticker or name): f"{ticker} {name}".strip() for name, ticker in names.items()}
+    extra = sorted(by_key.get(k, k) for k in mentioned if k not in official_keys)
+    missing = [k for k in official_keys if k not in mentioned]
+    if not official:
+        warnings.append("描述／置頂留言寫了「主盯」，但今日 prediction_targets 為空（沒有正式追蹤檔）")
+        return warnings
+    if extra:
+        warnings.append(f"描述／置頂留言主盯了非正式追蹤股：{'、'.join(extra)}（正式追蹤：{'、'.join(label.values())}）")
+    if missing:
+        warnings.append(f"描述／置頂留言主盯漏了正式追蹤股：{'、'.join(label[k] for k in missing)}")
+    return warnings
+
+
+MAJOR_EVENT_MIN_SCORE = 60
+
+
+def is_verified_major_event_day(structured_data, packaging_context=None):
+    """
+    True only when the local editorial frame is 重大事件日 *and* the event radar
+    holds a fresh (freshness=new) event scoring >= 60. Only then may the title
+    prompt carry the event-led structure.
+    """
+    structured_data = structured_data or {}
+    frame = structured_data.get("editorial_frame")
+    is_event = isinstance(frame, dict) and frame.get("frame") == "major_event_day"
+    if not is_event:
+        text = str((packaging_context or {}).get("editorial_frame") or "")
+        is_event = "major_event_day" in text or "今日主軸：重大事件日" in text
+    if not is_event:
+        return False
+    for event in _as_list(structured_data.get("supply_chain_event_radar")):
+        if not isinstance(event, dict):
+            continue
+        try:
+            score = int(float(event.get("impact_score") or 0))
+        except (TypeError, ValueError):
+            continue
+        if (event.get("freshness") or "new") == "new" and score >= MAJOR_EVENT_MIN_SCORE:
+            return True
+    return False
+
+
+def _generate_package_text(gemini_api_key, prompt, model_name):
+    """
+    youtube_package call with retry/backoff on 429 / 5xx / timeout (no fixed
+    pre-call sleep). The fallback model waits for the last attempt (or a
+    truncated answer) and a second MAX_TOKENS answer stops the retry. When the
+    retries run out the real error is raised, not tenacity's RetryError.
+    """
+    from modules.api_retry import get_api_retry_decorator
+    from modules.gemini_client import RetryPlan, unwrap_retry_error
+
+    attempts = 3
+    try:
+        attempts = max(1, int(os.getenv("YOUTUBE_PACKAGE_MAX_ATTEMPTS") or "3"))
+    except ValueError:
+        attempts = 3
+    plan = RetryPlan(attempts)
+
+    @get_api_retry_decorator(max_attempts=attempts, min_wait=5, max_wait=40)
+    def _call():
+        use_fallback = plan.start()
+        try:
+            return generate_text(
+                gemini_api_key,
+                prompt,
+                task_name="youtube_package",
+                model_name=model_name,
+                use_fallback=use_fallback,
+            ).strip()
+        except Exception as exc:
+            plan.failed(exc)
+            raise
+
+    try:
+        return _call()
+    except Exception as exc:
+        cause = unwrap_retry_error(exc)
+        if cause is exc:
+            raise
+        raise cause from None
 
 
 def generate_youtube_package(gemini_api_key, structured_data, report_content, date_str, packaging_context=None):
@@ -169,11 +468,33 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
     date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
     short_date = f"{date_obj.month}/{date_obj.day}"  # e.g. "4/23"
 
+    from modules.narrative_sanitize import (
+        sanitize_narrative_text,
+        sanitize_packaging_text,
+        sanitize_structured_data,
+        strip_number_readings,
+    )
+
+    # Read-side sanitize: older structured_data / reports predate the regex families.
+    structured_data = sanitize_structured_data(dict(structured_data or {}))
+    report_excerpt = sanitize_narrative_text(strip_number_readings(report_content or ""))[:1000]
+    official_watch = _official_watch(structured_data)
+    if official_watch:
+        official_watch_block = (
+            "、".join(f"{t} {n}".strip() for t, n in official_watch)
+            + "\n規則：描述或置頂留言若寫「主盯／正式追蹤」，只能點名上面這些，而且要全部點到；其他股票只能當對照。"
+        )
+    else:
+        official_watch_block = "今日沒有正式追蹤檔：描述與置頂留言不要寫「主盯」，只講觀察條件。"
+
     ai_picks = structured_data.get("ai_data_picks", [])
     index_action = structured_data.get("index_action", "")
     safe_havens = structured_data.get("safe_havens_bought", [])
     heavyweights_dumped = structured_data.get("heavyweights_dumped", [])
     price_divergence = structured_data.get("price_volume_divergence", [])
+    from modules.structured_facts import overnight_rule_text
+
+    overnight_rule = overnight_rule_text(structured_data)
     conservative = structured_data.get("conservative_strategy", "")
     aggressive = structured_data.get("aggressive_strategy", "")
     packaging_context = packaging_context or {}
@@ -188,8 +509,6 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
     editorial_frame = packaging_context.get("editorial_frame", "")
     event_radar = packaging_context.get("event_radar", "")
     title_fatigue_report = packaging_context.get("title_fatigue_report", "")
-    from modules.narrative_sanitize import sanitize_narrative_text
-
     local_market_memory = sanitize_narrative_text(packaging_context.get("local_market_memory", ""))
     stock_role_taxonomy = packaging_context.get("stock_role_taxonomy", "")
     audience_profile = packaging_context.get("audience_profile", "")
@@ -211,6 +530,18 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
     placement = _validation_placement(structured_data, packaging_context)
     opening_hook = build_opening_hook(structured_data)
     chapter_markers = "\n".join(build_chapter_markers(structured_data, packaging_context))
+    horizon_rule = build_horizon_packaging_rule(structured_data)
+    if is_verified_major_event_day(structured_data, packaging_context):
+        event_day_rule = (
+            "今日本機主軸是重大事件日，且事件雷達有新的高分事件：標題A可用抽象結構"
+            "「事件 → 台股數字 → 觀察條件」（事件名稱＋核心股已驗證金額或漲跌＋下一交易日要看的價位／條件）；"
+            "事件與數字都必須來自上方資料。"
+        )
+    else:
+        event_day_rule = (
+            "今日不是已驗證的重大事件日（本機主軸不是重大事件日，或事件雷達沒有新的高分事件）："
+            "標題A不要用時事／全球風險開場，維持「已驗證金額 + 核心股名 + 反直覺」。"
+        )
     if placement == "lead":
         opening_rule = (
             "今日 validation_placement=lead：章節 00:00 可用「昨日預測驗收」，"
@@ -236,8 +567,12 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 法人買超或強勢板塊：{', '.join(safe_havens) if safe_havens else '分散'}
 法人賣超或弱勢標的：{', '.join(heavyweights_dumped) if heavyweights_dumped else '無明顯'}
 量價背離現象：{', '.join(price_divergence) if price_divergence else '無明顯背離'}
+海外／匯率／夜盤（本機）：{overnight_rule}
 穩健策略：{conservative}
 波段策略：{aggressive}
+
+===下一交易日正式追蹤（prediction_targets；本機帳本）===
+{official_watch_block}
 
 ===本機正式驗收結果（可信度資料；是否當標題主鉤子看主軸分類 validation_placement）===
 {validation_summary if validation_summary else '（無本機驗收資料）'}
@@ -246,7 +581,7 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 ===近期頻道敘事與觀看數（用來避免重複、延續有效敘事）===
 {channel_story if channel_story else '（無頻道敘事紀錄）'}
 
-===近期 Analytics / YouTube 學習（900 views 以上才是有效樣本）===
+===近期 Analytics / YouTube 學習（有效樣本門檻 = 頻道中位數×2，見下方成效提煉；上架未滿 72 小時只作觀察）===
 {analytics_summary if analytics_summary else '（無 Analytics 摘要）'}
 
 ===YouTube 成效提煉規則（高權重；由 channel_story_log 自動整理）===
@@ -288,51 +623,38 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 {stock_role_taxonomy if stock_role_taxonomy else '（無個股角色分類規則）'}
 
 ===今日報告開場段落（用來抓取核心鉤子）===
-{report_content[:1000]}
+{report_excerpt}
 
 ===標題撰寫規則（最關鍵）===
 只生成兩個標題，方便累積乾淨的 A/B Test。A 與 B 必須同一核心股、同一筆已驗證金額或漲跌；測的是句法，不是換題材。
 - 標題A（對照組／先上架）：完整句。前 20 字必須是「已驗證金額 + 核心股名 + 反直覺」。用「買／砍」，不要用「狂掃／狂砍」開場。不要用【驗收】、AMD、升息、非農、四巫當開場。
-  範例：「聯發科買149億！友達量第一先噴｜{short_date} AI帶你看股市」
-  範例：「南亞科買159億！藥華藥卻被砍109億｜{short_date} AI帶你看股市」
-- 標題B（實驗組／48小時可換）：同一檔、同一個數字，但句子要碎。用殘句或短問句，不要把故事講完。禁止「外資○○億狂砍／狂掃」。禁止【驗收】、上集點名、VERIFIED、誰在收。
-  範例：「聯發科149億，友達先噴？｜{short_date} AI帶你看股市」
-  範例：「南亞科159億，藥華藥砍109億？｜{short_date} AI帶你看股市」
+  結構依「標題結構輪替」的今日建議 A（見近期標題疲勞檢查）；骨架示意：「{{股名}}買{{N}}億！{{反差}}｜{short_date} AI帶你看股市」，不要照抄舊標題。
+- 標題B（實驗組／48小時可換）：同一檔、同一個數字，但換「標題結構輪替」建議 B 的結構家族（例如矛盾句「{{股名}}漲{{N}}%卻…」或短問句），句子要碎，不要把故事講完。禁止「外資○○億狂砍／狂掃」。禁止【驗收】、上集點名、VERIFIED、誰在收。
 
 ===複利閉環（自動簡報，高權重）===
 若下方有「本週禁止／可複製」內容：標題A必須遵守禁止開場；優先模仿可複製樣本的金額+矛盾+問句。
 BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣本模板。
 
 ===時間窗可信度（本機回測；自然帶入，勿硬廣）===
-若簡報／數據顯示 20D 命中率明顯優於 1D/3D/5D：標題主角與中期追蹤以 20D 可講的故事為準；
-隔日／3日結果最多當節奏鉤，不要用「上一交易日點名今天就該噴」當唯一勝敗。週五禁止標題寫「明天開盤」；週一禁止「昨天開盤」。
-口播可自然一句：「我們比較看 20 個交易日這條尺子，短線噪音比較大。」
+{horizon_rule}
 
-===已驗證較有效的頻道標題公式（高權重參考）===
-學習門檻：觀看數低於 900 的影片只能視為觀察樣本，不可作為 A/B Test 勝負依據。只有 900 觀看以上的案例，才視為可強化的標題/封面公式。
+===頻道標題成效（動態計算；以上方「YouTube 成效提煉規則」與「標題結構輪替」為準）===
+學習門檻：未達頻道中位數×2（同齡比較；上架未滿 72 小時不算）的影片只能視為觀察樣本，不可作為 A/B Test 勝負依據。
+可複製的是「金額 + 個股 + 矛盾」的結構，不是開場詞，也不是任何一支舊片的原句。本段不提供寫死的「最高觀看樣本」。
 
-可複製的是「金額 + 個股 + 矛盾」，不是開場詞。下面舊樣本只當歷史觀察，禁止再抄「狂砍／驗收／崩盤預警」開場：
-「聯發科買149億！友達量第一先噴」
-「明天台積電除息7元！外資卻先砍101億」
-觀看數低於 900 的舊片不能當公式。
-
-目前最高觀看樣本使用了「地緣政治 / 美股血洗 / 台股風險傳導」結構：
-「戰火引爆美股血洗！台積電 ADR 暴跌 9.5% 週一台股開盤面臨斷頭危機？資金全逃去哪了！」
-
-請優先模仿這個邏輯，而不是照抄文字：
+判斷順序（依今日資料決定，不是模仿固定範例）：
 1. 先判斷今天是哪一種內容日：驗收日、重大事件日、異常日、續航日、主題日、整理日。
-2. 若有重大時事槓桿：戰爭、美股暴跌、台積電 ADR、輝達、VIX、Fed、匯率、關稅、長假、重大財報、台指期夜盤，標題A順序為：時事事件 → 台股會怎樣 → 核心標的/數字 → 散戶該怕什麼或看什麼。
+2. {event_day_rule}
 3. 若今日資料能呼應上集的預測，標題可使用「上集說過」結構；上一集若不是昨天，禁止用「昨天點名」。
 4. 只有在法人與成交量/股價有明確反直覺數字時，才使用「背離、警訊、誰在賣、誰接手」語氣。
-5. 只有連續 2-3 天有法人、量能、價格結構延續時，才使用「續航、接棒、主力還在」語氣。
+5. 只有連續 2-3 天有法人、量能、價格結構延續時，才使用「續航、接棒、外資續買 N 日」語氣（N 用本機連續買超天數）。
 6. 若沒有強訊號，不要硬做警報標題；改用「今天不是追強日」「這幾檔等確認」「訊號普通但觀察條件很清楚」。
 7. 若沒有時事槓桿，再給大盤表面現象：狂飆、重挫、翻紅、收黑；但不要每次都接「暗藏殺機」，除非數據真的支持。
 8. 放入最有辨識度的大型股或核心標的，例如台積電，並附上真實外資買賣超金額。
 9. 最後給觀眾一個想點進來的答案缺口：這檔、這兩檔、記憶體、AI伺服器、ETF 等具體題材。
 10. 不要只寫「資金輪動」。若要表達資金移動，請寫成具體行為：外資砍台積電、投信買超、三大法人反手買、成交量爆出異常。
 11. 連續劇標題要有明確驗收點：上集說了什麼、今天發生什麼、外資買賣多少、股價是否反著走。
-12. 若今天接近長假、休市、重大總經事件或連假後開盤，標題A可使用「節假日後風險預警」結構，但必須搭配具體籌碼、期貨、美股或權值股風險證據。
-13. 若美股、VIX、台積電 ADR、輝達、油金、地緣政治出現重大異常，標題A可使用「全球風險傳導到台股」結構：全球觸發事件 + 台灣核心資產跌幅 + 下一交易日風險 + 投資人該追問的問題。
+12. 若今天接近長假、休市或連假後開盤：可在標題後半點出時間點，但必須搭配具體籌碼、期貨或權值股數字與觀察條件；不要用「崩盤預警」。
 
 標題硬規則：
 1. 標題A 28-60 字（含符號）；標題B 18-40 字，允許殘句，不要為了湊字把故事寫完。
@@ -343,12 +665,13 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
 6. 可加 1-2 個 emoji，放最前面或最後面（末尾品牌標語前）
 7. 不要使用「資金輪動」；標題要講具體事件，例如三大法人買賣超、成交量、量價背離。
 8. 標題必須至少點名 1 檔具體股票；A 與 B 必須是同一檔核心股。
-9. 若使用「外資已買 / 偷偷買 / 掃貨」等語氣，必須在標題或描述中放入實際金額或正式資料依據。
+9. 只能寫可驗證的動作（「外資買超 N 億」「投信賣超 N 億」）並附實際金額；禁止「掃貨／鎖貨／吸籌／偷偷買」這類法人意圖推論（與日報規則一致）。
 10. 若核心股是權值大股但彈性有限，標題應區分「看方向」與「看彈性」，不要把權值核心包裝成最大飆股。
 11. 不要每天套同一種危機語氣；若日報主軸是整理日或觀察日，標題也必須承認訊號尚未確認。
 12. 若「近期包裝疲勞檢查」列出禁用詞或禁用封面題型，標題A與標題B都不得再使用那些詞，也不得只把字換成同義詞（例如榜外吸籌→沒進榜、被砍→提款、接棒→換車）。
 13. 標題A與標題B必須同一核心股、同一金額；差別只在句法。禁止 B 再寫「外資○○億狂砍／狂掃」。禁止 B 用【驗收】、上集點名、VERIFIED。
 14. 若連續多日都在講法人換手，B 改問缺口（還紅？沒進量榜？誰在撿？），不要再寫完整換手句。
+15. 禁用恐慌字眼：斷頭、逃命、全逃、血洗、崩盤（系統會改寫成中性詞）；風險要寫成數字與觀察條件。
 
 ===描述撰寫規則===
 第1行（≤55字）：今日主軸或關鍵訊號 + 核心數字 + 日期（包含「台股」）
@@ -360,10 +683,10 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
 - 0～8 秒：最大矛盾（股名 + 金額/漲跌 + 反差）；只能用今日真實數據
 - 8～20 秒：一句可被影片回答的問句
 - 20～40 秒：今日主線一句話（續航/事件/異常/整理…）
-- 禁止空泛恐嚇（「崩盤」「逃命」）若沒有對應數字
+- 不用恐慌字眼（斷頭、逃命、全逃、血洗、崩盤），有數字也一樣；風險寫成數字與觀察條件
 - 恐懼必須有出口：下一交易日看什麼、哪個價位失效（週五說下週一，不要說明天開盤）
 
-空一行，加章節標記（請完整照抄下列時間軸，不要自行改回「昨日預測驗收」開場，除非 placement=lead）：
+空一行，加章節區塊（請完整照抄下列內容，不要自行加時間或改回「昨日預測驗收」開場，除非 placement=lead；系統會依實際影片長度覆寫）：
 {chapter_markers}
 
 空一行，加免責聲明（繁體中文，一行）：
@@ -393,12 +716,7 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
 """
 
     try:
-        output = generate_text(
-            gemini_api_key,
-            prompt,
-            task_name="youtube_package",
-            model_name=model_name,
-        ).strip()
+        output = _generate_package_text(gemini_api_key, prompt, model_name)
 
         sections = {"TITLE_A": [], "TITLE_B": [], "DESCRIPTION": [], "PINNED_COMMENT": []}
         current = None
@@ -424,15 +742,24 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
             "description": "\n".join(sections["DESCRIPTION"]).strip(),
             "pinned_comment": "\n".join(sections["PINNED_COMMENT"]).strip(),
         }
-        result["titles"] = [t for t in result["titles"] if t]
-        channel_story = (packaging_context or {}).get("channel_story", "")
-        fatigue_state = build_fatigue_state(channel_story=channel_story)
-        local_candidates = generate_local_titles(
-            structured_data,
-            num_titles=4,
-            date_label=short_date,
-            channel_story=channel_story,
+        # Titles are published too: same narrative + panic rewrite as the description.
+        result["titles"] = [sanitize_packaging_text(t) for t in result["titles"] if t]
+        # The guard needs the raw 9-column log rows (title in cell 7); the prompt's
+        # channel_story is a compact 5-column projection that _parse_channel_story_titles
+        # cannot read, which would silently disable opener / fatigue enforcement.
+        channel_story = (packaging_context or {}).get("channel_story_rows") or (packaging_context or {}).get(
+            "channel_story", ""
         )
+        fatigue_state = build_fatigue_state(channel_story=channel_story)
+        local_candidates = [
+            sanitize_packaging_text(t)
+            for t in generate_local_titles(
+                structured_data,
+                num_titles=4,
+                date_label=short_date,
+                channel_story=channel_story,
+            )
+        ]
         if result["titles"]:
             result["titles"] = guard_youtube_titles(
                 result["titles"],
@@ -443,10 +770,20 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
             )
         if result.get("description"):
             result["description"] = _normalize_description_chapters(
-                result["description"],
+                sanitize_packaging_text(result["description"]),
                 structured_data,
                 packaging_context,
             )
+        if result.get("pinned_comment"):
+            result["pinned_comment"] = sanitize_packaging_text(result["pinned_comment"])
+        warnings = check_main_watch_consistency(
+            [result.get("description"), result.get("pinned_comment")],
+            structured_data,
+        )
+        if warnings:
+            result["consistency_warnings"] = warnings
+            for warning in warnings:
+                print(f"  ⚠️  [主盯一致性] {warning}")
         return result
 
     except Exception as e:
@@ -483,7 +820,9 @@ def build_fallback_youtube_package(structured_data, report_content, date_str, re
     """
     date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
     short_date = f"{date_obj.month}/{date_obj.day}"
-    structured_data = structured_data or {}
+    from modules.narrative_sanitize import sanitize_structured_data
+
+    structured_data = sanitize_structured_data(dict(structured_data or {}))
 
     index_action = _first_non_empty(structured_data.get("index_action"), default="台股盤後")
     targets = structured_data.get("prediction_targets") or []
@@ -515,13 +854,18 @@ def build_fallback_youtube_package(structured_data, report_content, date_str, re
     except Exception:
         channel_story = ""
 
+    from modules.narrative_sanitize import sanitize_packaging_text
+
     fatigue_state = build_fatigue_state(channel_story=channel_story)
-    local_candidates = generate_local_titles(
-        structured_data,
-        num_titles=4,
-        date_label=short_date,
-        channel_story=channel_story,
-    )
+    local_candidates = [
+        sanitize_packaging_text(t)
+        for t in generate_local_titles(
+            structured_data,
+            num_titles=4,
+            date_label=short_date,
+            channel_story=channel_story,
+        )
+    ]
     fallback_titles = guard_youtube_titles(
         local_candidates,
         fatigue_state=fatigue_state,
@@ -566,14 +910,169 @@ def build_fallback_youtube_package(structured_data, report_content, date_str, re
         "留言告訴博士和阿明你的觀察，我們會用後續數據一起驗收。"
     )
 
-    return {
-        "titles": [title_a, title_b],
-        "description": "\n".join(desc_lines),
-        "pinned_comment": pinned_comment,
+    package = {
+        "titles": [sanitize_packaging_text(title_a), sanitize_packaging_text(title_b)],
+        "description": sanitize_packaging_text("\n".join(desc_lines)),
+        "pinned_comment": sanitize_packaging_text(pinned_comment),
         "fallback": True,
         "fallback_reason": reason,
         "fallback_hook": hook,
     }
+    warnings = check_main_watch_consistency([package["description"], pinned_comment], structured_data)
+    if warnings:
+        package["consistency_warnings"] = warnings
+    return package
+
+
+def _local_quote(structured_data, ticker):
+    stocks = ((structured_data or {}).get("local_market_facts") or {}).get("stocks") or {}
+    return stocks.get(str(ticker or "").strip()) or {}
+
+
+def _fmt_price(value):
+    return f"{float(value):.2f}".rstrip("0").rstrip(".")
+
+
+def _is_short(direction):
+    """Short call (空 / 偏空 …): the one direction rule, prediction_validator.direction_sign."""
+    from modules.prediction_validator import direction_sign
+
+    return direction_sign(direction) < 0
+
+
+def _is_long(direction):
+    from modules.prediction_validator import direction_sign
+
+    return direction_sign(direction) > 0
+
+
+def past_trend_text(trend, windows=("5D", "10D")):
+    """
+    「；參考：過去 5 個交易日（from→to）已 +X.X%…（已發生的走勢，不是預測）」 from one
+    point-in-time ``recent_trends`` row (timeframe_builder.load_point_in_time_trends).
+
+    These are past moves ending today: never priced in 元 for a position
+    entered at today's close, never multiplied by the call's side, never
+    worded as a 驗證窗 result. Empty when no window has a number.
+    """
+    rows = ((trend or {}).get("trends") or {}) if isinstance(trend, dict) else {}
+    bits = []
+    for key in windows:
+        row = rows.get(key) or {}
+        pct = row.get("pct_change")
+        if not isinstance(pct, (int, float)):
+            continue
+        sessions = str(key).rstrip("Dd")
+        span = f"（{row['from_date']}→{row['to_date']}）" if row.get("from_date") and row.get("to_date") else ""
+        bits.append(f"過去 {sessions} 個交易日{span}已 {pct:+.1f}%")
+    if not bits:
+        return ""
+    return f"；參考：{'、'.join(bits)}（已發生的走勢，不是預測）"
+
+
+def build_target_scenarios(
+    target, structured_data=None, *, close=None, horizon="1~5日", heavyweight="", direction=None
+):
+    """
+    Three distinct, price-anchored scenarios for one prediction target.
+
+    多: bull = 收盤站上確認價（今日收盤或 MA20）且外資續買；base = 失效價與確認價之間；
+    bear = 收盤跌破失效價 → 假說失效、停止追蹤.
+    空 (the stop sits above the close): bear = 收盤跌破確認價（今日收盤或 MA20）且外資續賣
+    → 空方節奏成立；bull = 收盤站上失效價 → 假說失效. ``direction`` defaults to
+    ``target["direction"]``. Falls back to text-only scenarios (still distinct)
+    when prices are unknown.
+    """
+    target = target if isinstance(target, dict) else {}
+    structured_data = structured_data or {}
+    short = _is_short(target.get("direction") if direction is None else direction)
+    name = str(target.get("name") or target.get("id") or "今日主軸標的").strip()
+    ticker = str(target.get("id") or "").strip()
+    stop = target.get("stop_loss_price")
+    stop = float(stop) if isinstance(stop, (int, float)) and stop > 0 else None
+    local = _local_quote(structured_data, ticker)
+    ma20 = local.get("ma20") if isinstance(local.get("ma20"), (int, float)) else None
+    stop_desc = str(target.get("stop_loss_desc") or "").strip()
+    heavy_note = f"；同時看 {heavyweight} 賣壓是否擴大。" if heavyweight else "。"
+    out = {"alert": ""}
+    if close and stop and short:
+        stop_pct = (stop / close - 1) * 100
+        confirm = ma20 if ma20 and ma20 < close else close
+        confirm_note = f"（{(confirm / close - 1) * 100:+.1f}%）" if confirm != close else ""
+        confirm_label = (
+            f"跌破 MA20 {_fmt_price(confirm)}{confirm_note}" if confirm != close else f"收盤跌破今日收盤 {_fmt_price(close)}"
+        )
+        if stop <= close:
+            out["alert"] = (
+                f"今日收盤 {_fmt_price(close)} 已高於失效價 {_fmt_price(stop)}（高 {abs((close / stop - 1) * 100):.1f}%），"
+                "失效條件已成立；只當觀察，不當下一交易日正式追蹤"
+            )
+            out["base"] = f"{name} 收盤仍高於 {_fmt_price(stop)}：空方假說維持失效，只觀察是否轉弱，不追空。"
+            out["bull"] = f"{name} 續強、外資轉買：確認失效，停止追蹤並記錄失準原因。"
+            out["bear"] = f"{name} {horizon} 內收盤重新跌回 {_fmt_price(stop)} 之下且外資續賣：假說才恢復，重新列入追蹤。"
+            return out
+        lower = f"MA20 {_fmt_price(confirm)}{confirm_note}" if confirm != close else f"今日收盤 {_fmt_price(close)}"
+        out["base"] = (
+            f"{name} 收盤落在{lower}與失效價 {_fmt_price(stop)}（{stop_pct:+.1f}%）之間："
+            f"未破也未轉弱，{horizon} 內看量能與外資賣超是否延續。"
+        )
+        out["bull"] = (
+            f"{name} 收盤站上失效價 {_fmt_price(stop)}（距今收盤 {stop_pct:+.1f}%）：空方假說失效，停止追蹤。"
+        )
+        out["bear"] = f"{name} {confirm_label}且外資續賣：空方節奏成立，改看約 20 交易日趨勢是否延續" + heavy_note
+        return out
+    if close and stop:
+        stop_pct = (stop / close - 1) * 100
+        confirm = ma20 if ma20 and ma20 > close else close
+        confirm_label = f"站回 MA20 {_fmt_price(confirm)}" if confirm != close else f"收盤站上今日收盤 {_fmt_price(close)}"
+        confirm_pct = (confirm / close - 1) * 100
+        if stop >= close:
+            out["alert"] = (
+                f"今日收盤 {_fmt_price(close)} 已低於失效價 {_fmt_price(stop)}（低 {abs((close / stop - 1) * 100):.1f}%），"
+                "失效條件已成立；只當觀察，不當下一交易日正式追蹤"
+            )
+            out["base"] = f"{name} 收盤仍低於 {_fmt_price(stop)}：假說維持失效，只觀察是否止跌，不加碼追蹤。"
+            out["bull"] = f"{name} {horizon} 內收盤重新站回 {_fmt_price(stop)} 之上且外資續買：假說才恢復，重新列入追蹤。"
+            out["bear"] = f"{name} 續跌、外資轉賣：確認失效，停止追蹤並記錄失準原因。"
+            return out
+        confirm_note = f"（{confirm_pct:+.1f}%）" if confirm != close else ""
+        upper = f"MA20 {_fmt_price(confirm)}{confirm_note}" if confirm != close else f"今日收盤 {_fmt_price(close)}"
+        out["base"] = (
+            f"{name} 收盤落在失效價 {_fmt_price(stop)}（{stop_pct:+.1f}%）與{upper}之間："
+            f"未破也未轉強，{horizon} 內看量能與外資是否延續。"
+        )
+        out["bull"] = f"{name} {confirm_label}{confirm_note}且外資續買：短線節奏成立，改看約 20 交易日趨勢是否延續。"
+        out["bear"] = (
+            f"{name} 收盤跌破失效價 {_fmt_price(stop)}（距今收盤 {stop_pct:+.1f}%）：假說失效，停止追蹤" + heavy_note
+        )
+        return out
+    invalid = stop_desc or (f"{'收盤站上' if short else '收盤跌破'} {_fmt_price(stop)}" if stop else "失效條件")
+    out["base"] = f"{name} 未觸發「{invalid}」也未放量轉{'弱' if short else '強'}：維持觀察，{horizon} 內看量能與外資是否延續。"
+    if short:
+        out["bull"] = f"{name} 觸發「{invalid}」：空方假說失效，停止追蹤。"
+        out["bear"] = f"{name} 放量轉弱且外資續賣：空方節奏成立，改看約 20 交易日趨勢是否延續。"
+    else:
+        out["bull"] = f"{name} 放量轉強且外資續買：短線節奏成立，改看約 20 交易日趨勢是否延續。"
+        out["bear"] = f"{name} 觸發「{invalid}」：假說失效，停止追蹤。"
+    return out
+
+
+def sand_table_scenarios_are_distinct(text):
+    """False when 基準／樂觀 only differ by wording such as 先看／能否 (manual edits included)."""
+    rows = {}
+    for key in ("基準情境", "樂觀情境", "悲觀情境"):
+        m = re.search(rf"{key}[：:]\s*(.+)", str(text or ""))
+        if m:
+            rows[key] = m.group(1)
+
+    def _core(line):
+        line = re.sub(r"先看|能否|是否|有沒有|守住|站穩|[，,。；;：:\s]", "", line or "")
+        return line
+
+    if len(rows) < 3:
+        return True
+    cores = [_core(rows[k]) for k in ("基準情境", "樂觀情境", "悲觀情境")]
+    return len(set(cores)) == 3
 
 
 def _build_sand_table_section(structured_data):
@@ -582,16 +1081,22 @@ def _build_sand_table_section(structured_data):
     first_target = targets[0] if targets and isinstance(targets[0], dict) else {}
     safe_havens = _as_list(structured_data.get("safe_havens_bought"))
     heavyweights = _as_list(structured_data.get("heavyweights_dumped"))
-    recent_trends = structured_data.get("recent_trends") or {}
+    recent_trends = structured_data.get("recent_trends") or (
+        (structured_data.get("timeframe_history") or {}).get("recent_trends") or {}
+    )
     short_window = structured_data.get("short_term_validation_window") or "1D / 3D / 5D"
     long_window = structured_data.get("long_term_validation_window") or "20D"
     horizon = structured_data.get("short_term_horizon") or "1~5日"
     long_horizon = structured_data.get("long_term_horizon") or "2~6週 / 1~3個月"
 
     def _latest_price_for(ticker, fallback=None):
+        local = _local_quote(structured_data, ticker)
+        if local.get("close"):
+            return float(local["close"])
         trend = recent_trends.get(str(ticker)) or {}
         latest_price = trend.get("latest_price")
-        if isinstance(latest_price, (int, float)):
+        same_day = not trend.get("latest_date") or str(trend.get("latest_date")) == str(structured_data.get("date") or "")
+        if isinstance(latest_price, (int, float)) and same_day:
             return float(latest_price)
         if isinstance(fallback, (int, float)):
             return float(fallback)
@@ -607,19 +1112,23 @@ def _build_sand_table_section(structured_data):
         stop_price = target.get("stop_loss_price")
         if not current_price or not isinstance(stop_price, (int, float)):
             return None
+        # A non-directional call (觀察 / 多空交錯) is not a position, and a long
+        # idea whose stop is already above the close is not a position plan.
+        if not _is_long(direction) and not _is_short(direction):
+            return None
+        if _is_long(direction) and float(stop_price) >= current_price:
+            return None
+        if _is_short(direction) and float(stop_price) <= current_price:
+            return None
+        # A short position gains when the price falls; its stop sits above the close.
+        side = -1 if _is_short(direction) else 1
         shares = 1_000_000 / current_price
-        stop_value = shares * float(stop_price)
-        stop_pnl = stop_value - 1_000_000
-        stop_pct = (float(stop_price) / current_price - 1) * 100
-        trend = recent_trends.get(str(ticker)) or {}
-        trend_5d = ((trend.get("trends") or {}).get("5D") or {}).get("pct_change")
-        trend_10d = ((trend.get("trends") or {}).get("10D") or {}).get("pct_change")
-        trend_bits = []
-        if isinstance(trend_5d, (int, float)):
-            trend_bits.append(f"若按 5D 驗證窗，約 {1_000_000 * trend_5d / 100:+,.0f} 元")
-        if isinstance(trend_10d, (int, float)):
-            trend_bits.append(f"10D 約 {1_000_000 * trend_10d / 100:+,.0f} 元")
-        trend_text = f"；{'；'.join(trend_bits)}" if trend_bits else ""
+        stop_pct = side * (float(stop_price) / current_price - 1) * 100
+        stop_pnl = 1_000_000 * stop_pct / 100
+        stop_value = 1_000_000 + stop_pnl
+        # Point-in-time recent_trends are moves that already happened (ending
+        # today), never this position's validation-window outcome.
+        trend_text = past_trend_text(recent_trends.get(str(ticker)))
         return {
             "name": name,
             "ticker": ticker,
@@ -637,11 +1146,10 @@ def _build_sand_table_section(structured_data):
     target_dir = first_target.get("direction") or ""
     trigger = first_target.get("trigger") or "以今天的法人買賣超、量價結構與均線位置作為觸發"
     invalidation = first_target.get("stop_loss_desc") or (
-        f"收盤跌破 {first_target.get('stop_loss_price')}" if first_target.get("stop_loss_price") else "若明日無法延續就視為失效"
+        f"{'收盤站上' if _is_short(target_dir) else '收盤跌破'} {first_target.get('stop_loss_price')}"
+        if first_target.get("stop_loss_price")
+        else "若明日無法延續就視為失效"
     )
-
-    safe_haven_line = safe_havens[0] if safe_havens else "金融或防禦族群"
-    heavyweight_line = heavyweights[0] if heavyweights else "今日主要權值"
 
     if not target_name and safe_havens:
         target_name = _stock_label(safe_havens[0])
@@ -657,21 +1165,32 @@ def _build_sand_table_section(structured_data):
     if sim_rows:
         sim_lines.append("- 100 萬模擬倉位：")
         for sim in sim_rows:
+            short = _is_short(sim["direction"])
             sim_lines.append(
-                f"  - {sim['ticker']} {sim['name']}：若 100 萬在 {sim['current_price']:.1f} 元進場，約可買 {sim['shares']:.1f} 股；"
-                f"若以停損價 {sim['stop_price']:.1f} 元出場，帳面約剩 {sim['stop_value']:,.0f} 元，"
+                f"  - {sim['ticker']} {sim['name']}：若 100 萬在 {sim['current_price']:.1f} 元"
+                f"{'放空，約' if short else '進場，約可買'} {sim['shares']:.1f} 股；"
+                f"若以停損價 {sim['stop_price']:.1f} 元{'回補' if short else '出場'}，帳面約剩 {sim['stop_value']:,.0f} 元，"
                 f"損益約 {sim['stop_pnl']:+,.0f} 元（{sim['stop_pct']:+.2f}%）{sim['trend_text']}"
             )
+
+    scenario = build_target_scenarios(
+        first_target or {"name": target_name},
+        structured_data,
+        close=_latest_price_for(first_target.get("id"), first_target.get("price")) if first_target else None,
+        horizon=horizon,
+        heavyweight=heavyweights[0] if heavyweights else "",
+    )
 
     lines = [
         "## 🎯 沙盤推演（預測部分）",
         "",
-        "以下內容不是單純看漲跌，而是把今天的盤面拆成可驗證的三種情境。",
+        "以下內容不是單純看漲跌，而是把今天的盤面拆成可驗證的三種情境（價位來自本機收盤與失效價）。",
         "",
         f"- 今日主觀察標的：{target_name}{f'（{target_dir}）' if target_dir else ''}",
-        f"- 基準情境：{target_name} 依照今天的法人與量價訊號，先走 {horizon} 內的驗證路徑。",
-        f"- 樂觀情境：{safe_haven_line} 延續承接力，資金若從弱勢權值轉向防禦/金融，盤面可先穩住。",
-        f"- 悲觀情境：{heavyweight_line} 若持續被提款，且今日強弱對比沒有修復，修正會延長。",
+        *([f"- ⚠️ {scenario['alert']}"] if scenario.get("alert") else []),
+        f"- 基準情境：{scenario['base']}",
+        f"- 樂觀情境：{scenario['bull']}",
+        f"- 悲觀情境：{scenario['bear']}",
         f"- 觸發條件：{trigger}",
         f"- 失效條件：{invalidation}",
         f"- 驗收窗口：短線 {short_window}；中期 {long_window}",
@@ -696,6 +1215,17 @@ def save_youtube_package(result, reports_dir, date_str, structured_data=None):
         label = labels[i] if i < len(labels) else str(i + 1)
         lines.append(f"**標題 {label}：**\n```\n{title}\n```\n")
 
+    warnings = list(result.get("consistency_warnings") or [])
+    if structured_data is not None and not warnings:
+        warnings = check_main_watch_consistency(
+            [result.get("description"), result.get("pinned_comment")], structured_data
+        )
+    if warnings:
+        lines.append("> ⚠️ 主盯一致性檢查（上傳前修正描述／置頂留言）：")
+        for warning in warnings:
+            lines.append(f"> - {warning}")
+        lines.append("")
+
     lines.append("---\n\n")
     lines.append(_build_sand_table_section(structured_data))
 
@@ -712,8 +1242,12 @@ def save_youtube_package(result, reports_dir, date_str, structured_data=None):
     lines.append("2. 在 Canva 打開縮圖背景，加上今日標題文字")
     lines.append("3. 上傳影片，貼上描述和縮圖")
     lines.append("4. 發布後立即貼置頂留言")
-    lines.append("5. 觀看數低於 900 不判斷 A/B 勝負，只記錄觀察")
-    lines.append("6. 48小時後若 views >= 900 且 CTR < 5%，再測 B 組\n")
+    if any(header in (result.get("description") or "") for header in _OUTLINE_HEADERS):
+        lines.append(
+            "4.5 章節沒有時間軸（未提供影片長度）：要 YouTube 章節請設 YOUTUBE_VIDEO_DURATION=秒數或 mm:ss 後重產，或手動補時間"
+        )
+    lines.append("5. 觀看數未達頻道中位數×2（見 youtube_performance_patterns.md）不判斷 A/B 勝負，只記錄觀察")
+    lines.append("6. 48小時觀看低於頻道中位數且 Studio CTR 低於頻道平均時，再測 B 組（可行時改用 Studio「測試與比較」）\n")
 
     with open(filepath, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
