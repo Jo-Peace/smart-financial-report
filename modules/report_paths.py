@@ -264,7 +264,9 @@ def iter_thumbnail_prompt_paths(reports_dir: str, limit: int = 20) -> list[str]:
     files = []
     for pattern in patterns:
         files.extend(glob.glob(pattern))
-    files = sorted(set(files), key=os.path.getmtime, reverse=True)
+    # Ties (same mtime, e.g. a fresh checkout) break by path, so the "recent" set never
+    # depends on set() ordering and a /2 rerun sees the same cover fatigue.
+    files = sorted(set(files), key=lambda path: (os.path.getmtime(path), path), reverse=True)
     return files[:limit]
 
 

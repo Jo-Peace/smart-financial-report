@@ -354,7 +354,9 @@ def _packaging_formula_lines(window: Optional[Dict[str, Any]] = None) -> List[st
         )
     threshold = baseline.get("win_threshold")
     if threshold:
-        lines.append(f"- 未達頻道中位數 ×2（約 {threshold:.0f} views）不判斷 A/B 勝負，只記錄觀察。")
+        lines.append(
+            f"- 未達頻道中位數 ×2（約 {threshold:.0f} views）不判斷標題好壞，只記錄觀察；封面 A/B 以 Studio「測試與比較」結果為準。"
+        )
     lines.append("- 避免只說「資金輪動」；若要表達資金移動，改寫成可驗證的主力買賣動作。")
     return lines
 
@@ -364,12 +366,12 @@ def _ab_checklist_lines(window: Optional[Dict[str, Any]] = None) -> List[str]:
     median = ((window or {}).get("baseline") or {}).get("median")
     median_text = f"頻道中位數（約 {median:.0f} views）" if median else "頻道中位數"
     return [
-        "- [ ] 先用 A 組上架（可行時改用 YouTube Studio「測試與比較」同時測 A/B，避免循序換版混入自然衰退）",
+        "- [ ] 用標題 A 上架；封面 A/B 在 YouTube Studio「測試與比較」同時上傳（只差本週 A/B 變數）",
         "- [ ] 確認封面中文字清楚可讀",
         "- [ ] NotebookLM Video Overview 第一張投影片有封面頁",
         "- [ ] 發布後立即貼置頂留言",
-        "- [ ] 48 小時後到 Studio 記錄 CTR（`record_youtube_metrics.py --ctr`）；觀看數快照由 /1 自動記錄",
-        f"- [ ] 48 小時觀看低於 {median_text} 且 CTR 低於頻道平均時，才測 B 組封面或 B 組標題",
+        "- [ ] YouTube 回報封面勝出後執行 `python3 cli.py youtube record-ab-result`；觀看數快照由 /1 自動記錄",
+        f"- [ ] 觀看低於 {median_text} 只記錄觀察；標題 B 留給之後單獨的標題測試",
     ]
 
 
@@ -503,7 +505,7 @@ def build_video_production_plan(structured_data, report_content, youtube_package
         "| 平均觀看時長 |  |  |",
         "| 前 30 秒留存 |  |  |",
         "| 留言數 |  |  |",
-        "| 是否更換 B 組 |  |  |",
+        "| 封面 A/B 結果（Studio 測試與比較 → record-ab-result） |  |  |",
         "",
     ]
     return "\n".join(lines)
@@ -621,7 +623,7 @@ def build_youtube_package_addendum(structured_data, report_content, youtube_pack
         "| 平均觀看時長 |  |  |",
         "| 前 30 秒留存 |  |  |",
         "| 留言數 |  |  |",
-        "| 是否更換 B 組 |  |  |",
+        "| 封面 A/B 結果（Studio 測試與比較 → record-ab-result） |  |  |",
         "",
     ]
     return "\n".join(lines)

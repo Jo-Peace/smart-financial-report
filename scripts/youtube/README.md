@@ -7,6 +7,7 @@
 - `preflight_views.py` — **`/2` 前置強制**：回顧近期觀看數
 - `check_youtube_package.py`
 - `record_youtube_metrics.py`
+- `record_ab_result.py` — Studio「測試與比較」封面 A/B 勝出（`cli.py youtube record-ab-result`）
 - `regen_assets.py`
 - `review_reminder.py`
 - `update_youtube_from_channel.py`

@@ -286,6 +286,11 @@ def build_local_market_facts(
             row[f"{side}_rank"] = index
             if inst_is_twse:
                 row["listing"] = "twse"
+            # Session-based 外資連續買超 (modules.foreign_streak, stamped in /1).
+            streak = _int(item.get("foreign_buy_streak"))
+            if streak is not None:
+                row["foreign_streak_days"] = streak
+                row["foreign_streak_complete"] = bool(item.get("foreign_buy_streak_complete", True))
             close = _float(item.get("close_price"))
             if close and "est_price" not in row:
                 row["est_price"] = close
@@ -634,6 +639,25 @@ def _hero_seed_rows(structured_data: dict, limit: int = 3) -> list[dict[str, Any
 # ---------------------------------------------------------------------------
 
 
+def _streak_for(structured_data, local_facts, local, stock_db, ticker):
+    """
+    (days | None, complete) for 外資連續買超. The session-based count stamped in
+    local_market_facts wins; a stock_db count is used only when it was written
+    for this data date (an older count would be a stale streak). Unknown → None.
+    """
+    if local and local.get("foreign_streak_days") is not None:
+        days = _int(local.get("foreign_streak_days"))
+        return days, bool(local.get("foreign_streak_complete", True))
+    from modules.foreign_streak import streak_is_fresh
+
+    tracking = _tracking(stock_db, ticker)
+    as_of = (local_facts or {}).get("data_date") or (structured_data or {}).get("date")
+    if tracking and streak_is_fresh(tracking, as_of):
+        days = _int(tracking.get("consecutive_foreign_buy_days"))
+        return days, bool(tracking.get("foreign_buy_streak_complete", False))
+    return None, True
+
+
 def build_hero_cards(
     structured_data: dict,
     stock_db: dict | None = None,
@@ -720,16 +744,12 @@ def build_hero_cards(
         ma20 = _float((local or {}).get("ma20"))
         vol_ratio = _float((local or {}).get("vol_ratio"))
 
-        tracking = _tracking(stock_db, ticker)
-        streak = tracking.get("consecutive_foreign_buy_days")
-        try:
-            streak_n = int(streak) if streak not in (None, "") else None
-        except (TypeError, ValueError):
-            streak_n = None
+        streak_n, streak_complete = _streak_for(structured_data, local_facts, local, stock_db, ticker)
         sold_today = in_sell_list or (amount is not None and amount < 0)
         # A sell day cannot keep a leftover buy streak from an older prediction row.
         if sold_today:
             streak_n = 0
+            streak_complete = True
         vol_confirm = row.get("volume_confirmation")
         try:
             vol_confirm_n = int(vol_confirm) if vol_confirm not in (None, "") else None
@@ -780,6 +800,7 @@ def build_hero_cards(
             "sold_today": sold_today,
             "volume_confirmation": vol_confirm_n,
             "foreign_streak_days": streak_n,
+            "foreign_streak_complete": streak_complete,
             "admission": admission,
             "admission_reason": reason,
             "caution": caution,

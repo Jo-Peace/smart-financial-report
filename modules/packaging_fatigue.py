@@ -8,7 +8,7 @@ import os
 import re
 from collections import Counter
 
-from modules.report_paths import iter_thumbnail_prompt_paths
+from modules.report_paths import extract_date_from_thumbnail_path, iter_thumbnail_prompt_paths
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -227,9 +227,15 @@ def analyze_title_opener_streaks(titles: list[str], lookback: int = 8) -> dict:
     }
 
 
-def _parse_recent_thumbnail_prompts(youtube_assets_dir=YOUTUBE_ASSETS_DIR, limit=14):
+def _parse_recent_thumbnail_prompts(youtube_assets_dir=YOUTUBE_ASSETS_DIR, limit=14, exclude_date=None):
+    """
+    Recent cover prompts (newest first). ``exclude_date`` drops that day's own
+    prompts, so a same-day /2 rerun sees the same fatigue as the first run.
+    """
     reports_dir = youtube_assets_dir if youtube_assets_dir and os.path.basename(youtube_assets_dir) == "reports" else REPORTS_DIR
-    files = iter_thumbnail_prompt_paths(reports_dir, limit=limit)
+    files = iter_thumbnail_prompt_paths(reports_dir, limit=limit + 4 if exclude_date else limit)
+    if exclude_date:
+        files = [path for path in files if extract_date_from_thumbnail_path(path) != str(exclude_date)][:limit]
     rows = []
     for path in files:
         try:
@@ -251,6 +257,7 @@ def _parse_recent_thumbnail_prompts(youtube_assets_dir=YOUTUBE_ASSETS_DIR, limit
             rows.append(
                 {
                     "path": path,
+                    "date": extract_date_from_thumbnail_path(path) or path,
                     "scenario": scenario,
                     "primary": primary,
                     "secondary": secondary,
@@ -266,11 +273,13 @@ def _family_for_scenario(scenario_name):
     return "other"
 
 
-def build_fatigue_state(channel_story="", youtube_assets_dir=YOUTUBE_ASSETS_DIR, title_limit=7, prompt_limit=10):
+def build_fatigue_state(
+    channel_story="", youtube_assets_dir=YOUTUBE_ASSETS_DIR, title_limit=7, prompt_limit=10, exclude_date=None
+):
     youtube_assets_dir = youtube_assets_dir or YOUTUBE_ASSETS_DIR
     # Need a slightly longer title window for opener streaks.
     recent_titles = _parse_channel_story_titles(channel_story, limit=max(title_limit, 8))
-    recent_prompts = _parse_recent_thumbnail_prompts(youtube_assets_dir, limit=prompt_limit)
+    recent_prompts = _parse_recent_thumbnail_prompts(youtube_assets_dir, limit=prompt_limit, exclude_date=exclude_date)
     opener_streak = analyze_title_opener_streaks(recent_titles, lookback=8)
 
     title_counts = Counter()
@@ -282,15 +291,23 @@ def build_fatigue_state(channel_story="", youtube_assets_dir=YOUTUBE_ASSETS_DIR,
         if "AMD" in title:
             title_counts["AMD"] += 1
 
-    scenario_counts = Counter(row["scenario"] for row in recent_prompts)
-    overlay_counts = Counter()
+    # One count per day: single-variable A/B covers share their scenario, so a day's
+    # cover pair must not look like two days of the same scenario.
+    def _day(row):
+        return row.get("date") or row.get("path")
+
+    scenario_counts = Counter(scenario for _d, scenario in {(_day(row), row["scenario"]) for row in recent_prompts})
+    overlay_hits = set()
     for row in recent_prompts:
         blob = f"{row['primary']} {row['secondary']}"
         for pattern in OVERLAY_FATIGUE_PATTERNS:
             if pattern in blob:
-                overlay_counts[pattern] += 1
+                overlay_hits.add((_day(row), pattern))
+    overlay_counts = Counter(pattern for _d, pattern in overlay_hits)
 
-    family_counts = Counter(_family_for_scenario(row["scenario"]) for row in recent_prompts)
+    family_counts = Counter(
+        family for _d, family in {(_day(row), _family_for_scenario(row["scenario"])) for row in recent_prompts}
+    )
 
     # Include「驗收」in fatigue — it was exempt and became a daily monopoly hook.
     fatigued_title_terms = sorted(
@@ -502,7 +519,7 @@ def _soft_replace_fatigued_terms(text, fatigue_state):
     return re.sub(r"\s{2,}", " ", result).strip()
 
 
-def enforce_packaging_title_rules(title):
+def enforce_packaging_title_rules(title, stock_db=None):
     """Apply 2026-07-07 CTR title rules without dropping the title entirely."""
     text = str(title or "").strip()
     if not text:
@@ -513,13 +530,72 @@ def enforce_packaging_title_rules(title):
     text = re.sub(r"^\d{1,2}/\d{1,2}\s+驗收上集點名：\s*", "", text)
 
     if text and not re.search(r"\d", text[:20]):
-        moved = re.search(r"(\d+(?:\.\d+)?億|\d+萬張|\d+點)", text)
-        if moved:
-            number = moved.group(1)
-            rest = text.replace(number, "", 1).strip(" ，、？?！!｜|")
-            text = f"{number}！{rest}" if rest else number
+        text = _front_number_clause(text, stock_db=stock_db)
 
     return text.strip()
+
+
+_MAX_FRONT_CLAUSE = 24
+_NAME_INDEX_CACHE: dict = {}
+
+
+def _stock_name_index(stock_db=None):
+    """title_fact_gate.FactIndex over stock_db names only (cached per stock_db.json mtime)."""
+    from modules.title_fact_gate import DEFAULT_DB, FactIndex, _load_stock_db
+
+    if stock_db is not None:
+        return FactIndex({}, stock_db=stock_db)
+    try:
+        stamp = os.path.getmtime(DEFAULT_DB)
+    except OSError:
+        stamp = None
+    cached = _NAME_INDEX_CACHE.get(DEFAULT_DB)
+    if cached and cached[0] == stamp:
+        return cached[1]
+    index = FactIndex({}, stock_db=_load_stock_db(DEFAULT_DB))
+    _NAME_INDEX_CACHE[DEFAULT_DB] = (stamp, index)
+    return index
+
+
+def _clause_names_subject(clause, stock_db=None) -> bool:
+    """True when the clause itself names a stock (or the index) its number belongs to."""
+    from modules.title_fact_gate import OTHER_KEY
+
+    try:
+        mentions = _stock_name_index(stock_db).find_mentions(clause)
+    except Exception:
+        return False
+    return any(key != OTHER_KEY for _start, _end, key in mentions)
+
+
+def _front_number_clause(text, stock_db=None):
+    """
+    CTR rule 「前 20 字要有數字」: move the whole clause that holds the first
+    「N億／N萬張／N點」 to the front, so the number keeps its stock name and verb
+    (finding 121: moving the bare number made 「112億！台積電遭外資大賣超，…南亞科
+    逆勢掃貨」 read as 台積電's amount). A long clause, or one that names no stock
+    (「外資再砍110億」 would read as the next stock's amount), leaves the title unchanged.
+    """
+    suffix_match = re.search(r"[｜|][^｜|]*AI\s*帶你看股市.*$", text)
+    suffix = suffix_match.group(0) if suffix_match else ""
+    body = text[: suffix_match.start()] if suffix_match else text
+    moved = re.search(r"\d+(?:\.\d+)?\s*億|\d+\s*萬張|\d+(?:\.\d+)?\s*點", body)
+    if not moved:
+        return text
+    delims = "！!？?，,。；;"
+    start = max((body.rfind(ch, 0, moved.start()) for ch in delims), default=-1) + 1
+    ends = [pos for pos in (body.find(ch, moved.end()) for ch in delims) if pos >= 0]
+    end = min(ends) if ends else len(body)
+    clause = body[start:end].strip()
+    if not clause or start == 0 or len(clause) > _MAX_FRONT_CLAUSE:
+        return text
+    if not _clause_names_subject(clause, stock_db=stock_db):
+        return text
+    tail_mark = body[end:end + 1] if end < len(body) else ""
+    rest = (body[:start] + body[end + len(tail_mark):]).strip(" ，、,")
+    rest = re.sub(r"[，,]\s*$", "", rest)
+    lead = f"{clause}{tail_mark if tail_mark in '！!？?' and tail_mark else '！'}"
+    return f"{lead}{rest}{suffix}" if rest else f"{clause}{suffix}"
 
 
 def enforce_opener_fatigue_on_title(title, fatigue_state=None):

@@ -495,6 +495,12 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
     from modules.structured_facts import overnight_rule_text
 
     overnight_rule = overnight_rule_text(structured_data)
+    try:
+        from modules.title_fact_gate import format_price_state_block
+
+        price_state_block = format_price_state_block(structured_data)
+    except Exception:
+        price_state_block = ""
     conservative = structured_data.get("conservative_strategy", "")
     aggressive = structured_data.get("aggressive_strategy", "")
     packaging_context = packaging_context or {}
@@ -571,6 +577,9 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 穩健策略：{conservative}
 波段策略：{aggressive}
 
+===個股收盤與價格狀態（本機；標題／封面寫金額、漲跌、收紅／收黑／平盤／漲停／噴／重挫／逆勢前必須對照，系統會逐字對帳）===
+{price_state_block if price_state_block else '（無本機個股漲跌：標題不要寫漲跌或收紅／收黑）'}
+
 ===下一交易日正式追蹤（prediction_targets；本機帳本）===
 {official_watch_block}
 
@@ -626,10 +635,10 @@ AI觀察焦點：{', '.join(ai_picks) if ai_picks else '無明確標的'}
 {report_excerpt}
 
 ===標題撰寫規則（最關鍵）===
-只生成兩個標題，方便累積乾淨的 A/B Test。A 與 B 必須同一核心股、同一筆已驗證金額或漲跌；測的是句法，不是換題材。
-- 標題A（對照組／先上架）：完整句。前 20 字必須是「已驗證金額 + 核心股名 + 反直覺」。用「買／砍」，不要用「狂掃／狂砍」開場。不要用【驗收】、AMD、升息、非農、四巫當開場。
+只生成兩個標題：A 是上架標題，B 留給之後單獨的標題測試。A 與 B 必須同一核心股、同一筆已驗證金額或漲跌；B 只換句法，不是換題材。
+- 標題A（上架標題；封面 A/B 都配這個）：完整句。前 20 字必須是「已驗證金額 + 核心股名 + 反直覺」。用「買／砍」，不要用「狂掃／狂砍」開場。不要用【驗收】、AMD、升息、非農、四巫當開場。
   結構依「標題結構輪替」的今日建議 A（見近期標題疲勞檢查）；骨架示意：「{{股名}}買{{N}}億！{{反差}}｜{short_date} AI帶你看股市」，不要照抄舊標題。
-- 標題B（實驗組／48小時可換）：同一檔、同一個數字，但換「標題結構輪替」建議 B 的結構家族（例如矛盾句「{{股名}}漲{{N}}%卻…」或短問句），句子要碎，不要把故事講完。禁止「外資○○億狂砍／狂掃」。禁止【驗收】、上集點名、VERIFIED、誰在收。
+- 標題B（備用；之後單獨做標題測試，不與封面 A/B 同時進行）：同一檔、同一個數字，但換「標題結構輪替」建議 B 的結構家族（例如矛盾句「{{股名}}漲{{N}}%卻…」或短問句），句子要碎，不要把故事講完。禁止「外資○○億狂砍／狂掃」。禁止【驗收】、上集點名、VERIFIED、誰在收。
 
 ===複利閉環（自動簡報，高權重）===
 若下方有「本週禁止／可複製」內容：標題A必須遵守禁止開場；優先模仿可複製樣本的金額+矛盾+問句。
@@ -670,7 +679,8 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
 11. 不要每天套同一種危機語氣；若日報主軸是整理日或觀察日，標題也必須承認訊號尚未確認。
 12. 若「近期包裝疲勞檢查」列出禁用詞或禁用封面題型，標題A與標題B都不得再使用那些詞，也不得只把字換成同義詞（例如榜外吸籌→沒進榜、被砍→提款、接棒→換車）。
 13. 標題A與標題B必須同一核心股、同一金額；差別只在句法。禁止 B 再寫「外資○○億狂砍／狂掃」。禁止 B 用【驗收】、上集點名、VERIFIED。
-14. 若連續多日都在講法人換手，B 改問缺口（還紅？沒進量榜？誰在撿？），不要再寫完整換手句。
+14. 若連續多日都在講法人換手，B 改問缺口，不要再寫完整換手句；「還紅？」只能用在本機漲跌 > 0 的股票，「沒進量榜？」只能用在本機確認未進成交股數榜的股票。
+16. 金額、漲跌％、大盤點數、收紅／收黑／平盤／漲停／噴／重挫／逆勢等字，必須和上方「個股收盤與價格狀態」同一檔股票的本機數字一致（例如漲跌 0.00% 只能寫平盤／守平盤）；不一致的標題會被系統標成 FAIL。
 15. 禁用恐慌字眼：斷頭、逃命、全逃、血洗、崩盤（系統會改寫成中性詞）；風險要寫成數字與觀察條件。
 
 ===描述撰寫規則===
@@ -1201,6 +1211,26 @@ def _build_sand_table_section(structured_data):
     return "\n".join(lines)
 
 
+def _cover_ab_block(titles, structured_data, date_str):
+    """This week's single-variable cover test; /2 Step 3 refreshes it with the real covers."""
+    from modules.cover_ab_test import current_hypothesis, package_section
+
+    hero_label, number = "", ""
+    try:
+        from modules.title_fact_gate import choose_hero
+
+        hero = choose_hero(list(titles or []), structured_data or {}) if structured_data else {}
+        hero_label = hero.get("label") or ""
+        number = (hero.get("amount") or "") if hero.get("verb") else ""
+    except Exception:
+        pass
+    try:
+        hypothesis = current_hypothesis(date_str)
+    except Exception:
+        hypothesis = None
+    return package_section(hypothesis, date_str, hero_label=hero_label, number=number)
+
+
 def save_youtube_package(result, reports_dir, date_str, structured_data=None):
     """Save the YouTube package to a markdown file and return the filepath."""
     from modules.report_paths import youtube_artifact_write_path
@@ -1209,11 +1239,13 @@ def save_youtube_package(result, reports_dir, date_str, structured_data=None):
 
     lines = [f"# YouTube 上架素材包 {date_str}\n"]
 
-    lines.append("## 📝 A/B 標題選項（先用 A，48 小時後再判斷是否換 B）\n")
-    labels = ["A（對照組：完整句，先上架）", "B（實驗組：殘句／問句，同股同數字）"]
+    from modules.cover_ab_test import TITLE_A_LABEL, TITLE_B_LABEL, TITLE_HEADING
+
+    lines.append(TITLE_HEADING + "\n")
+    labels = [TITLE_A_LABEL, TITLE_B_LABEL]
     for i, title in enumerate(result.get("titles", [])[:2]):
-        label = labels[i] if i < len(labels) else str(i + 1)
-        lines.append(f"**標題 {label}：**\n```\n{title}\n```\n")
+        label = labels[i] if i < len(labels) else f"標題 {i + 1}"
+        lines.append(f"**{label}：**\n```\n{title}\n```\n")
 
     warnings = list(result.get("consistency_warnings") or [])
     if structured_data is not None and not warnings:
@@ -1225,6 +1257,21 @@ def save_youtube_package(result, reports_dir, date_str, structured_data=None):
         for warning in warnings:
             lines.append(f"> - {warning}")
         lines.append("")
+
+    if structured_data is not None:
+        try:
+            from modules.title_fact_gate import check_titles, fact_gate_block, format_issue
+
+            gate_issues = check_titles(result.get("titles", [])[:2], structured_data)
+            block = fact_gate_block(gate_issues)
+            if block:
+                lines.append(block + "\n")
+            if any(issue["level"] == "error" for issue in gate_issues):
+                print("  ⛔⛔ 標題事實對帳 FAIL（已寫入 package，上傳前必須修正；系統不改寫 Gemini 標題）：")
+            for issue in gate_issues:
+                print(f"     {format_issue(issue)}")
+        except Exception as gate_err:
+            print(f"  ⚠️  標題事實對帳失敗，略過：{gate_err}")
 
     lines.append("---\n\n")
     lines.append(_build_sand_table_section(structured_data))
@@ -1238,7 +1285,7 @@ def save_youtube_package(result, reports_dir, date_str, structured_data=None):
     lines.append("```\n")
 
     lines.append("---\n\n## 📌 上架流程提醒\n")
-    lines.append("1. 先用標題 A 上傳")
+    lines.append("1. 用標題 A 上傳（封面 A/B 照下方「封面 A/B 測試」同時上傳）")
     lines.append("2. 在 Canva 打開縮圖背景，加上今日標題文字")
     lines.append("3. 上傳影片，貼上描述和縮圖")
     lines.append("4. 發布後立即貼置頂留言")
@@ -1246,8 +1293,8 @@ def save_youtube_package(result, reports_dir, date_str, structured_data=None):
         lines.append(
             "4.5 章節沒有時間軸（未提供影片長度）：要 YouTube 章節請設 YOUTUBE_VIDEO_DURATION=秒數或 mm:ss 後重產，或手動補時間"
         )
-    lines.append("5. 觀看數未達頻道中位數×2（見 youtube_performance_patterns.md）不判斷 A/B 勝負，只記錄觀察")
-    lines.append("6. 48小時觀看低於頻道中位數且 Studio CTR 低於頻道平均時，再測 B 組（可行時改用 Studio「測試與比較」）\n")
+    lines.append("")
+    lines.append(_cover_ab_block(result.get("titles", [])[:2], structured_data, date_str) + "\n")
 
     with open(filepath, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))

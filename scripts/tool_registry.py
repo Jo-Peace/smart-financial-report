@@ -171,6 +171,13 @@ TOOL_SPECS: tuple[ToolSpec, ...] = (
         legacy_names=("check_youtube_package.py",),
     ),
     ToolSpec(
+        id="record-ab-result",
+        category="youtube",
+        script="scripts/youtube/record_ab_result.py",
+        description="記錄 Studio「測試與比較」封面 A/B 勝出（寫入 analytics.db）",
+        legacy_names=(),
+    ),
+    ToolSpec(
         id="review-reminder",
         category="youtube",
         script="scripts/youtube/review_reminder.py",

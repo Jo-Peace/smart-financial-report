@@ -40,7 +40,8 @@ SCHEMA (narrative fields only — return ONLY these keys):
 - "sectors": object. keys = sector names, values = arrays of stock names/statuses.
   * Differentiate CPO vs IPC / memory vs packaging when the report does.
 - "ai_data_picks": array of 1-2 strings (e.g. ["華邦電 (外資大買)"]). If none: ["今日無安全推薦標的"].
-- "prediction_targets": array of objects from 「明日觀察焦點」:
+- "prediction_targets": array (max 2) of objects ONLY from the 〔明日觀察焦點〕 section
+  (not from 【今日深度押注】 or other sections):
   { "id": "股票代號", "name": "公司名", "direction": "多/空", "trigger": "理由摘要",
     "stop_loss_price": number|null, "stop_loss_desc": "停損條件" }
   If none: [].
@@ -91,7 +92,11 @@ Never invent stocks, sectors, or numbers not present in the report.
                 "error": "Failed to extract structured data.",
                 "raw_error": f"unexpected type: {type(data).__name__}",
             }
-        return merge_structured_with_local_facts(data, local_facts)
+        merged = merge_structured_with_local_facts(data, local_facts)
+        # Local rule, not the model's: targets only from 〔觀察焦點〕, no mega-caps, max 2.
+        from modules.prediction_targets import apply_prediction_target_filter
+
+        return apply_prediction_target_filter(merged, report_content)
     except Exception as e:
         print(f"Error extracting structured data: {e}")
         return {

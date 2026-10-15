@@ -217,15 +217,18 @@ def views_at_age(series, target_hours, fallback_window=None):
 
 
 def load_metric_series(video_ids, db_path=None):
-    """{video_id: {"published_at": str|None, "series": [(hours, views), ...]}} from analytics.db; {} on any error."""
+    """
+    {video_id: {"published_at": str|None, "series": [(hours, views), ...]}} from
+    analytics.db, opened read-only (theme resolution, wiki and brief summaries never
+    write the DB); {} on any error.
+    """
     ids = [vid for vid in (video_ids or []) if vid]
     if not ids:
         return {}
     try:
-        from modules.analytics_store import AnalyticsStore
+        from modules.analytics_store import read_youtube_metric_series
 
-        store = AnalyticsStore(db_path) if db_path else AnalyticsStore()
-        return store.get_youtube_metric_series(ids)
+        return read_youtube_metric_series(ids, db_path=db_path)
     except Exception:
         return {}
 
@@ -669,8 +672,27 @@ def manual_rules_section(body) -> list[str]:
     ]
 
 
+def cover_ab_lines(ab_results=None) -> list[str]:
+    """Per-hypothesis cover A/B tallies (YouTube 測試與比較; promotion needs ≥3 decided tests)."""
+    from modules.cover_ab_test import format_learning_lines, load_results, summarize_results
+
+    try:
+        rows = load_results() if ab_results is None else ab_results
+        return format_learning_lines(summarize_results(rows))
+    except Exception as exc:
+        return [f"- （封面 A/B 結果讀取失敗：{exc}）"]
+
+
 def build_youtube_performance_summary(
-    log_path, recent_limit=30, top_n=8, low_n=6, now=None, metric_series=None, stock_names=None, manual_rules=None
+    log_path,
+    recent_limit=30,
+    top_n=8,
+    low_n=6,
+    now=None,
+    metric_series=None,
+    stock_names=None,
+    manual_rules=None,
+    ab_results=None,
 ):
     window = learning_window(log_path, recent_limit=recent_limit, now=now, metric_series=metric_series)
     if not window["rows"]:
@@ -702,7 +724,7 @@ def build_youtube_performance_summary(
             [
                 f"- 中位數：{baseline['median']:.0f}；前四分位門檻 {baseline['q75']:.0f}；後四分位 {baseline['q25']:.0f}",
                 f"- 有效勝出門檻：≥ 頻道中位數 × {RELATIVE_WIN_MULTIPLIER:g} = {baseline['win_threshold']:.0f} views"
-                "（取代舊的固定 900；未達只作觀察，不判 A/B 勝負）",
+                "（取代舊的固定 900；未達只作觀察，不判標題好壞；封面 A/B 只看 Studio「測試與比較」）",
             ]
         )
     lines.append(f"- 上架未滿 {MATURE_HOURS} 小時的影片：只列觀察，不列入低樣本、不得當禁令依據")
@@ -717,6 +739,8 @@ def build_youtube_performance_summary(
     lines.extend(lessons)
     lines.extend([""])
     lines.extend(structure_rotation_lines(window=window, stock_names=stock_names))
+    lines.extend(["", "## 封面 A/B 測試（單一變數，YouTube 測試與比較）", ""])
+    lines.extend(cover_ab_lines(ab_results))
     lines.extend(["", _LEGACY_RULES_HEADING, ""])
     lines.extend(f"- {rule}" for rule in GENERATED_PACKAGING_RULES)
     lines.append("")

@@ -216,6 +216,33 @@ def scene_only(theme, max_chars=SCENE_MAX_CHARS):
     return split_visual_theme(theme, max_chars=max_chars)[0]
 
 
+def without_ban_clauses(theme) -> str:
+    """
+    ``theme`` with only its 「禁止／不要…」 pieces removed: scene AND positive rule pieces
+    stay, uncut. Used to see which scene a logged theme drew — ``scene_only`` drops a
+    scene piece that merely mentions 「昨天／上週」 as a title rule (「群創昨天的紅色印版…」).
+    """
+    kept = []
+    for segment in _segments(theme):
+        pieces = [piece.strip() for piece, _sep in segment if piece.strip() and _piece_kind(piece) != "ban"]
+        if pieces:
+            kept.append("，".join(pieces))
+    return "。".join(kept)
+
+
+# 「A兩行股名+金額，B短句大字」-style cover-text notes: the old two-variable A/B
+# instruction. The cover text of each arm is now set by the week's A/B hypothesis
+# (data/ab_test_plan.json), so the note is dropped from every /2 output (image
+# prompts, channel log, package, NotebookLM / director-card cover lines).
+_COVER_TEXT_NOTE_RE = re.compile(
+    r"[；;，,。]?\s*A\s*(?:圖|組)?\s*(?:兩行|第一行)[^；;。]*?[，,、]\s*B\s*(?:圖|組)?\s*(?:短句|破碎字|殘句|大字|第一行)[^；;。]*"
+)
+
+
+def strip_cover_text_note(theme) -> str:
+    return _COVER_TEXT_NOTE_RE.sub("", str(theme or "")).strip(" ；;，,")
+
+
 # ─────────────────────────────────────────
 # Clause parsing
 # ─────────────────────────────────────────

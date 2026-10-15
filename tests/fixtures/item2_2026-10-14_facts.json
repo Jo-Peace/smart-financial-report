@@ -1,0 +1,353 @@
+{
+ "_comment": "Trimmed from the real 2026-10-14 /1 structured_data (local TWSE numbers) for item-2 title/cover fact-gate tests.",
+ "date": "2026-10-14",
+ "index_action": "上漲 284.5點（+0.59%）",
+ "safe_havens_bought": [
+  "南亞 (+55.3億)",
+  "台塑 (+47.5億)",
+  "國巨* (+36.6億)",
+  "台玻 (+31.2億)",
+  "台化 (+23.5億)"
+ ],
+ "heavyweights_dumped": [
+  "台積電 (-168.1億)",
+  "聯發科 (-157.2億)",
+  "南亞科 (-110.4億)",
+  "京元電子 (-67.2億)",
+  "大立光 (-49.1億)"
+ ],
+ "prediction_targets": [
+  {
+   "id": "1303",
+   "name": "南亞",
+   "direction": "多",
+   "trigger": "外資買超 55.3 億居冠，且基本面毛利率連三季改善",
+   "stop_loss_price": 319.0,
+   "stop_loss_desc": "跌破 319.0（MA5）"
+  },
+  {
+   "id": "2327",
+   "name": "國巨*",
+   "direction": "多",
+   "trigger": "外資買超第 3 名（36.6 億），股價轉強突破 MA20",
+   "stop_loss_price": 584.0,
+   "stop_loss_desc": "收盤跌破 584.0（MA20）"
+  }
+ ],
+ "price_volume_divergence": [
+  "2408 南亞科與 1303 南亞法人分歧：資金從終端應用逃往上游材料，呈現產業位階平移",
+  "台積電與聯發科：成交值位居前段但因結算日遭外資巨額賣超提款"
+ ],
+ "prev_day_picks_result": [
+  "2449 京元電子 (-2.79%, 預測未成立)",
+  "1303 南亞 (+9.40%, 預測成立，成交量排名第6)"
+ ],
+ "editorial_frame": {
+  "frame": "continuation_day",
+  "label": "續航日",
+  "validation_placement": "brief"
+ },
+ "focus_ranking": [
+  {
+   "ticker": "2327",
+   "name": "國巨*",
+   "base_role": "elastic_attack",
+   "role_label": "彈性攻擊股",
+   "title_priority": 85,
+   "volume_confirmation": 48,
+   "source_text": "國巨* (+36.6億)"
+  },
+  {
+   "ticker": "1802",
+   "name": "台玻",
+   "base_role": "elastic_attack",
+   "role_label": "彈性攻擊股",
+   "title_priority": 82,
+   "volume_confirmation": 71,
+   "source_text": "台玻 (+31.2億)"
+  },
+  {
+   "ticker": "1303",
+   "name": "南亞",
+   "base_role": "theme_confirmation",
+   "role_label": "題材確認股",
+   "title_priority": 80,
+   "volume_confirmation": 75,
+   "source_text": "南亞 (+55.3億)"
+  },
+  {
+   "ticker": "1301",
+   "name": "台塑",
+   "base_role": "elastic_attack",
+   "role_label": "彈性攻擊股",
+   "title_priority": 71,
+   "volume_confirmation": 67,
+   "source_text": "台塑 (+47.5億)"
+  },
+  {
+   "ticker": "1326",
+   "name": "台化",
+   "base_role": "theme_confirmation",
+   "role_label": "題材確認股",
+   "title_priority": 66,
+   "volume_confirmation": 62,
+   "source_text": "台化 (+23.5億)"
+  }
+ ],
+ "local_market_facts": {
+  "data_date": "2026-10-14",
+  "inst_top_n": 10,
+  "volume_top_n": 20,
+  "volume_complete": true,
+  "stocks": {
+   "1303": {
+    "ticker": "1303",
+    "name": "南亞",
+    "foreign_amount": 55.33,
+    "foreign_net": 15854598,
+    "trust_net": 4541206,
+    "total_net": 19527513,
+    "buy_rank": 1,
+    "listing": "twse",
+    "est_price": 349.0,
+    "est_price_date": "2026-10-14",
+    "volume_rank": 6,
+    "volume": 175417461,
+    "close": 349.0,
+    "close_source": "twse_volume_rank",
+    "pct_change": 9.4,
+    "pct_source": "twse_volume_rank",
+    "ma20": 264.02,
+    "ma5": 319.0,
+    "vol_ratio": 1.77
+   },
+   "1301": {
+    "ticker": "1301",
+    "name": "台塑",
+    "foreign_amount": 47.46,
+    "foreign_net": 53390342,
+    "trust_net": 4315000,
+    "total_net": 56691793,
+    "buy_rank": 2,
+    "listing": "twse",
+    "est_price": 88.9,
+    "est_price_date": "2026-10-14",
+    "volume_rank": 4,
+    "volume": 191655031,
+    "close": 88.9,
+    "close_source": "twse_volume_rank",
+    "pct_change": 9.89,
+    "pct_source": "twse_volume_rank",
+    "ma20": 69.3,
+    "ma5": 81.44,
+    "vol_ratio": 1.4
+   },
+   "2327": {
+    "ticker": "2327",
+    "name": "國巨*",
+    "foreign_amount": 36.65,
+    "foreign_net": 5845443,
+    "trust_net": 936714,
+    "total_net": 6707578,
+    "buy_rank": 3,
+    "listing": "twse",
+    "est_price": 627.0,
+    "est_price_date": "2026-10-14",
+    "close": 627.0,
+    "close_source": "market_data",
+    "pct_change": 4.67,
+    "pct_source": "market_data",
+    "ma20": 584.85,
+    "ma5": 628.8,
+    "vol_ratio": 0.97
+   },
+   "1802": {
+    "ticker": "1802",
+    "name": "台玻",
+    "foreign_amount": 31.17,
+    "foreign_net": 46522820,
+    "trust_net": 375000,
+    "total_net": 49315315,
+    "buy_rank": 4,
+    "listing": "twse",
+    "est_price": 67.0,
+    "est_price_date": "2026-10-14",
+    "volume_rank": 5,
+    "volume": 186880731,
+    "close": 67.0,
+    "close_source": "twse_volume_rank",
+    "pct_change": 8.41,
+    "pct_source": "twse_volume_rank"
+   },
+   "1326": {
+    "ticker": "1326",
+    "name": "台化",
+    "foreign_amount": 23.49,
+    "foreign_net": 27479405,
+    "trust_net": 0,
+    "total_net": 27667975,
+    "buy_rank": 5,
+    "listing": "twse",
+    "est_price": 85.5,
+    "est_price_date": "2026-10-14",
+    "volume_rank": 13,
+    "volume": 103560276,
+    "close": 85.5,
+    "close_source": "twse_volume_rank",
+    "pct_change": 9.9,
+    "pct_source": "twse_volume_rank"
+   },
+   "2330": {
+    "ticker": "2330",
+    "name": "台積電",
+    "foreign_amount": -168.13,
+    "foreign_net": -6752241,
+    "trust_net": 791788,
+    "total_net": -5424947,
+    "sell_rank": 1,
+    "listing": "twse",
+    "est_price": 2490.0,
+    "est_price_date": "2026-10-14",
+    "close": 2490.0,
+    "close_source": "market_data",
+    "pct_change": 0.0,
+    "pct_source": "market_data",
+    "ma20": 2485.55,
+    "ma5": 2531.0,
+    "vol_ratio": 1.14
+   },
+   "2454": {
+    "ticker": "2454",
+    "name": "聯發科",
+    "foreign_amount": -157.19,
+    "foreign_net": -3512599,
+    "trust_net": 238033,
+    "total_net": -3257985,
+    "sell_rank": 2,
+    "listing": "twse",
+    "est_price": 4475.0,
+    "est_price_date": "2026-10-14",
+    "close": 4475.0,
+    "close_source": "market_data",
+    "pct_change": -1.1,
+    "pct_source": "market_data",
+    "ma20": 4819.25,
+    "ma5": 4630.0,
+    "vol_ratio": 1.16
+   },
+   "2408": {
+    "ticker": "2408",
+    "name": "南亞科",
+    "foreign_amount": -110.36,
+    "foreign_net": -22967700,
+    "trust_net": -718234,
+    "total_net": -24960934,
+    "sell_rank": 3,
+    "listing": "twse",
+    "est_price": 480.5,
+    "est_price_date": "2026-10-14",
+    "close": 480.5,
+    "close_source": "market_data",
+    "pct_change": -1.54,
+    "pct_source": "market_data",
+    "ma20": 507.07,
+    "ma5": 508.3,
+    "vol_ratio": 1.1
+   },
+   "2449": {
+    "ticker": "2449",
+    "name": "京元電子",
+    "foreign_amount": -67.17,
+    "foreign_net": -22655711,
+    "trust_net": 143793,
+    "total_net": -24396562,
+    "sell_rank": 4,
+    "listing": "twse",
+    "est_price": 296.5,
+    "est_price_date": "2026-10-14",
+    "close": 296.5,
+    "close_source": "market_data",
+    "pct_change": -2.79,
+    "pct_source": "market_data",
+    "ma20": 292.4,
+    "ma5": 301.1,
+    "vol_ratio": 1.67
+   },
+   "3008": {
+    "ticker": "3008",
+    "name": "大立光",
+    "foreign_amount": -49.12,
+    "foreign_net": -713921,
+    "trust_net": 168083,
+    "total_net": -585823,
+    "sell_rank": 5,
+    "listing": "twse",
+    "est_price": 6880.0,
+    "est_price_date": "2026-10-14",
+    "close": 6880.0,
+    "close_source": "institutional_price_map"
+   },
+   "2409": {
+    "ticker": "2409",
+    "name": "友達",
+    "volume_rank": 2,
+    "listing": "twse",
+    "volume": 305718702,
+    "close": 36.25,
+    "close_source": "twse_volume_rank",
+    "pct_change": 6.15,
+    "pct_source": "twse_volume_rank"
+   }
+  }
+ },
+ "broadcast_facts": {
+  "heroes": [
+   {
+    "ticker": "1303",
+    "name": "南亞",
+    "foreign_amount": 55.33,
+    "pct_change": 9.4,
+    "volume_rank": 6,
+    "off_rank": false,
+    "close": 349.0,
+    "number_source": {
+     "foreign_amount": "local",
+     "pct_change": "local",
+     "volume_rank": "local"
+    },
+    "admission": "official"
+   },
+   {
+    "ticker": "2327",
+    "name": "國巨*",
+    "foreign_amount": 36.65,
+    "pct_change": 4.67,
+    "volume_rank": null,
+    "off_rank": true,
+    "close": 627.0,
+    "number_source": {
+     "foreign_amount": "local",
+     "pct_change": "local",
+     "volume_rank": "local"
+    },
+    "admission": "official"
+   },
+   {
+    "ticker": "1802",
+    "name": "台玻",
+    "foreign_amount": 31.17,
+    "pct_change": 8.41,
+    "volume_rank": 5,
+    "off_rank": false,
+    "close": 67.0,
+    "number_source": {
+     "foreign_amount": "local",
+     "pct_change": "local",
+     "volume_rank": "local"
+    },
+    "admission": "context"
+   }
+  ]
+ },
+ "supply_chain_event_radar": []
+}

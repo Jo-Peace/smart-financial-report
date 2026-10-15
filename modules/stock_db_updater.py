@@ -201,44 +201,62 @@ class StockDatabaseUpdater:
         if self._save_stock_db():
             print(f"  [Auto-DB] 已為 {len(accepted)} 檔股票建立草稿（reviewed=false，待人工審核）。")
 
-    def _refresh_foreign_streaks(self, institutional_data, today_str):
-        """Update consecutive-buy days for every name on today's buy/sell lists."""
+    def _refresh_foreign_streaks(self, institutional_data, today_str, streaks=None):
+        """
+        Store each listed stock's 外資連續買超天數 counted in TWSE sessions
+        (modules.foreign_streak: today's list + institutional_flows before the
+        data date). Keyed by the data date, never date.today(), so Mondays,
+        post-holiday sessions and same-day reruns keep the real count.
+        """
         if not institutional_data:
             return False
-        buy_ids = {str(s.get("id") or "").strip() for s in institutional_data.get("top_buy") or []}
-        sell_ids = {str(s.get("id") or "").strip() for s in institutional_data.get("top_sell") or []}
-        buy_ids.discard("")
-        sell_ids.discard("")
+        from modules.foreign_streak import compute_foreign_buy_streaks
+
+        if streaks is None:
+            streaks = compute_foreign_buy_streaks(institutional_data, today_str)
         changed = False
-        yesterday = str(__import__("datetime").date.today() - __import__("datetime").timedelta(days=1))
-        for sid in buy_ids | sell_ids:
+        for sid, info in (streaks or {}).items():
             if sid not in self.stock_db:
                 continue
             entry = self.stock_db[sid]
-            tracking = entry.get("tracking") or {
-                "prediction_count": 0,
-                "hit_count": 0,
-                "hit_rate": "0.0%",
-                "last_recommended": None,
-                "consecutive_foreign_buy_days": 0,
-                "last_foreign_buy_date": None,
-                "history": [],
-            }
-            if sid in sell_ids and sid not in buy_ids:
-                if tracking.get("consecutive_foreign_buy_days"):
-                    tracking["consecutive_foreign_buy_days"] = 0
-                    changed = True
-            elif sid in buy_ids:
-                last_fii_date = tracking.get("last_foreign_buy_date")
-                if last_fii_date == yesterday:
-                    tracking["consecutive_foreign_buy_days"] = tracking.get("consecutive_foreign_buy_days", 0) + 1
-                else:
-                    tracking["consecutive_foreign_buy_days"] = 1
-                tracking["last_foreign_buy_date"] = today_str
-                changed = True
+            tracking = entry.get("tracking") or _empty_tracking()
+            days = int(info.get("days") or 0)
+            data_date = str(info.get("data_date") or today_str)[:10]
+            before = (
+                tracking.get("consecutive_foreign_buy_days"),
+                tracking.get("last_foreign_buy_date"),
+                tracking.get("foreign_buy_streak_date"),
+                tracking.get("foreign_buy_streak_complete"),
+            )
+            tracking["consecutive_foreign_buy_days"] = days
+            # The date the count is valid for (readers check freshness against it).
+            tracking["last_foreign_buy_date"] = data_date if days > 0 else tracking.get("last_foreign_buy_date")
+            tracking["foreign_buy_streak_date"] = data_date
+            tracking["foreign_buy_streak_complete"] = bool(info.get("complete"))
+            after = (
+                tracking.get("consecutive_foreign_buy_days"),
+                tracking.get("last_foreign_buy_date"),
+                tracking.get("foreign_buy_streak_date"),
+                tracking.get("foreign_buy_streak_complete"),
+            )
+            changed = changed or before != after
             entry["tracking"] = tracking
             self.stock_db[sid] = entry
         return changed
+
+    def refresh_foreign_streaks(self, institutional_data, as_of_date=None, streaks=None):
+        """
+        Every /1 (independent of yesterday_predictions): refresh the session-based
+        streaks and save when anything changed. Idempotent on reruns.
+        """
+        if self.load_error or not institutional_data:
+            return False
+        today_str = str(as_of_date or (institutional_data or {}).get("data_date") or "")[:10]
+        if self._refresh_foreign_streaks(institutional_data, today_str, streaks=streaks):
+            self._save_stock_db()
+            print("  [Auto-DB] 外資連續買超天數已依交易日曆重算並寫入。")
+            return True
+        return False
 
     def update_tracking_stats(
         self,
@@ -276,13 +294,9 @@ class StockDatabaseUpdater:
         today_str = str(as_of_date or __import__('datetime').date.today())[:10]
         prediction_date = str(prediction_date)[:10] if prediction_date else None
         needs_save = False
-        if todays_institutional_data and self._refresh_foreign_streaks(todays_institutional_data, today_str):
-            needs_save = True
-
+        # 外資連續買超天數 is no longer refreshed here: refresh_foreign_streaks runs on
+        # every /1 (pipeline_analysis), independent of yesterday_predictions.
         if not yesterday_predictions:
-            if needs_save:
-                self._save_stock_db()
-                print("  [Auto-DB] 外資連續買超天數已依今日買賣超榜更新。")
             return
 
         # The on-air 驗收 rows (validate_prediction_targets) are the verdicts:

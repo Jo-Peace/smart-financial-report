@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "description": "/2 封面 A/B 測試計畫：每週輪替一個「單一變數」假設。封面 A/B 同主角、同一個已驗證數字、同配標題 A、同一場景與構圖，只差本週宣告的變數（H1 畫風的場景本身就是變數，只保留同構圖；當日主題是財經戰情室時 H1 當天改測下一個假設）；用 YouTube Studio「測試與比較」同時上傳，結果用 `python3 cli.py youtube record-ab-result` 記錄到 analytics.db。",
+  "rotation": {
+    "start_week_monday": "2026-10-12",
+    "weeks_per_hypothesis": 1,
+    "note": "依 ISO 週（週一起算）輪替啟用中的假設；同一週的每支影片測同一個變數。環境變數 AB_HYPOTHESIS=H2（或變數名 text）可覆寫。"
+  },
+  "env_override": "AB_HYPOTHESIS",
+  "decision": {
+    "metric": "watch_time_share",
+    "metric_label": "觀看時間占比（YouTube 測試與比較的判定指標）",
+    "min_decided_tests": 3,
+    "rule": "同一假設 ≥3 次有勝負（winner=a 或 b）且過半數同一邊，才建議把勝出組升級為預設（手動調整 modules/cover_ab_test.py 的 LEVER_DEFAULTS）；none（無明顯差異）只計入 n。A/B 結果只用來升級預設，不產生任何禁令。"
+  },
+  "held_constant": [
+    "主角股",
+    "已驗證數字",
+    "配對標題（標題 A）",
+    "場景",
+    "構圖"
+  ],
+  "hypotheses": [
+    {
+      "id": "H1",
+      "variable": "style",
+      "label": "畫風",
+      "question": "當日漫畫場景 vs 戰情室數據大字牌，哪一種觀看時間占比較高？",
+      "arms": {
+        "a": {
+          "mode": "theme_scene",
+          "label": "漫畫場景（當日視覺主題）"
+        },
+        "b": {
+          "mode": "war_room_board",
+          "label": "戰情室數據大字牌"
+        }
+      },
+      "enabled": true
+    },
+    {
+      "id": "H2",
+      "variable": "text",
+      "label": "封面字句型",
+      "question": "同股同數字，陳述句 vs 問句？",
+      "arms": {
+        "a": {
+          "mode": "statement",
+          "label": "陳述句（股名＋外資買／砍金額）"
+        },
+        "b": {
+          "mode": "question",
+          "label": "問句（同股同數字，「外資為何買…？」）"
+        }
+      },
+      "enabled": true
+    },
+    {
+      "id": "H3",
+      "variable": "characters",
+      "label": "角色",
+      "question": "有博士＋阿明雙角色 vs 無角色純數據？",
+      "arms": {
+        "a": {
+          "mode": "duo",
+          "label": "有雙角色（博士＋阿明）"
+        },
+        "b": {
+          "mode": "none",
+          "label": "無角色純數據"
+        }
+      },
+      "enabled": true
+    },
+    {
+      "id": "H4",
+      "variable": "number_layout",
+      "label": "數字大小／位置",
+      "question": "大數字左下大字牌 vs 小數字右上角？",
+      "arms": {
+        "a": {
+          "mode": "big",
+          "label": "大數字（左下大字牌，字高約畫面 1/3）"
+        },
+        "b": {
+          "mode": "small",
+          "label": "小數字（右上角小字牌，主角場景放大）"
+        }
+      },
+      "enabled": true
+    }
+  ]
+}

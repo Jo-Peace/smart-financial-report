@@ -113,6 +113,19 @@ def build_analysis_bundle(
     else:
         print("  ⚠️  未偵測到高分供應鏈事件")
 
+    # 外資連續買超天數: TWSE sessions before the data date (analytics.db) + today's
+    # list, stamped on the payload rows so the analyzer prompt, local_market_facts
+    # and resume_inputs carry the same number (findings 15/39/63/79).
+    from modules.foreign_streak import annotate_foreign_streaks
+
+    foreign_streaks = annotate_foreign_streaks(institutional_data, report_date)
+    long_runs = sorted(
+        ((sid, info["days"]) for sid, info in foreign_streaks.items() if info.get("days", 0) >= 3),
+        key=lambda kv: -kv[1],
+    )
+    if long_runs:
+        print("  📈 外資連續買超（交易日）：" + "、".join(f"{sid}×{days}" for sid, days in long_runs[:6]))
+
     print("\n🔍 正在檢查是否有新股票需要 AI 供應鏈調查...")
     from modules.stock_db_updater import StockDatabaseUpdater
 
@@ -124,6 +137,8 @@ def build_analysis_bundle(
         for s in volume_data or []:
             stocks_to_check.append({"id": s["id"], "name": s["name"]})
         updater.update_new_stocks(stocks_to_check)
+        # Every /1, not only when yesterday_predictions exist.
+        updater.refresh_foreign_streaks(institutional_data, as_of_date=report_date, streaks=foreign_streaks)
 
         if yesterday_predictions:
             print("\n📊 [優化 D] 正在更新前次預測標的的績效追蹤...")

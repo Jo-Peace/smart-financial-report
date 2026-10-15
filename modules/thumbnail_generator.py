@@ -8,6 +8,19 @@ import datetime
 import json
 import re
 from modules.gemini_client import default_model_name, generate_text
+from modules.title_fact_gate import (
+    build_fact_index,
+    check_cover,
+    check_text,
+    choose_hero,
+    format_amount,
+    format_issue,
+    format_pct_abs,
+    has_errors,
+    index_move_word,
+    parse_index_action,
+    stock_move_word,
+)
 from modules.packaging_fatigue import (
     build_fatigue_state,
     is_overlay_fatigued,
@@ -94,6 +107,20 @@ STYLE_PRESETS = {
     },
 }
 
+# Cover A/B H1 arm B (data/ab_test_plan.json): the verified number itself is the picture.
+STYLE_PRESETS["war_room_board"] = {
+    "name": "戰情室數據大字牌",
+    "prompt": (
+        "Taiwan stock market war-room DATA BOARD: one giant illuminated number plaque is the main subject, "
+        "mounted on a dark navy command-center wall; thin capital-flow lines, small candlestick panels and "
+        "radar grids are background texture only. No metaphor scene and no story props — the verified number "
+        "and the stock name are the visual; the recurring characters (if any) stand beside the board. "
+        "Taiwan market colors (RED = up/buy, GREEN = down/sell), gold and "
+        "electric-blue accents, original design only, no franchise IP, no company logos. "
+        "Never use US green-up/red-down colors."
+    ),
+}
+
 DEFAULT_THUMBNAIL_STYLES = ["war_room", "war_room_flow"]
 DEFAULT_VISUAL_THEME_LABEL = "財經戰情室"
 
@@ -141,6 +168,14 @@ def _resolve_thumbnail_styles(styles=None):
         if key in STYLE_PRESETS:
             resolved.append(key)
             continue
+        if key.rstrip("。") == DEFAULT_VISUAL_THEME_LABEL:
+            # The documented /2 default (「財經戰情室」) uses the two war-room presets.
+            resolved.extend(DEFAULT_THUMBNAIL_STYLES)
+            continue
+        preset_key = next((k for k, v in STYLE_PRESETS.items() if v.get("name") == key.rstrip("。")), None)
+        if preset_key:
+            resolved.append(preset_key)
+            continue
         if _is_sports_anime_theme(key):
             # Explicit experiment markers or env override keep the requested theme.
             allow_experiment = (
@@ -168,12 +203,17 @@ def _resolve_thumbnail_styles(styles=None):
     return resolved[:2] if len(resolved) > 2 else resolved
 
 
+# 「A兩行股名+金額，B短句大字」-style cover-text notes inside a theme: the cover text of
+# each A/B arm is set by the A/B hypothesis, so the note never reaches an image prompt.
+from modules.packaging_bans import strip_cover_text_note  # noqa: E402
+
+
 def _normalize_custom_style(style_key_or_custom):
     # Image prompts only get the positive scene: 「禁止…」/title-rule clauses (and the stock
     # names / scene nouns inside them) are stripped; they live in data/packaging_bans.json.
     from modules.packaging_bans import scene_only
 
-    style = scene_only(str(style_key_or_custom or "").strip()).rstrip("。")
+    style = strip_cover_text_note(scene_only(str(style_key_or_custom or "").strip()).rstrip("。")).rstrip("。")
     normalized = style.lower()
     if _is_jojo_fifa_theme(normalized):
         return (
@@ -318,39 +358,35 @@ def _editorial_frame_key(structured_data):
 
 
 def _index_headline(structured_data):
-    """Return a short index move label like '1783點' (unsigned) for template fill-in."""
-    text = str(structured_data.get("index_action") or structured_data.get("main_theme") or "").strip()
-    if not text:
+    """
+    Short unsigned index move like '1783點' from the local index_action. Free
+    text without a point number yields "" (never a text[:12] fragment, finding 157).
+    """
+    points = parse_index_action(structured_data.get("index_action")).get("points")
+    if points is None:
         return ""
-    match = re.search(r"([+-]?\d+(?:\.\d+)?)\s*點", text)
-    if match:
-        # Keep magnitude only; direction is handled by _index_direction_word.
-        value = abs(float(match.group(1)))
-        if value >= 100:
-            return f"{int(round(value))}點"
-        return f"{value:g}點"
-    return text[:12]
+    value = abs(points)
+    if value >= 100:
+        return f"{int(round(value))}點"
+    return f"{value:g}點"
+
+
+def _index_pct(structured_data):
+    return parse_index_action(structured_data.get("index_action")).get("pct")
 
 
 def _index_direction_word(structured_data):
-    """Return 漲/跌/走 based on index_action text or signed point move."""
-    text = str(structured_data.get("index_action") or structured_data.get("main_theme") or "").strip()
-    if not text:
+    """漲/跌/走 from the local index_action (full- or half-width brackets)."""
+    parsed = parse_index_action(structured_data.get("index_action"))
+    pct = parsed.get("pct")
+    points = parsed.get("points")
+    value = pct if pct is not None else points
+    if value is None:
         return "走"
-    if any(token in text for token in ("上漲", "大漲", "狂飆", "強彈", "翻紅", "收紅")):
+    if value > 0:
         return "漲"
-    if any(token in text for token in ("下跌", "大跌", "重挫", "崩", "血洗", "翻黑", "收黑")):
+    if value < 0:
         return "跌"
-    pct = re.search(r"\(([+-]?\d+(?:\.\d+)?)%\)", text)
-    if pct:
-        return "漲" if float(pct.group(1)) > 0 else ("跌" if float(pct.group(1)) < 0 else "走")
-    match = re.search(r"([+-]?\d+(?:\.\d+)?)\s*點", text)
-    if match:
-        value = float(match.group(1))
-        if value > 0:
-            return "漲"
-        if value < 0:
-            return "跌"
     return "走"
 
 
@@ -376,7 +412,22 @@ def _lead_foreign_sell(structured_data):
     return stock_text, amount
 
 
+def _stock_fact(facts, stock_text):
+    """Facts row for a 「1303 南亞」 / 「南亞」 label by exact ticker or name (南亞 ≠ 南亞科)."""
+    text = str(stock_text or "").strip()
+    match = re.match(r"^(\d{4,6}[A-Z]?)\s*(.*)$", text)
+    ticker, name = (match.group(1), match.group(2)) if match else ("", text.split("(")[0].strip())
+    key = facts.lookup(ticker, name)
+    return key, (facts.fact(key) if key else None)
+
+
 def _build_local_title_candidates(structured_data, date_label, fatigue_state):
+    """
+    Local fallback titles (BLOCK opener days / Gemini failure). Every number and
+    direction word comes from the stock's own local facts; a candidate that still
+    contradicts them is dropped by the fact gate (findings 45, 46, 120, 122, 157).
+    """
+    facts = build_fact_index(structured_data)
     targets = _extract_stock_text(structured_data.get("prediction_targets"), limit=2)
     buys = _extract_stock_text(structured_data.get("safe_havens_bought"), limit=2)
     sells = _extract_stock_text(structured_data.get("heavyweights_dumped"), limit=1)
@@ -384,14 +435,18 @@ def _build_local_title_candidates(structured_data, date_label, fatigue_state):
     divergences = [str(item) for item in structured_data.get("price_volume_divergence") or []]
     frame = _editorial_frame_key(structured_data)
     index_move = _index_headline(structured_data)
-    buy_amount = _first_amount_text(" ".join(str(item) for item in structured_data.get("safe_havens_bought") or []))
-    sell_amount = _first_amount_text(" ".join(str(item) for item in structured_data.get("heavyweights_dumped") or []))
+    index_pct = _index_pct(structured_data)
     main_buy = buys[0] if buys else (targets[0] if targets else "")
     main_sell = sells[0] if sells else ""
     main_target = targets[0] if targets else main_buy
     lead_buy_stock, lead_buy_amount = _lead_foreign_buy(structured_data)
     lead_sell_stock, lead_sell_amount = _lead_foreign_sell(structured_data)
+    buy_amount = lead_buy_amount
+    sell_amount = lead_sell_amount
     index_dir = _index_direction_word(structured_data)
+    index_word = index_move_word(index_pct)
+    _main_key, main_row = _stock_fact(facts, main_buy)
+    main_pct = (main_row or {}).get("pct_change")
 
     candidates = []
 
@@ -404,31 +459,38 @@ def _build_local_title_candidates(structured_data, date_label, fatigue_state):
             candidates.append(
                 f"外資狂砍{_stock_name_only(lead_sell_stock)}{lead_sell_amount}！資金往哪裡跑？"
             )
-        # Avoid hard-coding AMD openers; event names belong mid-title only when needed.
-        candidates.append(
-            f"外資狂砍{_stock_name_only(lead_sell_stock)}{lead_sell_amount}！利多竟成提款？"
-        )
+        # 「利多竟成提款」 only when the radar has a fresh event (finding 46).
+        if _has_fresh_event(structured_data):
+            candidates.append(
+                f"外資狂砍{_stock_name_only(lead_sell_stock)}{lead_sell_amount}！利多竟成提款？"
+            )
 
-    if lead_buy_amount and lead_buy_stock and index_move:
+    if lead_buy_amount and lead_buy_stock and index_move and index_dir == "跌":
         candidates.append(
             f"大盤{index_dir}{index_move}！外資卻買{_stock_name_only(lead_buy_stock)}{lead_buy_amount}？"
         )
 
     for item in divergences:
+        key, row = _stock_fact(facts, _extract_stock_text_from_sentence(item))
+        if not row:
+            continue
+        name = row.get("name") or _stock_name_only(_extract_stock_text_from_sentence(item))
+        amount = row.get("foreign_amount")
         if _is_off_board_accumulation(item):
-            stock = _extract_stock_text_from_sentence(item) or main_target
-            amount = _first_amount_text(item)
-            candidates.append(f"外資狂砸{amount}買{_stock_name_only(stock)}，成交量卻沒進榜？")
-            candidates.append(f"{amount}買{_stock_name_only(stock)}，為何沒進量榜？")
+            # Only a stock foreigners really bought and that really missed the volume board.
+            if amount is not None and amount > 0 and row.get("off_rank") is True:
+                candidates.append(f"外資狂砸{format_amount(amount)}買{name}，成交量卻沒進榜？")
+                candidates.append(f"{format_amount(amount)}買{name}，為何沒進量榜？")
             break
-        if "天量" in item or ("成交量" in item and ("賣超" in item or "下跌" in item or "派發" in item or "慘跌" in item)):
-            stock = _extract_stock_text_from_sentence(item) or main_sell or main_buy
-            sell_amt = _sell_amount_for_stock(stock, structured_data) or sell_amount
-            volume_label = _volume_wanzhang_text(item) or "爆量"
-            candidates.append(
-                f"{_stock_name_only(stock)}{volume_label}成交王卻跌！外資賣{sell_amt}誰在跑？"
-            )
-            candidates.append(f"{_stock_name_only(stock)}爆量卻跌，法人方向一致嗎？")
+        if re.search(r"跌出|未進|沒進", item):
+            continue
+        if "天量" in item or ("成交量" in item and re.search(r"賣超|下跌|派發|慘跌", item)):
+            pct = row.get("pct_change")
+            rank = row.get("volume_rank")
+            if amount is not None and amount < 0 and pct is not None and pct < 0 and rank and rank <= 3:
+                volume_label = _volume_wanzhang_text(item) or "爆量"
+                candidates.append(f"{name}{volume_label}成交王卻跌！外資賣{format_amount(amount)}誰在跑？")
+                candidates.append(f"{name}爆量卻跌，法人方向一致嗎？")
             break
 
     if lead_sell_amount and lead_sell_stock and lead_buy_amount and lead_buy_stock:
@@ -437,7 +499,9 @@ def _build_local_title_candidates(structured_data, date_label, fatigue_state):
         )
 
     if lead_buy_amount and lead_buy_stock:
-        candidates.append(f"外資狂砸{lead_buy_amount}買{_stock_name_only(lead_buy_stock)}，成交量卻沒進榜？")
+        _lead_key, lead_row = _stock_fact(facts, lead_buy_stock)
+        if (lead_row or {}).get("off_rank") is True:
+            candidates.append(f"外資狂砸{lead_buy_amount}買{_stock_name_only(lead_buy_stock)}，成交量卻沒進榜？")
         candidates.append(f"外資買超第一{_stock_name_only(lead_buy_stock)}{lead_buy_amount}，量價一致嗎？")
 
     if lead_sell_amount and lead_sell_stock:
@@ -458,22 +522,26 @@ def _build_local_title_candidates(structured_data, date_label, fatigue_state):
         else:
             candidates.append(f"昨天點名{validation_stock}真的動了？今天法人數據怎麼說？")
 
-    if index_move and main_buy:
+    if index_move and main_buy and index_word:
+        # Wording by the actual index percent: -0.02% is not 重挫, +0.22% is not 狂飆.
         if index_dir == "跌":
-            candidates.append(f"{date_label} 台股跌{index_move}，{main_buy}為什麼還強？")
-            candidates.append(f"{date_label} 台股｜{index_move}重挫，{main_buy}逆勢亮燈？")
+            if main_pct is not None and main_pct > 0:
+                candidates.append(f"{date_label} 台股{index_word}{index_move}，{main_buy}為什麼還強？")
+                candidates.append(f"{date_label} 台股｜{index_word}{index_move}，{main_buy}逆勢亮燈？")
+            else:
+                candidates.append(f"{date_label} 台股{index_word}{index_move}，{main_buy}先看哪裡？")
         elif index_dir == "漲":
-            candidates.append(f"{date_label} 台股漲{index_move}，{main_buy}還能追嗎？")
-            candidates.append(f"{date_label} 台股｜狂飆{index_move}，{main_buy}是真行情？")
+            candidates.append(f"{date_label} 台股{index_word}{index_move}，{main_buy}還能追嗎？")
+            candidates.append(f"{date_label} 台股｜{index_word}{index_move}，{main_buy}是真行情？")
         else:
-            candidates.append(f"{date_label} 台股走{index_move}，{main_buy}先看哪裡？")
+            candidates.append(f"{date_label} 台股平盤，{main_buy}先看哪裡？")
 
     if buy_amount and main_buy:
         candidates.append(f"{date_label} 台股｜外資買{buy_amount}，{main_buy}先動？")
         candidates.append(f"{date_label} 台股｜{main_buy}外資買{buy_amount}，量價一致嗎？")
 
     if sell_amount and main_sell and main_buy:
-        candidates.append(f"{date_label} 台股｜外資賣{sell_amount}買{buy_amount}，{main_buy}先看？")
+        candidates.append(f"{date_label} 台股｜外資賣{main_sell}{sell_amount}買{main_buy}{buy_amount}，先看誰？")
         candidates.append(f"{date_label} 台股｜{main_sell}賣壓重，資金轉向{main_buy}？")
 
     if main_target:
@@ -481,17 +549,27 @@ def _build_local_title_candidates(structured_data, date_label, fatigue_state):
         candidates.append(f"{date_label} 台股｜{main_target}是短線觀察還是假突破？")
 
     if frame in {"major_event_day", "重大事件日"}:
-        events = structured_data.get("supply_chain_event_radar") or structured_data.get("macro_events") or []
-        fresh = [
-            row for row in (events or [])
-            if isinstance(row, dict) and row.get("freshness") == "new" and int(row.get("impact_score") or 0) >= 60
-        ]
-        if fresh and main_target:
+        if _has_fresh_event(structured_data) and main_target:
             candidates.append(f"{date_label} 台股｜{main_target}先看哪個條件？")
 
     candidates.append(f"{date_label} 台股盤後｜明天先盯這 2 個條件")
 
-    return select_diverse_titles(candidates, num_titles=len(candidates), fatigue_state=fatigue_state)
+    kept = []
+    for candidate in candidates:
+        issues = check_text(candidate, where="本機候選標題", facts=facts)
+        if has_errors(issues):
+            print(f"  ✂️  [事實對帳] 捨棄本機候選標題：{candidate}（{format_issue(next(i for i in issues if i['level'] == 'error'))}）")
+            continue
+        kept.append(candidate)
+    return select_diverse_titles(kept, num_titles=len(kept), fatigue_state=fatigue_state)
+
+
+def _has_fresh_event(structured_data):
+    events = structured_data.get("supply_chain_event_radar") or structured_data.get("macro_events") or []
+    return any(
+        isinstance(row, dict) and row.get("freshness") == "new" and int(row.get("impact_score") or 0) >= 60
+        for row in events or []
+    )
 
 
 def generate_local_titles(structured_data=None, num_titles=2, date_label=None, channel_story=""):
@@ -614,12 +692,21 @@ def _prefer_thumbnail_main_stocks(items, market_roles, limit=2, structured_data=
     """Prefer high title_priority / elastic_attack; deprioritize direction indicators."""
     ranking = (structured_data or {}).get("focus_ranking") or []
     if ranking:
+        # Labels come from ticker + name, never source_text (「國巨* (+36.6億)」 or a
+        # whole divergence sentence, finding 156); a 「被資金點亮」 buy focus must be
+        # a stock foreigners bought (local facts), not a sell-side / divergence row.
+        facts = build_fact_index(structured_data)
         out = []
         for row in ranking:
             if row.get("base_role") == "direction_indicator":
                 continue
-            text = row.get("source_text") or f"{row.get('ticker', '')} {row.get('name', '')}".strip()
-            if text:
+            key = facts.lookup(row.get("ticker"), row.get("name"))
+            fact = facts.fact(key) if key else None
+            amount = (fact or {}).get("foreign_amount")
+            if fact is not None and amount is not None and amount <= 0:
+                continue
+            text = facts.label(key) if key else f"{row.get('ticker', '')} {row.get('name', '')}".strip()
+            if text and text not in out:
                 out.append(text)
             if len(out) >= limit:
                 return out[:limit]
@@ -669,121 +756,154 @@ def _stock_overlay_primary(stock_text, fallback="主角股"):
     return text or fallback
 
 
-def _named_stocks_from_structured(structured_data):
-    """Name -> ticker from daily lists / prediction targets."""
-    mapping = {}
-    structured_data = structured_data or {}
-    for item in structured_data.get("prediction_targets") or []:
-        if not isinstance(item, dict):
-            continue
-        ticker = str(item.get("id") or item.get("ticker") or "").strip()
-        name = str(item.get("name") or "").strip()
-        if name:
-            mapping[name] = ticker or mapping.get(name, "")
-    for blob in list(structured_data.get("safe_havens_bought") or []) + list(
-        structured_data.get("heavyweights_dumped") or []
-    ):
-        text = str(blob)
-        ticker = ""
-        t_match = re.search(r"\b(\d{4,6})\b", text)
-        if t_match:
-            ticker = t_match.group(1)
-        name = re.sub(r"\([^)]*\)", "", text)
-        name = re.sub(r"[+\-]?\d+(?:\.\d+)?\s*億", "", name)
-        name = re.sub(r"\s+", " ", name).strip(" ：:，,")
-        if name:
-            mapping[name] = ticker or mapping.get(name, "")
-    return mapping
-
-
 def parse_title_hero(title, structured_data=None):
-    """Pull the opening stock + amount so A/B overlays share one fact."""
-    text = str(title or "")
-    names = _named_stocks_from_structured(structured_data)
-    ticker = ""
-    t_match = re.search(r"\b(\d{4})\b", text)
-    if t_match:
-        ticker = t_match.group(1)
-    amount = _first_amount_text(text)
-    verb = ""
-    head = text[:28]
-    if any(token in head for token in ("砍", "提款", "賣")):
-        verb = "砍"
-    elif any(token in head for token in ("掃", "買", "狂掃", "砸", "密吸")):
-        verb = "買"
-    name = ""
-    hits = []
-    for candidate, sid in names.items():
-        needle = re.sub(r"[\*＊]", "", str(candidate or ""))
-        pos = text.find(candidate)
-        if pos < 0 and needle:
-            pos = text.find(needle)
-        if pos >= 0:
-            hits.append((pos, candidate, sid))
-    hits.sort()
-    if hits:
-        name = hits[0][1]
-        ticker = ticker or hits[0][2]
-    if not name:
-        name_match = re.search(
-            r"(?:狂)?(?:砍|掃|買|賣超?|提款|砸|密吸)([\u4e00-\u9fff]{2,4})",
-            text,
-        )
-        if name_match:
-            name = name_match.group(1).strip()
-    if name and not ticker:
-        ticker = names.get(name) or _lookup_ticker_by_name(name) or ""
-    if ticker and not name:
-        for candidate, sid in names.items():
-            if sid == ticker:
-                name = candidate
-                break
-    return {
-        "ticker": str(ticker or "").strip(),
-        "name": str(name or "").strip(),
-        "amount": amount,
-        "verb": verb,
-    }
+    """
+    The stock a title opens with, with ITS local facts (findings 43/44/121/159):
+    exact name / ticker match (南亞 ≠ 南亞科), verb from the sign of its own
+    foreign amount, amount from its own facts — never keywords in the title,
+    never a default 「買」, never the first 「億」 in the title or a list.
+    """
+    facts = build_fact_index(structured_data or {})
+    hero = choose_hero([title], facts=facts)
+    if not hero:
+        return {"ticker": "", "name": "", "amount": "", "verb": ""}
+    return hero
+
+
+def _hero_label(hero):
+    return hero.get("label") or " ".join(p for p in (hero.get("ticker"), hero.get("name")) if p).strip()
 
 
 def _control_overlay(hero):
+    """A: 「1303 南亞」 / 「外資買55.3億」 — all from the hero's own facts."""
     name = hero.get("name") or ""
-    ticker = hero.get("ticker") or ""
+    primary = _hero_label(hero) or name or "主角股"
+    verb = hero.get("verb") or ""
     amount = hero.get("amount") or ""
-    verb = hero.get("verb") or "買"
-    primary = " ".join(part for part in (ticker, name) if part).strip() or name or ticker or "主角股"
-    if amount:
+    pct = hero.get("pct_change")
+    if verb and amount:
         secondary = f"外資{verb}{amount}"
+    elif pct is not None:
+        word = stock_move_word(pct)
+        secondary = f"{word}！" if word in {"漲停", "跌停", "平盤"} else f"{word}{format_pct_abs(pct)}"
     else:
         secondary = "看這檔"
     return primary, secondary
 
 
 def _fragment_overlay(hero):
+    """B: same hero, same number, fragment syntax: 「買55.3億」 / 「噴9.4%！」."""
     name = hero.get("name") or hero.get("ticker") or "這檔"
-    ticker = hero.get("ticker") or ""
-    amount = hero.get("amount") or ""
     verb = hero.get("verb") or ""
-    if amount and verb == "砍":
-        # 短句實驗：大字是金額動作；不要用已疲勞的「誰在收」。
-        return f"砍{amount}", "誰在買?"
-    if amount and verb == "買":
-        label = f"{ticker} {name}".strip() if ticker else name
-        return label, f"{verb}{amount}"
-    if amount:
-        return name, amount
-    return name, "還紅?"
+    amount = hero.get("amount") or ""
+    pct = hero.get("pct_change")
+    word = stock_move_word(pct) if pct is not None else ""
+    if verb and amount:
+        if not word:
+            return f"{verb}{amount}", f"{name}?"
+        against = (verb == "買" and pct < 0) or (verb == "砍" and pct > 0)
+        if word == "平盤":
+            return f"{verb}{amount}", ("卻守平盤?" if verb == "砍" else "卻平盤?")
+        if word in {"漲停", "跌停"}:
+            return f"{verb}{amount}", (f"卻{word}?" if against else f"{word}！")
+        text = f"{word}{format_pct_abs(pct)}"
+        return f"{verb}{amount}", (f"卻{text}?" if against else f"{text}！")
+    if word:
+        return name, (f"{word}！" if word in {"漲停", "跌停", "平盤"} else f"{word}{format_pct_abs(pct)}")
+    return name, "看這檔?"
 
 
-def align_ab_overlays(scenarios, titles, structured_data=None):
+def _question_overlay(hero, fallback_primary="", fallback_secondary=""):
+    """A/B text arm B: same stock, same number, as a question (「1303 南亞」/「外資為何買55.3億？」)."""
+    primary = _hero_label(hero) or hero.get("name") or fallback_primary or "主角股"
+    verb = hero.get("verb") or ""
+    amount = hero.get("amount") or ""
+    pct = hero.get("pct_change")
+    if verb and amount:
+        return primary, f"外資為何{verb}{amount}？"
+    if pct is not None:
+        word = stock_move_word(pct)
+        move = word if word in {"漲停", "跌停", "平盤"} else f"{word}{format_pct_abs(pct)}"
+        return primary, f"為何{move}？"
+    secondary = re.sub(r"[?？!！。]+$", "", str(fallback_secondary or "").strip()) or "看這檔"
+    return (fallback_primary or primary), f"{secondary}？"
+
+
+def _hero_scene(hero):
+    label = _hero_label(hero) or "主角股"
+    verb = hero.get("verb")
+    amount = hero.get("amount")
+    pct = hero.get("pct_change")
+    bits = []
+    if verb == "買" and amount:
+        bits.append(f"{label} 被外資 {amount} 的紅色資金光束點亮")
+    elif verb == "砍" and amount:
+        bits.append(f"{label} 的票據被外資抽走 {amount}，綠色賣壓往外流")
+    else:
+        bits.append(f"{label} 站在聚光燈中央")
+    if pct is not None:
+        word = stock_move_word(pct)
+        if word in {"漲停", "跌停", "平盤"}:
+            bits.append(f"股價{word}")
+        else:
+            bits.append(f"股價{word}{format_pct_abs(pct)}")
+    return "，".join(bits) + f"；{hero.get('name') or label} 是畫面唯一主角，其他股票只當背景。"
+
+
+def _same_stock(label, hero):
+    text = str(label or "")
+    ticker = hero.get("ticker") or ""
+    name = hero.get("name") or ""
+    if ticker and re.search(rf"(?<!\d){re.escape(ticker)}(?!\d)", text):
+        return True
+    bare = re.sub(r"^\d{4,6}[A-Z]?\s*", "", text).split("(")[0].strip().strip("*＊")
+    return bool(name) and bare == name.strip("*＊")
+
+
+_FLOW_WORD = {"買": "買超", "砍": "賣超"}
+_BUY_FLOW_WORDS = re.compile(r"買超|買進|買盤|吸籌|掃貨|建倉|紅色資金")
+_SELL_FLOW_WORDS = re.compile(r"賣超|賣壓|提款|出貨|倒貨|抽走|抽離|撤出")
+
+
+def _scene_contradicts_hero(scene, hero):
+    """A scene that only speaks of the opposite flow (台積電 -168億 under 「買超」)."""
+    verb = hero.get("verb")
+    text = str(scene or "")
+    if verb == "砍":
+        return bool(_BUY_FLOW_WORDS.search(text)) and not _SELL_FLOW_WORDS.search(text)
+    if verb == "買":
+        return bool(_SELL_FLOW_WORDS.search(text)) and not _BUY_FLOW_WORDS.search(text)
+    return False
+
+
+def _anchor_scenario_to_hero(row, hero):
+    """Scene / main_stocks follow the chosen hero (finding 48)."""
+    label = _hero_label(hero)
+    if not label:
+        return row
+    others = [stock for stock in (row.get("main_stocks") or []) if stock and not _same_stock(stock, hero)]
+    others = [re.sub(r"\s*[（(][^)）]*[)）]", "", str(stock)).strip() for stock in others]
+    row["main_stocks"] = [label] + [stock for stock in others if stock][:1]
+    name = hero.get("name") or label
+    scene = str(row.get("scene") or "")
+    if name not in scene or _scene_contradicts_hero(scene, hero):
+        row["scene"] = _hero_scene(hero)
+    metaphor = str(row.get("visual_metaphor") or "")
+    if metaphor and name not in metaphor and re.search(r"[\u4e00-\u9fff]{2,}\*?\s*(?:票據|\()", metaphor):
+        row["visual_metaphor"] = (
+            "主角票據被紅色買盤光束點亮，背景是退場賣壓形成的市場風暴"
+            if hero.get("verb") == "買"
+            else "主角票據被綠色賣壓抽離，背景仍有零星承接光點"
+        )
+    return row
+
+
+def align_ab_overlays(scenarios, titles, structured_data=None, hero=None):
     """A = complete 股名+金額; B = fragment of the same hero. Same stock, same number."""
     titles = titles or []
-    hero = parse_title_hero(titles[0] if titles else "", structured_data)
-    if not hero.get("amount") and len(titles) > 1:
-        extra = parse_title_hero(titles[1], structured_data)
-        if extra.get("amount"):
-            hero = extra
-    if not hero.get("name") and not hero.get("ticker"):
+    if hero is None:
+        hero = choose_hero(titles, structured_data or {})
+    if not hero or not (hero.get("name") or hero.get("ticker")):
         return scenarios
     out = []
     for index, scenario in enumerate(scenarios or []):
@@ -811,26 +931,22 @@ def align_ab_overlays(scenarios, titles, structured_data=None):
         row["overlay_primary"] = primary
         row["overlay_secondary"] = secondary
         row["hero"] = hero
-        out.append(row)
+        out.append(_anchor_scenario_to_hero(row, hero))
     return out
 
 
 def _buy_amount_for_stock(stock_text, structured_data):
-    stock_name = _stock_name_only(stock_text)
-    for item in structured_data.get("safe_havens_bought") or []:
-        item_text = str(item)
-        if stock_name and stock_name in item_text:
-            return _first_amount_text(item_text)
-    return _first_amount_text(" ".join(str(item) for item in structured_data.get("safe_havens_bought") or []))
+    """That stock's own foreign buy amount (exact ticker/name); "" when unknown or not a buy."""
+    _key, row = _stock_fact(build_fact_index(structured_data), stock_text)
+    amount = (row or {}).get("foreign_amount")
+    return format_amount(amount) if amount is not None and amount > 0 else ""
 
 
 def _sell_amount_for_stock(stock_text, structured_data):
-    stock_name = _stock_name_only(stock_text)
-    for item in structured_data.get("heavyweights_dumped") or []:
-        item_text = str(item)
-        if stock_name and stock_name in item_text:
-            return _first_amount_text(item_text)
-    return _first_amount_text(" ".join(str(item) for item in structured_data.get("heavyweights_dumped") or []))
+    """That stock's own foreign sell amount (exact ticker/name); "" when unknown or not a sell."""
+    _key, row = _stock_fact(build_fact_index(structured_data), stock_text)
+    amount = (row or {}).get("foreign_amount")
+    return format_amount(amount) if amount is not None and amount < 0 else ""
 
 
 def _scenario_brief(copy, titles, main_stocks, paired_index=0):
@@ -851,9 +967,51 @@ def _scenario_brief(copy, titles, main_stocks, paired_index=0):
     }
 
 
-def _collect_scenario_candidates(structured_data, titles):
+def _top_listed(facts, structured_data, key_name, exclude_key=None):
+    """(key, label, amount_text) of the first leaderboard stock that is not the hero."""
+    for raw in structured_data.get(key_name) or []:
+        labels = _extract_stock_text([raw], limit=1)
+        key, row = _stock_fact(facts, labels[0] if labels else "")
+        if not row or key == exclude_key:
+            continue
+        return key, facts.label(key), format_amount(row.get("foreign_amount"))
+    return None, "", ""
+
+
+def _scenario_counterpart(facts, structured_data, titles, hero, key_name):
+    """
+    (key, label, amount_text) of the 資金換手 counterpart: the opposite-side stock title A
+    names with a local amount (the same pick as the /2 auto theme, so the theme and the
+    cover's Core situation tell one story), else the leaderboard's first non-hero stock.
+    """
+    if hero and hero.get("foreign_amount"):
+        try:
+            from modules.visual_scene import title_a_counterpart
+
+            named = title_a_counterpart(facts, titles, hero)
+        except Exception:
+            named = None
+        if named:
+            key, _row, amount = named
+            return key, facts.label(key), amount
+    return _top_listed(facts, structured_data, key_name, exclude_key=(hero or {}).get("key"))
+
+
+def _collect_scenario_candidates(structured_data, titles, hero=None):
+    """
+    Scenario cards built around the chosen hero (finding 48): main_name, scene and
+    main_stocks start from the hero, every amount is the stock's own local fact
+    (finding 45), and each family only appears when its facts hold — 榜外吸籌 needs
+    a real off-board buy, 天量出貨 a top-3 volume sell, 大盤 scenes |pct| ≥ 1%
+    with wording by size (findings 120/122).
+    """
     structured_data = structured_data or {}
     titles = titles or ["台股今日分析"]
+    facts = build_fact_index(structured_data)
+    hero = hero or {}
+    hero_key = hero.get("key")
+    hero_label = _hero_label(hero) if hero else ""
+    hero_name = hero.get("name") or hero_label
     market_roles = _load_market_roles()
     formal_targets = _extract_stock_text(structured_data.get("prediction_targets"), limit=2)
     buy_focus = _prefer_thumbnail_main_stocks(
@@ -865,23 +1023,38 @@ def _collect_scenario_candidates(structured_data, titles):
     sell_risk = _extract_stock_text(structured_data.get("heavyweights_dumped"), limit=2)
     validations = _extract_stock_text(structured_data.get("prev_day_picks_result"), limit=2)
     divergences = [str(item) for item in structured_data.get("price_volume_divergence") or []]
-    main_stocks = formal_targets or buy_focus
+    base_stocks = formal_targets or buy_focus
+    if hero_label:
+        main_stocks = [hero_label] + [stock for stock in base_stocks if not _same_stock(stock, hero)][:1]
+    else:
+        main_stocks = list(base_stocks)
     main_name = main_stocks[0] if main_stocks else "主力"
+    main_short = _stock_name_only(main_name)
+    _main_key, main_row = _stock_fact(facts, main_name)
+    main_row = main_row or {}
+    main_amount = main_row.get("foreign_amount")
+    main_pct = main_row.get("pct_change")
+    main_verb = "買" if (main_amount or 0) > 0 else ("砍" if (main_amount or 0) < 0 else "")
     index_move = _index_headline(structured_data)
+    index_pct = _index_pct(structured_data)
     candidates = []
 
     for item in divergences:
         if not _is_off_board_accumulation(item):
             continue
-        amount = _first_amount_text(item)
         focus_stock = _extract_stock_text_from_sentence(item) or main_name
+        key, row = _stock_fact(facts, focus_stock)
+        amount = (row or {}).get("foreign_amount")
+        if not row or amount is None or amount <= 0 or row.get("off_rank") is not True:
+            break  # 「賣超」 or a stock that was on the volume board is not 榜外吸籌
+        focus_stock = facts.label(key)
         candidates.append(
             {
                 "scenario_name": "榜外吸籌",
                 "family": "off_board",
                 "priority": 92,
                 "overlay_primary": _stock_overlay_primary(focus_stock),
-                "overlay_secondary": f"外資買{amount}" if amount else "高買低量",
+                "overlay_secondary": f"外資買{format_amount(amount)}",
                 "main_stocks": [focus_stock] + [stock for stock in main_stocks if stock != focus_stock],
                 "scene": (
                     f"成交量榜像一座透明排行榜，{focus_stock} 沒站在最亮的位置，"
@@ -907,118 +1080,128 @@ def _collect_scenario_candidates(structured_data, titles):
         )
         break
 
-    combined = " ".join(divergences + [str(item) for item in structured_data.get("safe_havens_bought") or []] + [str(item) for item in structured_data.get("heavyweights_dumped") or []])
-    if "成交量" in combined and ("賣超" in combined or "重挫" in combined or "-" in combined):
-        buy_amount = _buy_amount_for_stock(main_name, structured_data)
+    rank = main_row.get("volume_rank")
+    if main_verb == "砍" and rank and rank <= 3 and main_pct is not None and main_pct < 0:
         candidates.append(
             {
                 "scenario_name": "天量出貨",
                 "family": "volume_trap",
                 "priority": 88,
                 "overlay_primary": _stock_overlay_primary(main_name),
-                "overlay_secondary": f"外資買{buy_amount}" if buy_amount else "爆量觀察",
+                "overlay_secondary": f"外資砍{format_amount(main_amount)}",
                 "main_stocks": main_stocks,
                 "scene": (
-                    f"{main_name} 成為畫面唯一主角，資金光束集中灌入主角票據；"
-                    "背景保留高量換手與賣壓，但不要蓋過股名主角。"
+                    f"{main_name} 成交量第 {rank} 名卻收跌 {format_pct_abs(main_pct)}，"
+                    "綠色賣壓從主角票據往外抽；背景是高量換手，但不要蓋過股名主角。"
                 ),
-                "emotion": "主角浮現、資金集中、警戒",
-                "visual_metaphor": "主角股票被資金光束點亮，旁邊是退場賣壓形成的市場風暴",
+                "emotion": "主角浮現、量價背離、警戒",
+                "visual_metaphor": "爆量的成交儀表旁，主角票據被綠色賣壓抽離",
                 "avoid": ["不要單純畫暴跌恐慌", "不要公司 Logo", "不要塞滿數字"],
             }
         )
 
-    if index_move and main_name:
-        index_dir = _index_direction_word(structured_data)
-        if index_dir == "跌":
+    index_word = index_move_word(index_pct)
+    if index_move and main_name and index_pct is not None and abs(index_pct) >= 1.0 and main_pct is not None:
+        if index_pct < 0 and main_pct > 0:
             candidates.append(
                 {
                     "scenario_name": "大跌守線",
                     "family": "anomaly",
                     "priority": 86,
-                    "overlay_primary": f"跌{index_move}",
-                    "overlay_secondary": f"{_stock_name_only(main_name)}還紅？",
+                    "overlay_primary": f"{index_word}{index_move}",
+                    "overlay_secondary": f"{main_short}還紅？",
                     "main_stocks": main_stocks,
                     "scene": (
-                        f"大盤重挫 {index_move}，但 {main_name} 卻逆勢站穩，"
+                        f"大盤{index_word} {index_move}，但 {main_name} 卻逆勢收漲 {format_pct_abs(main_pct)}，"
                         "畫面要呈現市場恐慌與個股韌性的反差。"
                     ),
                     "emotion": "恐慌中的例外、追查原因",
-                    "visual_metaphor": "烏雲籠罩的大盤背景中，一檔股票仍被聚光燈照亮",
+                    "visual_metaphor": "綠色烏雲籠罩的大盤背景中，一檔紅色股票仍被聚光燈照亮",
                     "avoid": ["不要過度恐嚇", "不要公司 Logo", "不要固定左右分割"],
                 }
             )
-        elif index_dir == "漲":
+        elif index_pct > 0 and main_pct > 0:
             candidates.append(
                 {
                     "scenario_name": "強彈追蹤",
                     "family": "anomaly",
                     "priority": 86,
-                    "overlay_primary": f"漲{index_move}",
-                    "overlay_secondary": f"{_stock_name_only(main_name)}先看？",
+                    "overlay_primary": f"{index_word}{index_move}",
+                    "overlay_secondary": f"{main_short}先看？",
                     "main_stocks": main_stocks,
                     "scene": (
-                        f"大盤強彈 {index_move}，資金聚光燈先打在 {main_name}，"
+                        f"大盤{index_word} {index_move}，資金聚光燈先打在 {main_name}，"
                         "畫面要呈現反攻日與核心標的的同步升溫。"
                     ),
                     "emotion": "升溫、追查、等待確認",
-                    "visual_metaphor": "綠色反攻能量從大盤湧向被點亮的個股票據",
+                    "visual_metaphor": "紅色反攻能量從大盤湧向被點亮的個股票據",
                     "avoid": ["不要畫成慶祝狂歡", "不要公司 Logo", "不要固定左右分割"],
                 }
             )
 
-    if sell_risk and (buy_focus or formal_targets):
-        buy_stock = (buy_focus or formal_targets)[0]
-        sell_stock = sell_risk[0]
-        buy_amount = _buy_amount_for_stock(buy_stock, structured_data)
-        sell_amount = _sell_amount_for_stock(sell_stock, structured_data)
-        candidates.append(
-            {
-                "scenario_name": "資金換手",
-                "family": "rotation",
-                "priority": 84,
-                "overlay_primary": f"{_stock_name_only(sell_stock)}被砍" if sell_stock else "權值被砍",
-                "overlay_secondary": f"{_stock_name_only(buy_stock)}接棒？" if buy_stock else "誰接棒？",
-                "main_stocks": [buy_stock, sell_stock],
-                "scene": (
-                    f"{_stock_name_only(sell_stock)} 遭外資提款、"
-                    f"{_stock_name_only(buy_stock)} 被資金點亮，形成明顯的換手對比。"
-                ),
-                "emotion": "反轉、警戒、資金轉向",
-                "visual_metaphor": f"{_stock_name_only(sell_stock)} 票據裂開，資金流向 {_stock_name_only(buy_stock)} 的發光票據",
-                "avoid": ["不要做成固定紅綠對半", "不要真實公司 Logo", "不要用『被砍/接棒』當唯一問法"],
-                "has_variant": True,
-                "variant": {
-                    "scenario_name": "法人對決",
+    if sell_risk and (buy_focus or formal_targets or hero_label):
+        # The hero's amount is worded as in the title when the title states it (同股同數字).
+        hero_amount = hero.get("amount") or format_amount(main_amount)
+        if hero_label and main_verb == "砍":
+            sell_key, sell_stock, sell_amount = hero_key, hero_label, hero_amount
+            buy_key, buy_stock, buy_amount = _scenario_counterpart(facts, structured_data, titles, hero, "safe_havens_bought")
+        elif hero_label and main_verb == "買":
+            buy_key, buy_stock, buy_amount = hero_key, hero_label, hero_amount
+            sell_key, sell_stock, sell_amount = _scenario_counterpart(facts, structured_data, titles, hero, "heavyweights_dumped")
+        else:
+            buy_stock = (buy_focus or formal_targets)[0] if (buy_focus or formal_targets) else ""
+            sell_stock = sell_risk[0]
+            buy_amount = _buy_amount_for_stock(buy_stock, structured_data)
+            sell_amount = _sell_amount_for_stock(sell_stock, structured_data)
+        if buy_stock and sell_stock:
+            candidates.append(
+                {
+                    "scenario_name": "資金換手",
                     "family": "rotation",
-                    "overlay_primary": f"賣{sell_amount}" if sell_amount else "賣壓重",
-                    "overlay_secondary": f"買{buy_amount}" if buy_amount else "買盤現身",
+                    "priority": 84,
+                    "overlay_primary": f"{_stock_name_only(sell_stock)}被砍",
+                    "overlay_secondary": f"{_stock_name_only(buy_stock)}接棒？",
+                    "main_stocks": [buy_stock, sell_stock] if main_verb != "砍" else [sell_stock, buy_stock],
                     "scene": (
-                        f"同一交易日出現賣 {sell_amount or '壓'} 與買 {buy_amount or '盤'} 的對撞，"
-                        f"焦點落在 {_stock_name_only(buy_stock)} 是否成為新觀察核心。"
+                        f"{_stock_name_only(sell_stock)} 遭外資提款{(' ' + sell_amount) if sell_amount else ''}、"
+                        f"{_stock_name_only(buy_stock)} 被外資{('買進 ' + buy_amount) if buy_amount else '資金'}點亮，形成明顯的換手對比。"
                     ),
-                    "emotion": "對撞、追查、等待確認",
-                    "visual_metaphor": "兩股法人能量在大盤戰場中央正面对撞",
-                },
-            }
-        )
-        candidates.append(
-            {
-                "scenario_name": "砍一邊買一邊",
-                "family": "rotation",
-                "priority": 78,
-                "overlay_primary": f"砍{sell_amount} 買{buy_amount}".strip(),
-                "overlay_secondary": "法人對決",
-                "main_stocks": [buy_stock, sell_stock],
-                "scene": (
-                    "同一個金融戰場中，一邊是被賣出的標的被紅色能量推離，"
-                    "另一邊是被買進的標的被資金護盾托起。"
-                ),
-                "emotion": "反轉、對比、等待確認",
-                "visual_metaphor": "紅色撤退能量與金色買進護盾在同一畫面對撞",
-                "avoid": ["不要抽象說資金輪動", "不要真實 Logo", "不要固定紅綠對半"],
-            }
-        )
+                    "emotion": "反轉、警戒、資金轉向",
+                    "visual_metaphor": f"{_stock_name_only(sell_stock)} 票據裂開，資金流向 {_stock_name_only(buy_stock)} 的發光票據",
+                    "avoid": ["不要做成固定紅綠對半", "不要真實公司 Logo", "不要用『被砍/接棒』當唯一問法"],
+                    "has_variant": True,
+                    "variant": {
+                        "scenario_name": "法人對決",
+                        "family": "rotation",
+                        "overlay_primary": f"賣{sell_amount}" if sell_amount else "賣壓重",
+                        "overlay_secondary": f"買{buy_amount}" if buy_amount else "買盤現身",
+                        "scene": (
+                            f"同一交易日出現賣 {sell_amount or '壓'} 與買 {buy_amount or '盤'} 的對撞，"
+                            f"焦點落在 {_stock_name_only(main_name)} 是否成為新觀察核心。"
+                        ),
+                        "emotion": "對撞、追查、等待確認",
+                        "visual_metaphor": "兩股法人能量在大盤戰場中央正面對撞",
+                    },
+                }
+            )
+            if sell_amount and buy_amount:
+                candidates.append(
+                    {
+                        "scenario_name": "砍一邊買一邊",
+                        "family": "rotation",
+                        "priority": 78,
+                        "overlay_primary": f"砍{sell_amount} 買{buy_amount}",
+                        "overlay_secondary": "法人對決",
+                        "main_stocks": [buy_stock, sell_stock] if main_verb != "砍" else [sell_stock, buy_stock],
+                        "scene": (
+                            f"同一個金融戰場中，{_stock_name_only(sell_stock)} 被綠色賣壓推離，"
+                            f"{_stock_name_only(buy_stock)} 被紅色買盤護盾托起。"
+                        ),
+                        "emotion": "反轉、對比、等待確認",
+                        "visual_metaphor": "綠色撤退能量與紅色買進護盾在同一畫面對撞",
+                        "avoid": ["不要抽象說資金輪動", "不要真實 Logo", "不要固定紅綠對半"],
+                    }
+                )
 
     # High-priority「驗收現場」only when placement=lead; otherwise skip so /2 doesn't daily-repeat it.
     ef_sc = structured_data.get("editorial_frame") or {}
@@ -1052,8 +1235,8 @@ def _collect_scenario_candidates(structured_data, titles):
                 "overlay_secondary": "誰在撐盤？",
                 "main_stocks": main_stocks,
                 "scene": (
-                    "交易現場表面看似平靜，但桌面下方有巨大的資金機械正在運轉，"
-                    "暗示買超與成交量之間的不尋常落差。"
+                    f"交易現場表面看似平靜，但 {main_name} 桌面下方有巨大的資金機械正在運轉，"
+                    f"暗示{_FLOW_WORD.get(main_verb, '法人資金')}與成交量之間的不尋常落差。"
                 ),
                 "emotion": "懸疑、暗藏訊號、即將揭露",
                 "visual_metaphor": "安靜檯面與地下發光管線形成對比",
@@ -1077,9 +1260,10 @@ def _collect_scenario_candidates(structured_data, titles):
         event_sell = _stock_name_only(sell_risk[0]) if sell_risk else ""
         event_buy = _stock_name_only((buy_focus or formal_targets or [main_name])[0])
         event_sell_amt = _sell_amount_for_stock(sell_risk[0], structured_data) if sell_risk else ""
+        event_buy_amt = _buy_amount_for_stock(event_buy, structured_data)
         if event_sell and event_buy and event_sell != event_buy:
             event_primary = f"{event_sell}{event_sell_amt}" if event_sell_amt else f"{event_sell}被提款"
-            event_secondary = f"{event_buy}反攻！"
+            event_secondary = f"{event_buy}買{event_buy_amt}" if event_buy_amt else f"{event_buy}先看？"
         else:
             event_primary = "事件來了"
             event_secondary = event_buy or "台股先看"
@@ -1098,17 +1282,25 @@ def _collect_scenario_candidates(structured_data, titles):
             }
         )
 
+    if main_verb == "砍":
+        fallback_primary = f"{main_short} 退場？"
+        fallback_scene = f"{main_name} 的交易票據被綠色賣壓抽走，市場正在檢查這是短線調節還是趨勢轉弱。"
+        fallback_metaphor = "被抽離的交易票據與等待驗證的成交量儀表"
+    else:
+        fallback_primary = f"{main_short} 點火？"
+        fallback_scene = f"{main_name} 的交易票據被資金光束點亮，市場正在檢查這是短線追價還是真正建倉。"
+        fallback_metaphor = "被點亮的交易票據與等待驗證的成交量儀表"
     candidates.append(
         {
             "scenario_name": "主力點火",
             "family": "fallback",
             "priority": 60,
-            "overlay_primary": f"{_stock_name_only(main_name)} 點火？",
-            "overlay_secondary": "誰在買？",
+            "overlay_primary": fallback_primary,
+            "overlay_secondary": f"外資{main_verb}{format_amount(main_amount)}" if main_verb else "看量能",
             "main_stocks": main_stocks,
-            "scene": f"{main_name} 的交易票據被資金光束點亮，市場正在檢查這是短線追價還是真正建倉。",
+            "scene": fallback_scene,
             "emotion": "等待確認、升溫、追查買盤",
-            "visual_metaphor": "被點亮的交易票據與等待驗證的成交量儀表",
+            "visual_metaphor": fallback_metaphor,
             "avoid": ["不要把方向指標股畫成最大飆股", "不要公司 Logo", "不要固定左右分割"],
         }
     )
@@ -1132,14 +1324,21 @@ def generate_scenario_briefs(
     count=2,
     date_label=None,
     channel_story="",
+    hero=None,
+    run_date=None,
 ):
     """
-    Generate thumbnail scenario briefs locally with formula-fatigue rotation.
+    Generate thumbnail scenario briefs locally with formula-fatigue rotation
+    (``run_date``'s own earlier prompts are ignored, so a same-day rerun keeps its scenario).
+    The hero is chosen first (from the titles + local facts) and every card is
+    built around it.
     """
     structured_data = structured_data or {}
     titles = titles or ["台股今日分析"]
-    fatigue_state = build_fatigue_state(channel_story=channel_story)
-    candidates = _collect_scenario_candidates(structured_data, titles)
+    if hero is None:
+        hero = choose_hero(titles, structured_data)
+    fatigue_state = build_fatigue_state(channel_story=channel_story, exclude_date=run_date)
+    candidates = _collect_scenario_candidates(structured_data, titles, hero=hero)
     selected = pick_non_fatigued(candidates, fatigue_state, limit=count)
 
     if len(selected) < count:
@@ -1153,7 +1352,7 @@ def generate_scenario_briefs(
     for index, scenario in enumerate(selected):
         scenario["paired_title"] = titles[min(index, len(titles) - 1)] if titles else "台股今日分析"
 
-    selected = align_ab_overlays(selected[:count], titles, structured_data)
+    selected = align_ab_overlays(selected[:count], titles, structured_data, hero=hero)
     return selected[:count]
 
 
@@ -1186,6 +1385,89 @@ AB_COMPOSITION_VARIANTS = [
         ),
     },
 ]
+
+
+# Single-variable cover A/B (data/ab_test_plan.json): both covers use this composition;
+# only the declared A/B variable may change between them.
+AB_SHARED_COMPOSITION = {
+    "id": "shared",
+    "label": "A/B 共用構圖（只差 A/B 變數）",
+    "directive": (
+        "COMPOSITION (identical for cover A and cover B — only the declared A/B variable may differ): "
+        "camera = 3/4 medium-wide view at eye level; the hero stock prop or plaque is large at center-right; "
+        "supporting elements stay in the background; keep a clean negative-space area for the headline. "
+        "Do not invent a different camera angle or layout for this cover."
+    ),
+}
+
+_NUMBER_LAYOUTS = {
+    "standard": "Put them in a high-contrast dark or bright negative-space panel occupying about 35% of the image. ",
+    "big": (
+        "NUMBER LAYOUT (A/B variable): the number line is the largest element — a headline plaque about 45% of "
+        "the image in the lower-left, the number glyphs about one third of the image height. "
+    ),
+    "small": (
+        "NUMBER LAYOUT (A/B variable): put both headline lines in a compact badge in the upper-right corner "
+        "(about 15% of the image); the scene and the hero prop fill the rest of the frame. "
+    ),
+}
+
+# Composition-variant avoid notes from the old two-layout A/B; meaningless once both covers share one layout.
+_OLD_LAYOUT_AVOIDS = {"不要特寫雙人對峙當主構圖", "不要中景角色決鬥構圖", "不要俯視全圖資金地圖當主構圖", "不要與 A 組相同鏡頭與主體比例"}
+
+
+def cover_number(primary, secondary):
+    """The verified number a cover prints: first 「N億」, else first 「N%」 ("" when none)."""
+    text = f"{primary or ''} {secondary or ''}"
+    match = re.search(r"\d+(?:\.\d+)?\s*億", text) or re.search(r"\d+(?:\.\d+)?\s*[%％]", text)
+    return re.sub(r"\s+", "", match.group(0)) if match else ""
+
+
+def build_ab_cover_briefs(base, hypothesis, hero, base_style, paired_title):
+    """
+    Covers A and B from ONE scenario brief: same hero, same verified number, same
+    title pairing (title A), same scene and composition; only the hypothesis
+    variable (style / text / characters / number_layout) differs.
+    """
+    from modules.cover_ab_test import constants_line, levers_for, variable_line
+
+    hero = hero or {}
+    base = dict(base or {})
+    if hero.get("name") or hero.get("ticker"):
+        control = _control_overlay(hero)
+    else:
+        control = (base.get("overlay_primary") or paired_title, base.get("overlay_secondary") or "")
+    number = cover_number(*control)
+    briefs = []
+    for letter in ("a", "b"):
+        levers = levers_for(hypothesis, letter)
+        brief = dict(base)
+        brief["avoid"] = [bit for bit in (base.get("avoid") or []) if bit not in _OLD_LAYOUT_AVOIDS]
+        brief["main_stocks"] = list(base.get("main_stocks") or [])
+        brief["paired_title"] = paired_title
+        brief["hero"] = hero
+        if levers["text"] == "question":
+            brief["overlay_primary"], brief["overlay_secondary"] = _question_overlay(hero, *control)
+        else:
+            brief["overlay_primary"], brief["overlay_secondary"] = control
+        brief["style_key"] = "war_room_board" if levers["style"] == "war_room_board" else base_style
+        brief["character_mode"] = levers["characters"]
+        brief["number_layout"] = levers["number_layout"]
+        brief["composition_id"] = AB_SHARED_COMPOSITION["id"]
+        brief["composition_label"] = AB_SHARED_COMPOSITION["label"]
+        brief["composition_directive"] = AB_SHARED_COMPOSITION["directive"]
+        brief["ab_arm"] = letter
+        brief["ab_hypothesis"] = hypothesis
+        brief["ab_levers"] = levers
+        brief["ab_variable_line"] = variable_line(hypothesis, letter)
+        brief["ab_constants_line"] = constants_line(
+            _hero_label(hero), number, variable=(hypothesis or {}).get("variable", "")
+        )
+        brief["ab_number"] = number
+        if levers["characters"] == "none":
+            brief["avoid"] = brief["avoid"] + ["不要任何人物或吉祥物"]
+        briefs.append(brief)
+    return briefs
 
 
 def _stamp_ab_composition(scenario_brief, index):
@@ -1238,8 +1520,8 @@ def _build_image_prompt(style_key_or_custom, title, scenario_brief=None, date_la
         f"The first line must be exactly: 「{overlay_primary}」. "
         + (f"The second line must be exactly: 「{overlay_secondary}」. " if overlay_secondary else "")
         + "These headline lines are the most important visible elements in the image. "
-        "Put them in a high-contrast dark or bright negative-space panel occupying about 35% of the image. "
-        "Do not hide stock names in small background details. Do not replace stock names with generic words. "
+        + _NUMBER_LAYOUTS.get(scenario_brief.get("number_layout") or "standard", _NUMBER_LAYOUTS["standard"])
+        + "Do not hide stock names in small background details. Do not replace stock names with generic words. "
         + tw_color_rule
     )
     character_rules = (
@@ -1250,7 +1532,24 @@ def _build_image_prompt(style_key_or_custom, title, scenario_brief=None, date_la
         "with a small leek-leaf hair tuft or leek-green head accessory that remains visible in every theme, "
         "wearing a loose T-shirt or today's themed rookie outfit with clear leek-green accents, exaggerated facial expression, "
         "holding a phone with stock charts. The outfit may adapt to the visual world, but the leek-green color and leek-leaf silhouette must remain recognizable. "
+        "Use expressive silhouettes, gestures, and staged power dynamics, but no real person likenesses. "
     )
+    if style_key_or_custom == "war_room_board":
+        # H1 arm B: the scenario's story is context for the board, never a staged scene
+        # (the arm A scene / metaphor would otherwise leak into the data-board cover).
+        situation_line = f"Story behind the number (only as small background data panels, never a staged scene): {scene} "
+        metaphor_line = (
+            "Visual metaphor: none on this cover — the giant number plaque replaces the metaphor scene; "
+            "do not draw story props. "
+        )
+    else:
+        situation_line = f"Core situation: {scene} "
+        metaphor_line = f"Visual metaphor: {visual_metaphor}. "
+    if scenario_brief.get("character_mode") == "none":
+        character_rules = (
+            "NO CHARACTERS (A/B variable): no people, no mascots, no Dr. Zhang and no A-Ming anywhere in the image, "
+            "even if the visual world mentions them; a pure data / object composition. "
+        )
 
     return (
         "YouTube thumbnail background image, landscape 16:9 format. "
@@ -1260,11 +1559,10 @@ def _build_image_prompt(style_key_or_custom, title, scenario_brief=None, date_la
         f"Visual world: {visual_desc} "
         f"Paired title idea: '{title}'. "
         f"Main stock focus for the human editor: {stock_focus}. "
-        f"Core situation: {scene} "
+        f"{situation_line}"
         f"Emotional tone: {emotion}. "
-        f"Visual metaphor: {visual_metaphor}. "
+        f"{metaphor_line}"
         f"{character_rules}"
-        "Use expressive silhouettes, gestures, and staged power dynamics, but no real person likenesses. "
         "Include a large, highly readable Traditional Chinese thumbnail headline in the image. "
         f"Render exactly this headline text: '{overlay_text}'. "
         f"Also add a small date label in the upper-left corner: '{date_label_text}'. "
@@ -1275,6 +1573,49 @@ def _build_image_prompt(style_key_or_custom, title, scenario_brief=None, date_la
         f"Avoid: {', '.join(avoid)}. "
         "Ultra high quality, dramatic, readable at small sizes, YouTube finance thumbnail energy."
     )
+
+
+def _hero_fact_line(hero):
+    """「1303 南亞（外資 +55.3億，漲跌 +9.40%）」 — what the cover numbers were checked against."""
+    label = _hero_label(hero) if hero else ""
+    if not label:
+        return "未指定（封面字未綁定單一主角）"
+    bits = []
+    if hero.get("foreign_amount") is not None:
+        bits.append(f"外資 {hero['foreign_amount']:+.1f}億")
+    if hero.get("pct_change") is not None:
+        bits.append(f"漲跌 {hero['pct_change']:+.2f}%")
+    return f"{label}（{'，'.join(bits)}）" if bits else label
+
+
+def _gate_cover(scenario, index, facts, hero):
+    """
+    Cover fact gate before a prompt is saved: a contradiction is rebuilt from the
+    hero's facts (A = control overlay, B = fragment) and logged.
+    """
+    where = f"封面{'AB'[index] if index < 2 else index + 1}"
+    hero_key = (hero or {}).get("key")
+    issues = check_cover(
+        scenario.get("overlay_primary"), scenario.get("overlay_secondary"), hero_key=hero_key, where=where, facts=facts
+    )
+    if not has_errors(issues):
+        return scenario, issues
+    for issue in issues:
+        if issue["level"] == "error":
+            print(f"  ⛔ [封面事實對帳] {format_issue(issue)}")
+    fixed = dict(scenario)
+    text_mode = (scenario.get("ab_levers") or {}).get("text")
+    if hero and text_mode:
+        # single-variable A/B: rebuild in the arm's own text mode, so a fix never adds a second variable
+        primary, secondary = _question_overlay(hero) if text_mode == "question" else _control_overlay(hero)
+    elif hero:
+        primary, secondary = _control_overlay(hero) if index == 0 else _fragment_overlay(hero)
+    else:
+        primary, secondary = (scenario.get("overlay_primary") or "台股盤後"), "看這檔"
+        primary = re.sub(r"[+\-−]?\d+(?:\.\d+)?\s*(?:億|%|％|點)", "", str(primary)).strip() or "台股盤後"
+    fixed["overlay_primary"], fixed["overlay_secondary"] = primary, secondary
+    print(f"  🔧 [封面事實對帳] {where} 已依本機數據重建：{primary} / {secondary}")
+    return fixed, issues
 
 
 def save_thumbnail_prompt(style_key_or_custom, title, date_str, output_path, scenario_brief=None):
@@ -1290,7 +1631,13 @@ def save_thumbnail_prompt(style_key_or_custom, title, date_str, output_path, sce
         date_label_text=date_label_text,
     )
     scenario_brief = scenario_brief or {}
-    composition_label = scenario_brief.get("composition_label") or "未指定（應有 A/B 差異）"
+    composition_label = scenario_brief.get("composition_label") or "未指定"
+    ab_lines = ""
+    if scenario_brief.get("ab_variable_line"):
+        ab_lines = (
+            f"- A/B variable: {scenario_brief['ab_variable_line']}\n"
+            f"- A/B held constant: {scenario_brief.get('ab_constants_line') or '主角、數字、配對標題、場景、構圖'}\n"
+        )
     content = f"""# YouTube Thumbnail Prompt
 
 Date: {date_str}
@@ -1307,7 +1654,8 @@ Composition: {composition_label}
 
 ## Scenario Brief
 
-- Main stocks: {", ".join(scenario_brief.get("main_stocks", [])) or "依標題與報告主角"}
+- Hero (fact source): {_hero_fact_line(scenario_brief.get("hero") or {})}
+{ab_lines}- Main stocks: {", ".join(scenario_brief.get("main_stocks", [])) or "依標題與報告主角"}
 - Scene: {scenario_brief.get("scene", "")}
 - Emotion: {scenario_brief.get("emotion", "")}
 - Visual metaphor: {scenario_brief.get("visual_metaphor", "")}
@@ -1334,9 +1682,15 @@ def generate_ab_test_thumbnails(
     run_date=None,
     channel_story="",
     preferred_titles=None,
+    ab_hypothesis=None,
 ):
     """
     Generate thumbnail prompts + title pairings for A/B testing.
+
+    Covers A and B are a single-variable test (data/ab_test_plan.json): one scenario,
+    one hero, one verified number and title A on both; only this week's hypothesis
+    variable differs (``ab_hypothesis`` = id / variable / dict overrides the rotation
+    and the AB_HYPOTHESIS env var).
     With structured_data, this is fully local and does not call Gemini.
 
     styles 可以是：
@@ -1389,31 +1743,64 @@ def generate_ab_test_thumbnails(
     for i, title in enumerate(titles):
         print(f"  📝 標題 {i+1}: {title}")
 
-    # === Step 2: Generate scenario briefs, then save prompts for manual image generation ===
-    prompt_count = max(num_titles, len(styles), 2)
+    # === Step 2: ONE scenario brief → covers A/B that differ only in this week's A/B variable ===
     primary_style = styles[0] if styles else "dc_comics"
-    print(f"\n🎬 正在生成 {prompt_count} 個情境式封面 brief（避免固定版型）...")
-    scenario_briefs = generate_scenario_briefs(
+    paired_title = titles[0] if titles else "台股今日分析"
+    hypothesis = None
+    try:
+        from modules.cover_ab_test import current_hypothesis, hypothesis_for_style
+
+        hypothesis = ab_hypothesis if isinstance(ab_hypothesis, dict) else current_hypothesis(date_full, override=ab_hypothesis)
+        hypothesis = hypothesis_for_style(hypothesis, primary_style)
+    except Exception as exc:
+        print(f"  ⚠️  A/B 假設讀取失敗，A/B 封面只差「未宣告」：{exc}")
+    if hypothesis:
+        if hypothesis.get("replaces"):
+            print(
+                f"\n  ℹ️  今日主題就是財經戰情室：{hypothesis['replaces']}（漫畫場景 vs 戰情室數據大字牌）兩組會幾乎一樣，"
+                f"今天改測 {hypothesis.get('id')}"
+            )
+        print(
+            f"\n🧪 本週封面 A/B 假設：{hypothesis.get('id')} {hypothesis.get('label')}"
+            f"（{hypothesis.get('iso_week')}，來源 {hypothesis.get('source')}）"
+        )
+    print("\n🎬 正在生成情境式封面 brief（A/B 共用同一情境、同主角、同數字、同配標題 A）...")
+    facts = build_fact_index(structured_data or {})
+    hero = choose_hero(titles, facts=facts) if structured_data else {}
+    if hero:
+        print(f"  🎯 封面主角（本機數據）：{_hero_fact_line(hero)}")
+    results["hero"] = hero
+    results["cover_gate"] = []
+    base_briefs = generate_scenario_briefs(
         report_content,
         titles,
         primary_style,
         structured_data=structured_data,
-        count=prompt_count,
+        count=1,
         date_label=date_str,
         channel_story=channel_story,
+        hero=hero,
+        run_date=date_full,
     )
+    base = base_briefs[0] if base_briefs else {"scenario_name": "主力點火", "avoid": []}
+    scenario_briefs = build_ab_cover_briefs(base, hypothesis, hero, primary_style, paired_title)
+    results["ab_test"] = {
+        "hypothesis": hypothesis,
+        "hero_label": _hero_label(hero) if hero else "",
+        "number": scenario_briefs[0].get("ab_number", ""),
+    }
 
     print(f"\n🎨 正在產生 {len(scenario_briefs)} 份情境式縮圖 Prompt（手動生圖用）...")
 
     for i, scenario in enumerate(scenario_briefs):
-        # 同一 visual theme 下也強制 A/B 構圖不同（鏡頭、主體比例、角色大小）
-        scenario = _stamp_ab_composition(scenario, i)
-        style = styles[i % len(styles)]
-        # 判斷是 preset key 還是自訂描述
+        if structured_data:
+            scenario, cover_issues = _gate_cover(scenario, i, facts, hero)
+            results["cover_gate"].extend(cover_issues)
+        style = scenario.get("style_key") or primary_style
         preset = STYLE_PRESETS.get(style)
-        style_label = preset["name"] if preset else f"自訂風格 {i+1}"
+        style_label = preset["name"] if preset else "當日視覺主題"
 
-        title = scenario.get("paired_title") or (titles[i % len(titles)] if titles else "台股今日分析")
+        title = scenario.get("paired_title") or paired_title
         short_title = title[:20] + "..." if len(title) > 20 else title
 
         from modules.report_paths import YOUTUBE_ARTIFACTS
@@ -1423,7 +1810,7 @@ def generate_ab_test_thumbnails(
 
         print(
             f"\n  🖼️  縮圖 Prompt {i+1}/{len(scenario_briefs)}: {style_label} / "
-            f"{scenario.get('scenario_name', '情境')} / {scenario.get('composition_label', '構圖')}"
+            f"{scenario.get('scenario_name', '情境')} / A/B 變數 {scenario.get('ab_variable_line', '未宣告')}"
         )
         print(f"     主題方向: {short_title}")
 
@@ -1436,6 +1823,9 @@ def generate_ab_test_thumbnails(
             "title": title,
             "path": output_path,
             "prompt": prompt,
+            "arm": scenario.get("ab_arm", ""),
+            "ab_variable": scenario.get("ab_variable_line", ""),
+            "hypothesis_id": (hypothesis or {}).get("id", ""),
         })
 
     return results
@@ -1460,6 +1850,9 @@ def print_ab_test_summary(results):
         )
         print(f"        搭配標題: {thumb['title'][:30]}...")
 
-    print(f"\n  💡 建議：選擇 1 個標題 + 1 份 Prompt 手動生圖後上傳，")
-    print(f"     48 小時後根據 CTR 數據決定是否替換。")
+    hypothesis = (results.get("ab_test") or {}).get("hypothesis") or {}
+    if hypothesis:
+        print(f"\n  🧪 A/B 變數：{hypothesis.get('id')} {hypothesis.get('label')}（其餘全部相同）")
+    print("\n  💡 建議：用標題 A 上架；兩份封面 Prompt 手動生圖後，在 YouTube Studio「測試與比較」同時上傳，")
+    print("     等 YouTube 回報勝出後執行 python3 cli.py youtube record-ab-result 記錄。標題 B 留給之後單獨的標題測試。")
     print(f"{'='*60}\n")

@@ -70,6 +70,58 @@ def ledger_legacy_status(db_path: str = DB_PATH) -> dict:
         conn.close()
 
 
+def _metric_series_from_rows(rows):
+    """{video_id: {"published_at", "last_measured_at", "series": [(hours, views), ...]}} from rows ordered by measured_at."""
+    out = {}
+    for video_id, published_at, measured_at, hours, views in rows:
+        item = out.setdefault(video_id, {"published_at": None, "last_measured_at": None, "series": []})
+        if published_at:
+            item["published_at"] = published_at
+        item["last_measured_at"] = measured_at
+        if hours is not None:
+            item["series"].append((float(hours), int(views)))
+    return out
+
+
+def read_youtube_metric_series(video_ids, db_path=None) -> dict:
+    """
+    ``AnalyticsStore.get_youtube_metric_series`` without opening the store: the DB is
+    opened read-only (``mode=ro``) and never created, migrated or cleaned, so callers
+    that only read (the /2 theme's learning window, wiki / brief summaries) never write
+    analytics.db. {} when the DB or the table is missing.
+    """
+    ids = [str(v) for v in (video_ids or []) if v]
+    path = db_path or DB_PATH
+    if not ids or not path or not os.path.exists(path):
+        return {}
+    try:
+        from pathlib import Path
+
+        conn = sqlite3.connect(Path(path).resolve().as_uri() + "?mode=ro", uri=True)
+    except sqlite3.Error:
+        return {}
+    try:
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(youtube_video_metrics)")}
+        if not cols:
+            return {}
+        published = "published_at" if "published_at" in cols else "NULL"
+        placeholders = ",".join("?" for _ in ids)
+        rows = conn.execute(
+            f"""
+            SELECT video_id, {published}, measured_at, hours_since_publish, views
+            FROM youtube_video_metrics
+            WHERE video_id IN ({placeholders}) AND views IS NOT NULL
+            ORDER BY measured_at
+            """,
+            ids,
+        ).fetchall()
+        return _metric_series_from_rows(rows)
+    except sqlite3.Error:
+        return {}
+    finally:
+        conn.close()
+
+
 PREDICTION_RESULT_EXTRA_COLUMNS = (
     ("target_date", "TEXT"),
     ("status", "TEXT"),
@@ -94,6 +146,30 @@ CONDITIONAL_TRIGGER_PATTERN = re.compile(
 
 def _json_dumps(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True)
+
+
+def stale_flow_rows(rows):
+    """
+    Rows of one (flow_date, side) list that an earlier run left behind.
+
+    Before reruns replaced the whole list, a stock that dropped out of a later
+    run kept its old row, so the list had two rows at one rank (2026-10-14: 2313
+    華通 and 2002 中鋼 both buy #10). The latest run wrote ranks 1..N ordered by
+    amount, so the list is the N largest |est_amount| rows (N = distinct ranks);
+    anything beyond that is stale. Lists without a rank collision are untouched.
+    ``rows`` are mappings with ``rank`` and ``est_amount``; returns the stale ones.
+    """
+    rows = list(rows or [])
+    ranks = {row["rank"] for row in rows}
+    if len(rows) <= len(ranks):
+        return []
+
+    def _size(row):
+        value = _to_float(row["est_amount"])
+        return abs(value) if value is not None else -1.0
+
+    ordered = sorted(rows, key=lambda row: (-_size(row), row["rank"]))
+    return ordered[len(ranks):]
 
 
 def _normalize_ticker(value):
@@ -437,10 +513,94 @@ class AnalyticsStore:
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        # Single-variable cover A/B results from YouTube Studio 「測試與比較」
+        # (scripts/youtube/record_ab_result.py; plan in data/ab_test_plan.json).
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ab_test_results (
+                run_date TEXT PRIMARY KEY,
+                hypothesis_id TEXT NOT NULL,
+                variable TEXT,
+                arm_a TEXT,
+                arm_b TEXT,
+                winner TEXT NOT NULL,
+                metric TEXT,
+                value_a REAL,
+                value_b REAL,
+                video_id TEXT,
+                notes TEXT,
+                recorded_at TEXT NOT NULL
+            )
+        """)
+        # One-time data migrations, recorded so a later open never re-runs them.
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS maintenance_log (
+                name TEXT PRIMARY KEY,
+                applied_at TEXT NOT NULL,
+                detail TEXT
+            )
+        """)
         self._migrate_youtube_metrics(cur)
+        self._drop_stale_flow_rows_once(cur)
 
         conn.commit()
         conn.close()
+
+    STALE_FLOW_MIGRATION = "drop_stale_flow_rows_v1"
+
+    @classmethod
+    def _drop_stale_flow_rows_once(cls, cur):
+        """
+        Run ``_drop_stale_flow_rows`` once per DB (maintenance_log marker), not on
+        every open. The marker is only written once flows exist, so a DB created
+        empty is still cleaned when its first (pre-fix) lists arrive. Reruns now
+        replace the whole (flow_date, side) list, so no new collisions can appear.
+        """
+        if cur.execute("SELECT 1 FROM maintenance_log WHERE name = ?", (cls.STALE_FLOW_MIGRATION,)).fetchone():
+            return []
+        if not cur.execute("SELECT 1 FROM institutional_flows LIMIT 1").fetchone():
+            return []
+        dropped = cls._drop_stale_flow_rows(cur)
+        cur.execute(
+            "INSERT INTO maintenance_log (name, applied_at, detail) VALUES (?, ?, ?)",
+            (
+                cls.STALE_FLOW_MIGRATION,
+                datetime.datetime.now().replace(microsecond=0).isoformat(sep=" "),
+                json.dumps({"dropped": dropped}, ensure_ascii=False),
+            ),
+        )
+        return dropped
+
+    @staticmethod
+    def _drop_stale_flow_rows(cur):
+        """
+        One-time cleanup (idempotent): lists recorded before reruns replaced the
+        whole (flow_date, side) list may hold rows from an earlier run at a
+        colliding rank; they inflate list-membership counts (foreign streaks,
+        role sources). Keeps the latest run's N rows (see stale_flow_rows).
+        """
+        groups = cur.execute(
+            """
+            SELECT flow_date, side FROM institutional_flows
+            GROUP BY flow_date, side
+            HAVING COUNT(*) > COUNT(DISTINCT rank)
+            """
+        ).fetchall()
+        dropped = []
+        for flow_date, side in groups:
+            rows = cur.execute(
+                "SELECT ticker, name, rank, est_amount FROM institutional_flows WHERE flow_date = ? AND side = ?",
+                (flow_date, side),
+            ).fetchall()
+            rows = [dict(zip(("ticker", "name", "rank", "est_amount"), row)) for row in rows]
+            for row in stale_flow_rows(rows):
+                cur.execute(
+                    "DELETE FROM institutional_flows WHERE flow_date = ? AND side = ? AND ticker = ?",
+                    (flow_date, side, row["ticker"]),
+                )
+                dropped.append(f"{flow_date} {side} #{row['rank']} {row['ticker']} {row['name'] or ''}".strip())
+        if dropped:
+            print(f"  🧹 [Analytics] 移除 {len(dropped)} 筆舊重跑殘留的外資榜列（同名次重複）：{'、'.join(dropped)}")
+        return dropped
 
     @staticmethod
     def _ensure_columns(cur, table, columns):
@@ -623,6 +783,9 @@ class AnalyticsStore:
         return summary
 
     def _replace_thumbnail_variants(self, cur, run_date, variants):
+        winner = cur.execute(
+            "SELECT winner FROM ab_test_results WHERE run_date = ?", (str(run_date),)
+        ).fetchone()
         cur.execute("DELETE FROM youtube_thumbnail_variants WHERE run_date = ?", (run_date,))
         for thumb in variants or []:
             cur.execute(
@@ -641,6 +804,111 @@ class AnalyticsStore:
                     1 if thumb.get("selected") else 0,
                 ),
             )
+        if winner and str(winner[0]).lower() in {"a", "b"}:
+            # a /2 rerun keeps the cover YouTube already picked
+            self._mark_selected_thumbnail(cur, run_date, str(winner[0]).lower())
+
+    @staticmethod
+    def _mark_selected_thumbnail(cur, run_date, variant):
+        cur.execute("UPDATE youtube_thumbnail_variants SET selected = 0 WHERE run_date = ?", (str(run_date),))
+        if not variant:
+            return 0
+        cur.execute(
+            "UPDATE youtube_thumbnail_variants SET selected = 1 WHERE run_date = ? AND lower(variant) = lower(?)",
+            (str(run_date), str(variant)),
+        )
+        return cur.rowcount
+
+    def record_ab_test_result(
+        self,
+        run_date,
+        hypothesis_id,
+        winner,
+        variable="",
+        arm_a="",
+        arm_b="",
+        metric="watch_time_share",
+        value_a=None,
+        value_b=None,
+        video_id="",
+        notes="",
+        recorded_at=None,
+    ):
+        """
+        Upsert the YouTube 「測試與比較」 result for ``run_date`` (one cover test per
+        video/day) and mark the winning cover in youtube_thumbnail_variants.selected.
+        ``none`` (no clear winner) marks nothing and leaves existing flags alone —
+        e.g. a pre-A/B day's legacy selected=1 — unless an a/b result recorded earlier
+        for that date set them (a correction), which are then cleared. Returns
+        {"winner", "selected_rows", "cleared"}.
+        """
+        winner = str(winner or "").strip().lower()
+        if winner not in {"a", "b", "none"}:
+            raise ValueError("winner must be a, b or none")
+        recorded_at = recorded_at or datetime.datetime.now().replace(microsecond=0).isoformat(sep=" ")
+        conn = self._connect()
+        cur = conn.cursor()
+        previous = cur.execute("SELECT winner FROM ab_test_results WHERE run_date = ?", (str(run_date),)).fetchone()
+        previous_pick = str(previous[0]).lower() if previous and previous[0] else ""
+        cur.execute(
+            """
+            INSERT INTO ab_test_results (
+                run_date, hypothesis_id, variable, arm_a, arm_b, winner,
+                metric, value_a, value_b, video_id, notes, recorded_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(run_date) DO UPDATE SET
+                hypothesis_id = excluded.hypothesis_id,
+                variable = excluded.variable,
+                arm_a = excluded.arm_a,
+                arm_b = excluded.arm_b,
+                winner = excluded.winner,
+                metric = excluded.metric,
+                value_a = excluded.value_a,
+                value_b = excluded.value_b,
+                video_id = excluded.video_id,
+                notes = excluded.notes,
+                recorded_at = excluded.recorded_at
+            """,
+            (
+                str(run_date),
+                str(hypothesis_id),
+                variable,
+                arm_a,
+                arm_b,
+                winner,
+                metric,
+                value_a,
+                value_b,
+                video_id,
+                notes,
+                recorded_at,
+            ),
+        )
+        selected, cleared = 0, False
+        if winner in {"a", "b"}:
+            selected = self._mark_selected_thumbnail(cur, run_date, winner)
+        elif previous_pick in {"a", "b"}:
+            self._mark_selected_thumbnail(cur, run_date, "")
+            cleared = True
+        conn.commit()
+        conn.close()
+        return {"winner": winner, "selected_rows": selected, "cleared": cleared}
+
+    def get_ab_test_results(self):
+        conn = self._connect()
+        rows = conn.execute("SELECT * FROM ab_test_results ORDER BY run_date").fetchall()
+        conn.close()
+        return [dict(row) for row in rows]
+
+    def get_youtube_thumbnail_variants(self, run_date):
+        conn = self._connect()
+        rows = conn.execute(
+            "SELECT variant, cover_text, badges, selected FROM youtube_thumbnail_variants WHERE run_date = ? ORDER BY variant",
+            (str(run_date),),
+        ).fetchall()
+        conn.close()
+        return [dict(row) for row in rows]
 
     def record_youtube_thumbnail_variants(self, run_date, variants):
         """Store the finalized (actually generated) thumbnail covers for ``run_date``."""
@@ -755,15 +1023,7 @@ class AnalyticsStore:
             ids,
         ).fetchall()
         conn.close()
-        out = {}
-        for row in rows:
-            item = out.setdefault(row["video_id"], {"published_at": None, "last_measured_at": None, "series": []})
-            if row["published_at"]:
-                item["published_at"] = row["published_at"]
-            item["last_measured_at"] = row["measured_at"]
-            if row["hours_since_publish"] is not None:
-                item["series"].append((float(row["hours_since_publish"]), int(row["views"])))
-        return out
+        return _metric_series_from_rows(tuple(row) for row in rows)
 
     def record_youtube_metric(
         self,
@@ -945,6 +1205,14 @@ class AnalyticsStore:
         data_date = institutional_data.get("data_date") or run_date
         groups = [("buy", institutional_data.get("top_buy", [])), ("sell", institutional_data.get("top_sell", []))]
         for side, rows in groups:
+            if rows:
+                # A rerun replaces that session's list: rows from an earlier run that
+                # dropped out (same rank twice) would inflate list-membership counts
+                # (foreign streaks, editorial frame, role sources).
+                cur.execute(
+                    "DELETE FROM institutional_flows WHERE flow_date = ? AND side = ?",
+                    (data_date, side),
+                )
             for idx, row in enumerate(rows or [], start=1):
                 ticker = _normalize_ticker(row.get("id"))
                 if not ticker:

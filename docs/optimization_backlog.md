@@ -114,7 +114,8 @@ Last updated: 2026-08-04 (AI memory hub + research-stock)
 
 - OpenAI/DALL-E should not auto-generate thumbnail images. The system only produces prompts; the user manually generates images.
 - Thumbnail prompts should be scenario-first, not composition-first.
-- Do not preserve a previous visual theme. The daily visual theme comes from the user or current events.
+- Do not preserve a previous visual theme. The daily visual theme comes from the user (`--visual-theme`, kept for same-day reruns), or — when blank — from a local deterministic scene (`data/visual_scene_library.json` via `modules/visual_scene.py`: archetype from local facts, last 5 TWSE sessions and banned scenes excluded — incl. scenes in the 「禁止…」 lists of themes logged in the last 5 sessions — date-seeded); never from Gemini. 「財經戰情室」 is only the fallback.
+- Cover A/B tests change ONE variable per ISO week (`data/ab_test_plan.json`): same hero, number, title A, scene and composition (H1 style: composition only; skipped for another hypothesis on a 財經戰情室 day); themes carry no 「A…，B…」 cover-text note; both covers go up together in Studio 「測試與比較」 and results are recorded with `record-ab-result`. Promote an arm (by hand, in `LEVER_DEFAULTS`) only after ≥3 decided tests with a majority; results from covers without a `- A/B variable:` line are never credited to a hypothesis; never ban from A/B alone; title B is a separate, later title test.
 - Stock role judgments must be backed by local data/evidence. Avoid hard-coded subjective claims.
 - YouTube package should be generated after content and structured data, so title/description packaging can react to the actual report.
 - Fixed pre-call sleeps are intentionally removed; use retry/backoff on 429 instead of unconditional waits.
@@ -128,6 +129,7 @@ Last updated: 2026-08-04 (AI memory hub + research-stock)
 
 - "Generate actual thumbnail images automatically" is intentionally removed.
 - "Let Gemini decide thumbnail scenario prompts" is intentionally avoided when structured data exists.
+- "Let Gemini pick the daily visual theme / scene" is intentionally avoided; the auto scene is local and date-seeded.
 - "Use fixed thumbnail layouts" is intentionally avoided.
 - "Treat high market-cap direction indicators as the highest-elasticity stocks" is intentionally avoided.
 - "Add unconditional sleep before every Gemini call" is intentionally avoided; retry handles rate limits.

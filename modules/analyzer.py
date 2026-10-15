@@ -238,7 +238,14 @@ STEP 0【{_prev_section}】短段（placement=brief，預設）——天氣，�
             for s in institutional_data.get("top_buy", []):
                 amt = s.get('est_amount', 0)
                 amt_str = f", 估計金額 {amt:+.1f}億" if amt else ""
-                inst_summary += f"- {s['id']} {s['name']}: 外資 {s['foreign_net']:+,}股, 投信 {s['trust_net']:+,}股, 合計 {s['total_net']:+,}股{amt_str}\n"
+                streak_str = ""
+                if s.get("foreign_buy_streak"):
+                    from modules.foreign_streak import format_streak_text
+
+                    streak_str = f", 外資連續買超 {format_streak_text(s['foreign_buy_streak'], s.get('foreign_buy_streak_complete', True))}"
+                inst_summary += f"- {s['id']} {s['name']}: 外資 {s['foreign_net']:+,}股, 投信 {s['trust_net']:+,}股, 合計 {s['total_net']:+,}股{amt_str}{streak_str}\n"
+            if any(s.get("foreign_buy_streak") for s in institutional_data.get("top_buy", [])):
+                inst_summary += "（外資連續買超＝依台股交易日曆連續進外資買超榜的交易日數，本機計算；規則 9／STEP 5 的「連續多日」以此為準）\n"
             inst_summary += "\n## 外資賣超前10名（依估計金額排序）\n"
             for s in institutional_data.get("top_sell", []):
                 amt = s.get('est_amount', 0)

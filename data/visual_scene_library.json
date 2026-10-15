@@ -1,0 +1,942 @@
+{
+  "version": 1,
+  "description": "/2 每日自動視覺主題的本機場景庫（不呼叫任何 LLM）。只放日常、非 IP、非體育賽事的場景；regen_assets 依本機事實分類 archetype，排除近 5 個交易日用過、packaging_bans 禁用與近 5 個交易日 channel log 主題「禁止…」清單點名的場景，再以日期為種子決定性挑選。",
+  "theme_format": "{label}漫畫（漲紅跌綠）：{metaphor}；{cast}（不含 A/B 封面字指示：封面字由本週 A/B 假設決定）",
+  "max_chars": 150,
+  "slots": {
+    "{hero}": "封面主角股名（與封面事實對帳同一檔）",
+    "{amount}": "主角外資金額（與封面同一字串，例如 55.3億）",
+    "{pct}": "主角漲跌詞＋幅度（噴9.4%／跌3.1%／鎖漲停／守平盤）；對照股留空",
+    "{other}": "對照股名（反方向榜首）；組句時以 {hero} 位置帶入",
+    "{flow_color}": "紅色（買超）或綠色（賣超）：顏色標的是外資買賣方向；股價漲跌用 {pct} 的文字表達",
+    "{flow_word}": "買超或賣超",
+    "[...]": "可省略片段：裡面的欄位是空的就整段省略（例如對照股沒有漲跌時省略「水位尺{pct}」）"
+  },
+  "archetypes": {
+    "大跌守線": "大盤跌幅 ≥ 1.5%：主角守住或逆勢",
+    "大盤強彈": "大盤漲幅 ≥ 1.5%：主角跟著升溫",
+    "量價背離": "主角外資方向與股價方向相反（買超卻收跌、賣超卻收漲，或百億級進出卻平盤）",
+    "換手": "權值股大額賣超（≥ 80 億）、另一檔被大買（≥ 20 億）",
+    "權值提款": "權值股賣超 ≥ 150 億，買方力道弱或大盤收跌",
+    "漲停鎖量": "主角漲停，或買超榜 ≥ 2 檔漲停",
+    "單股暴衝": "主角外資買超且漲幅 ≥ 5%",
+    "土洋對作": "主角外資與投信方向相反且投信金額 ≥ 5 億",
+    "盤整觀望": "以上皆不成立（大盤小漲小跌）"
+  },
+  "scenes": [
+    {
+      "id": "container_port",
+      "label": "貨櫃碼頭／吊臂換櫃",
+      "match": [
+        "貨櫃碼頭",
+        "吊臂換櫃"
+      ],
+      "archetypes": [
+        "換手",
+        "權值提款",
+        "單股暴衝"
+      ],
+      "templates": {
+        "buy": "{hero}紅色貨櫃載著買超{amount}被吊上船頭{pct}",
+        "sell": "{hero}綠色貨櫃帶著賣超{amount}被吊離碼頭{pct}",
+        "divergence": "{hero}{flow_color}貨櫃{flow_word}{amount}吃水線卻{pct}"
+      },
+      "cast": "博士看吊臂儀表，韭菜追著貨櫃跑"
+    },
+    {
+      "id": "reservoir",
+      "label": "水庫／洩洪閘",
+      "match": [
+        "水庫",
+        "洩洪"
+      ],
+      "archetypes": [
+        "權值提款",
+        "量價背離",
+        "大跌守線"
+      ],
+      "templates": {
+        "buy": "{hero}紅色進水閘灌入買超{amount}[水位尺{pct}]",
+        "sell": "{hero}綠色閘門洩出賣超{amount}[水位尺{pct}]",
+        "divergence": "{hero}{flow_color}閘門{flow_word}{amount}水位尺卻{pct}"
+      },
+      "cast": "博士看閘門，韭菜盯水位"
+    },
+    {
+      "id": "titration_lab",
+      "label": "實驗室／滴定管",
+      "match": [
+        "滴定管",
+        "燒杯"
+      ],
+      "archetypes": [
+        "量價背離",
+        "單股暴衝",
+        "土洋對作"
+      ],
+      "templates": {
+        "buy": "{hero}燒杯被紅色試劑滴入買超{amount}[液面計{pct}]",
+        "sell": "{hero}燒杯被綠色試劑吸走賣超{amount}[液面計{pct}]",
+        "divergence": "{hero}燒杯被{flow_color}試劑{flow_word}{amount}液面計卻{pct}"
+      },
+      "cast": "博士看滴定管，韭菜盯液面"
+    },
+    {
+      "id": "lighthouse",
+      "label": "燈塔／雙光束",
+      "match": [
+        "燈塔"
+      ],
+      "archetypes": [
+        "土洋對作",
+        "換手",
+        "盤整觀望"
+      ],
+      "templates": {
+        "buy": "{hero}塔身被紅色光束灌進買超{amount}[塔燈{pct}]",
+        "sell": "{hero}塔燈被綠色光束帶走賣超{amount}{pct}",
+        "divergence": "{hero}塔身{flow_color}光束{flow_word}{amount}塔燈卻{pct}"
+      },
+      "cast": "博士看光束表，韭菜盯塔燈"
+    },
+    {
+      "id": "kiln",
+      "label": "窯廠／出窯口",
+      "match": [
+        "窯廠",
+        "出窯"
+      ],
+      "archetypes": [
+        "單股暴衝",
+        "漲停鎖量",
+        "大盤強彈"
+      ],
+      "templates": {
+        "buy": "{hero}紅色窯火燒進買超{amount}[釉色{pct}]",
+        "sell": "{hero}窯火轉綠熄掉賣超{amount}[釉色{pct}]",
+        "divergence": "{hero}{flow_color}窯火{flow_word}{amount}釉色卻{pct}"
+      },
+      "cast": "博士看窯溫計，韭菜擋熱"
+    },
+    {
+      "id": "weather_station",
+      "label": "氣象站／雨量筒",
+      "match": [
+        "氣象站",
+        "雨量筒",
+        "氣象觀測"
+      ],
+      "archetypes": [
+        "大跌守線",
+        "權值提款",
+        "盤整觀望"
+      ],
+      "templates": {
+        "buy": "{hero}紅色晴天雲帶來買超{amount}[雨量筒{pct}]",
+        "sell": "{hero}綠色雨雲壓下賣超{amount}[雨量筒{pct}]",
+        "divergence": "{hero}{flow_color}雲層{flow_word}{amount}晴雨計卻{pct}"
+      },
+      "cast": "博士看氣壓計，韭菜撐傘"
+    },
+    {
+      "id": "electric_meter",
+      "label": "電錶箱／主幹跳脫",
+      "match": [
+        "電錶箱",
+        "主幹跳脫",
+        "主錶"
+      ],
+      "archetypes": [
+        "權值提款",
+        "換手",
+        "大跌守線"
+      ],
+      "templates": {
+        "buy": "{hero}紅色分錶轉進買超{amount}[指針{pct}]",
+        "sell": "{hero}綠色主錶倒轉賣超{amount}[指針{pct}]",
+        "divergence": "{hero}{flow_color}電錶{flow_word}{amount}指針卻{pct}"
+      },
+      "cast": "博士拿驗電筆，韭菜盯著主錶"
+    },
+    {
+      "id": "greenhouse",
+      "label": "溫室／遮光簾",
+      "match": [
+        "溫室",
+        "遮光簾"
+      ],
+      "archetypes": [
+        "大盤強彈",
+        "單股暴衝",
+        "盤整觀望"
+      ],
+      "templates": {
+        "buy": "{hero}紅色生長燈照進買超{amount}[苗床{pct}]",
+        "sell": "{hero}綠色遮光簾拉下賣超{amount}[苗床{pct}]",
+        "divergence": "{hero}{flow_color}燈光{flow_word}{amount}苗床卻{pct}"
+      },
+      "cast": "博士看光度計，韭菜被遮光簾擋到"
+    },
+    {
+      "id": "print_shop",
+      "label": "印刷廠／隔夜改版",
+      "match": [
+        "印刷廠",
+        "改版"
+      ],
+      "archetypes": [
+        "量價背離",
+        "換手"
+      ],
+      "templates": {
+        "buy": "{hero}紅色印版印上買超{amount}[樣張{pct}]",
+        "sell": "{hero}綠色印版改印賣超{amount}[樣張{pct}]",
+        "divergence": "{hero}{flow_color}印版{flow_word}{amount}樣張卻{pct}"
+      },
+      "cast": "博士拿色卡比對，韭菜握著舊傳單"
+    },
+    {
+      "id": "livestream",
+      "label": "直播間／打賞金庫",
+      "match": [
+        "直播間",
+        "打賞"
+      ],
+      "archetypes": [
+        "量價背離",
+        "單股暴衝"
+      ],
+      "templates": {
+        "buy": "{hero}紅色打賞金庫入帳買超{amount}[人氣燈{pct}]",
+        "sell": "{hero}綠色金庫被領走賣超{amount}[人氣燈{pct}]",
+        "divergence": "{hero}{flow_color}金庫{flow_word}{amount}人氣燈卻{pct}"
+      },
+      "cast": "博士核對打賞明細，韭菜盯觀看數"
+    },
+    {
+      "id": "claw_machine",
+      "label": "夾娃娃機／爪子放空",
+      "match": [
+        "夾娃娃"
+      ],
+      "archetypes": [
+        "權值提款",
+        "量價背離"
+      ],
+      "templates": {
+        "buy": "{hero}紅色大獎被爪子夾起買超{amount}{pct}",
+        "sell": "{hero}綠色大獎從爪子掉落賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}大獎{flow_word}{amount}計數器卻{pct}"
+      },
+      "cast": "博士核對計數器，韭菜趴在玻璃上"
+    },
+    {
+      "id": "train_station",
+      "label": "車站剪票口／末班車",
+      "match": [
+        "剪票口",
+        "末班車"
+      ],
+      "archetypes": [
+        "權值提款",
+        "換手"
+      ],
+      "templates": {
+        "buy": "{hero}紅色車廂載著買超{amount}駛進月台{pct}",
+        "sell": "{hero}綠色車廂載著賣超{amount}被推出月台{pct}",
+        "divergence": "{hero}{flow_color}車廂{flow_word}{amount}班次燈卻{pct}"
+      },
+      "cast": "博士核對車次表，韭菜擠在剪票口"
+    },
+    {
+      "id": "roller_coaster",
+      "label": "雲霄飛車／俯衝軌道",
+      "match": [
+        "雲霄飛車",
+        "俯衝軌道"
+      ],
+      "archetypes": [
+        "大跌守線",
+        "大盤強彈",
+        "量價背離"
+      ],
+      "templates": {
+        "buy": "{hero}紅色車廂被買超{amount}推上爬坡軌道{pct}",
+        "sell": "{hero}綠色車廂帶著賣超{amount}衝下俯衝軌道{pct}",
+        "divergence": "{hero}{flow_color}車廂{flow_word}{amount}高度計卻{pct}"
+      },
+      "cast": "博士看高度計，韭菜抓緊安全桿"
+    },
+    {
+      "id": "store_returns",
+      "label": "超商退貨櫃檯",
+      "match": [
+        "超商退貨",
+        "退貨櫃檯"
+      ],
+      "archetypes": [
+        "權值提款",
+        "換手"
+      ],
+      "templates": {
+        "buy": "{hero}紅色熱銷箱補進買超{amount}[貨架{pct}]",
+        "sell": "{hero}綠色退貨箱蓋章退回賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}貨箱{flow_word}{amount}價格牌卻{pct}"
+      },
+      "cast": "博士核對退貨單，韭菜抱著空籃子"
+    },
+    {
+      "id": "cinema",
+      "label": "電影院／放映機房",
+      "match": [
+        "電影院",
+        "放映機"
+      ],
+      "archetypes": [
+        "單股暴衝",
+        "漲停鎖量"
+      ],
+      "templates": {
+        "buy": "{hero}紅色銀幕被買超{amount}點亮{pct}",
+        "sell": "{hero}綠色放映機斷片賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}放映機{flow_word}{amount}銀幕卻{pct}"
+      },
+      "cast": "博士核對膠卷，韭菜坐在第一排"
+    },
+    {
+      "id": "baggage_carousel",
+      "label": "行李轉盤／機場遺失行李",
+      "match": [
+        "行李轉盤",
+        "遺失行李"
+      ],
+      "archetypes": [
+        "換手",
+        "權值提款"
+      ],
+      "templates": {
+        "buy": "{hero}紅色行李箱載著買超{amount}被優先送上轉盤{pct}",
+        "sell": "{hero}綠色大行李帶著賣超{amount}被拖去失物招領{pct}",
+        "divergence": "{hero}{flow_color}行李箱{flow_word}{amount}航班螢幕卻{pct}"
+      },
+      "cast": "博士核對行李吊牌，韭菜盯空轉盤"
+    },
+    {
+      "id": "bonded_warehouse",
+      "label": "保稅倉／提貨閘門",
+      "match": [
+        "保稅倉",
+        "提貨閘門",
+        "提貨燈"
+      ],
+      "archetypes": [
+        "量價背離",
+        "權值提款"
+      ],
+      "templates": {
+        "buy": "{hero}紅色保稅箱推進買超{amount}[提貨燈{pct}]",
+        "sell": "{hero}綠色棧板拖出賣超{amount}[提貨燈{pct}]",
+        "divergence": "{hero}{flow_color}保稅箱{flow_word}{amount}提貨燈卻{pct}"
+      },
+      "cast": "博士核對吊牌，韭菜盯閘門"
+    },
+    {
+      "id": "paint_patch",
+      "label": "油漆行／缺口補漆",
+      "match": [
+        "補漆",
+        "油漆"
+      ],
+      "archetypes": [
+        "大盤強彈",
+        "量價背離"
+      ],
+      "templates": {
+        "buy": "{hero}紅色漆桶倒進買超{amount}補平牆面缺口{pct}",
+        "sell": "{hero}綠色牆皮剝落賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}漆桶{flow_word}{amount}色卡卻{pct}"
+      },
+      "cast": "博士拿色卡核對，韭菜扶著梯子"
+    },
+    {
+      "id": "balance_scale",
+      "label": "天平／秤量所",
+      "match": [
+        "天平",
+        "砝碼"
+      ],
+      "archetypes": [
+        "換手",
+        "土洋對作"
+      ],
+      "templates": {
+        "buy": "{hero}紅色砝碼帶著買超{amount}壓上天平右盤{pct}",
+        "sell": "{hero}綠色砝碼被拿走賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}砝碼{flow_word}{amount}指針卻{pct}"
+      },
+      "cast": "博士核對砝碼，韭菜扶著秤盤"
+    },
+    {
+      "id": "fish_market",
+      "label": "漁市場／競標槌",
+      "match": [
+        "漁市場",
+        "拍賣槌",
+        "競標槌"
+      ],
+      "archetypes": [
+        "單股暴衝",
+        "漲停鎖量"
+      ],
+      "templates": {
+        "buy": "{hero}紅色魚箱被競標槌連敲買超{amount}{pct}",
+        "sell": "{hero}綠色魚箱被抬出市場賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}魚箱{flow_word}{amount}價牌卻{pct}"
+      },
+      "cast": "博士拿編號牌核對，韭菜被冰水濺到"
+    },
+    {
+      "id": "elevator_shaft",
+      "label": "電梯井／樓層燈",
+      "match": [
+        "電梯井",
+        "樓層燈"
+      ],
+      "archetypes": [
+        "權值提款",
+        "大跌守線",
+        "大盤強彈"
+      ],
+      "templates": {
+        "buy": "{hero}紅色轎廂被買超{amount}拉上頂樓{pct}",
+        "sell": "{hero}綠色轎廂被賣超{amount}配重拉下{pct}",
+        "divergence": "{hero}{flow_color}轎廂{flow_word}{amount}樓層燈卻{pct}"
+      },
+      "cast": "博士看樓層顯示器，韭菜被纜索晃到"
+    },
+    {
+      "id": "fire_hydrant",
+      "label": "消防栓／分水器",
+      "match": [
+        "消防栓",
+        "分水器"
+      ],
+      "archetypes": [
+        "換手",
+        "權值提款"
+      ],
+      "templates": {
+        "buy": "{hero}紅色側管灌滿買超{amount}{pct}",
+        "sell": "{hero}綠色主管線關閥洩出賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}管線{flow_word}{amount}水壓表卻{pct}"
+      },
+      "cast": "博士拿水壓表，韭菜被水柱濺濕"
+    },
+    {
+      "id": "clearing_house",
+      "label": "票據交換所／退票",
+      "match": [
+        "票據交換",
+        "退票"
+      ],
+      "archetypes": [
+        "換手",
+        "權值提款"
+      ],
+      "templates": {
+        "buy": "{hero}紅色本票兌現買超{amount}{pct}",
+        "sell": "{hero}綠色支票蓋上退票章賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}票據{flow_word}{amount}兌現燈卻{pct}"
+      },
+      "cast": "博士拿放大鏡核對，韭菜被碎紙屑蓋住"
+    },
+    {
+      "id": "rail_switch",
+      "label": "鐵道轉轍器／調度場",
+      "match": [
+        "轉轍器",
+        "調度場"
+      ],
+      "archetypes": [
+        "換手",
+        "單股暴衝"
+      ],
+      "templates": {
+        "buy": "{hero}紅色列車被買超{amount}推進主線{pct}",
+        "sell": "{hero}綠色車廂帶著賣超{amount}被轉進側線{pct}",
+        "divergence": "{hero}{flow_color}列車{flow_word}{amount}號誌燈卻{pct}"
+      },
+      "cast": "博士拿號誌燈，韭菜在月台追車"
+    },
+    {
+      "id": "aquarium",
+      "label": "水族館／過濾槽",
+      "match": [
+        "水族館",
+        "過濾槽"
+      ],
+      "archetypes": [
+        "換手",
+        "量價背離"
+      ],
+      "templates": {
+        "buy": "{hero}紅色暖流帶著買超{amount}湧進珊瑚礁{pct}",
+        "sell": "{hero}綠色魚群被過濾槽帶走賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}水流{flow_word}{amount}水位卻{pct}"
+      },
+      "cast": "博士拿水質檢測筆，韭菜被水花濺到"
+    },
+    {
+      "id": "server_rack",
+      "label": "伺服器機櫃抽屜",
+      "match": [
+        "伺服器機櫃",
+        "機櫃抽屜"
+      ],
+      "archetypes": [
+        "量價背離",
+        "單股暴衝"
+      ],
+      "templates": {
+        "buy": "{hero}紅色托盤被買超{amount}推進機櫃{pct}",
+        "sell": "{hero}綠色抽屜被拉出賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}抽屜{flow_word}{amount}指示燈卻{pct}"
+      },
+      "cast": "博士拿電流表，韭菜抱著硬碟"
+    },
+    {
+      "id": "darkroom",
+      "label": "暗房／顯影槽",
+      "match": [
+        "暗房",
+        "顯影"
+      ],
+      "archetypes": [
+        "單股暴衝",
+        "量價背離"
+      ],
+      "templates": {
+        "buy": "{hero}紅色顯影液讓底片浮出買超{amount}{pct}",
+        "sell": "{hero}底片被綠色定影液洗掉賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}藥水{flow_word}{amount}底片卻{pct}"
+      },
+      "cast": "博士拿計時器，韭菜被藥水濺到"
+    },
+    {
+      "id": "fuse_panel",
+      "label": "高壓配電盤／保險絲",
+      "match": [
+        "配電盤",
+        "保險絲"
+      ],
+      "archetypes": [
+        "大跌守線",
+        "權值提款"
+      ],
+      "templates": {
+        "buy": "{hero}紅色備用迴路通進買超{amount}{pct}",
+        "sell": "{hero}綠色保險絲燒斷賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}迴路{flow_word}{amount}電壓表卻{pct}"
+      },
+      "cast": "博士拿測電筆，韭菜被火花嚇到"
+    },
+    {
+      "id": "mint",
+      "label": "鑄幣廠／壓幣機",
+      "match": [
+        "鑄幣",
+        "壓幣"
+      ],
+      "archetypes": [
+        "單股暴衝",
+        "漲停鎖量"
+      ],
+      "templates": {
+        "buy": "{hero}紅色壓幣機把買超{amount}壓成金幣{pct}",
+        "sell": "{hero}綠色退幣槽把賣超{amount}熔成廢料{pct}",
+        "divergence": "{hero}{flow_color}壓幣機{flow_word}{amount}成色表卻{pct}"
+      },
+      "cast": "博士拿卡尺量金幣，韭菜接著退幣"
+    },
+    {
+      "id": "magnet_vault",
+      "label": "磁鐵／金庫灌倉",
+      "match": [
+        "磁鐵",
+        "金庫灌倉"
+      ],
+      "archetypes": [
+        "單股暴衝",
+        "換手"
+      ],
+      "templates": {
+        "buy": "{hero}紅色巨型磁鐵吸進買超{amount}籌碼磚{pct}",
+        "sell": "{hero}綠色籌碼磚被磁力甩出賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}磁鐵{flow_word}{amount}金庫門卻{pct}"
+      },
+      "cast": "博士拿磁力儀，韭菜懸在半空"
+    },
+    {
+      "id": "thermal_pod",
+      "label": "熱成像艙／雙溫艙",
+      "match": [
+        "熱成像",
+        "雙溫"
+      ],
+      "archetypes": [
+        "土洋對作",
+        "量價背離"
+      ],
+      "templates": {
+        "buy": "{hero}紅色熱艙被買超{amount}加溫{pct}",
+        "sell": "{hero}綠色冷艙被賣超{amount}急凍{pct}",
+        "divergence": "{hero}{flow_color}溫控艙{flow_word}{amount}溫度計卻{pct}"
+      },
+      "cast": "博士拿熱成像槍，韭菜身上結霜"
+    },
+    {
+      "id": "neon_sign",
+      "label": "霓虹招牌／雙面看板",
+      "match": [
+        "霓虹招牌",
+        "雙面看板"
+      ],
+      "archetypes": [
+        "量價背離",
+        "換手"
+      ],
+      "templates": {
+        "buy": "{hero}紅色招牌被買超{amount}點亮{pct}",
+        "sell": "{hero}招牌換成綠面賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}招牌{flow_word}{amount}亮度表卻{pct}"
+      },
+      "cast": "博士拿手電筒照招牌背面，韭菜盯正面"
+    },
+    {
+      "id": "liquid_cooling",
+      "label": "液冷迴路／冷卻槽",
+      "match": [
+        "液冷",
+        "冷卻液"
+      ],
+      "archetypes": [
+        "權值提款",
+        "量價背離"
+      ],
+      "templates": {
+        "buy": "{hero}紅色冷卻槽灌滿買超{amount}{pct}",
+        "sell": "{hero}綠色主管被抽乾賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}冷卻液{flow_word}{amount}流量計卻{pct}"
+      },
+      "cast": "博士拿流量計，韭菜被冷卻液濺到"
+    },
+    {
+      "id": "gas_station",
+      "label": "加油站／油槍計量",
+      "match": [
+        "加油站",
+        "油槍"
+      ],
+      "archetypes": [
+        "單股暴衝",
+        "大盤強彈"
+      ],
+      "templates": {
+        "buy": "{hero}紅色油槍加進買超{amount}[油錶{pct}]",
+        "sell": "{hero}綠色油箱被放空賣超{amount}[油錶{pct}]",
+        "divergence": "{hero}{flow_color}油槍{flow_word}{amount}油錶卻{pct}"
+      },
+      "cast": "博士看計量表，韭菜抱著空油桶"
+    },
+    {
+      "id": "bakery",
+      "label": "麵包工廠／烤箱出爐",
+      "match": [
+        "麵包工廠",
+        "烤箱"
+      ],
+      "archetypes": [
+        "漲停鎖量",
+        "單股暴衝",
+        "大盤強彈"
+      ],
+      "templates": {
+        "buy": "{hero}紅色烤箱塞進買超{amount}[麵包{pct}]",
+        "sell": "{hero}綠色冷卻架移走賣超{amount}[麵包{pct}]",
+        "divergence": "{hero}{flow_color}烤箱{flow_word}{amount}溫度計卻{pct}"
+      },
+      "cast": "博士看烤箱溫度，韭菜捧著托盤"
+    },
+    {
+      "id": "produce_market",
+      "label": "果菜市場／磅秤",
+      "match": [
+        "果菜市場",
+        "磅秤"
+      ],
+      "archetypes": [
+        "換手",
+        "盤整觀望"
+      ],
+      "templates": {
+        "buy": "{hero}紅色菜籃堆上買超{amount}[磅秤{pct}]",
+        "sell": "{hero}綠色菜籃被搬走賣超{amount}[磅秤{pct}]",
+        "divergence": "{hero}{flow_color}菜籃{flow_word}{amount}磅秤卻{pct}"
+      },
+      "cast": "博士核對磅單，韭菜被菜籃擠到"
+    },
+    {
+      "id": "water_plant",
+      "label": "自來水廠／淨水槽",
+      "match": [
+        "自來水廠",
+        "淨水槽"
+      ],
+      "archetypes": [
+        "權值提款",
+        "盤整觀望"
+      ],
+      "templates": {
+        "buy": "{hero}紅色進水管灌入買超{amount}[淨水槽{pct}]",
+        "sell": "{hero}綠色排水閥放掉賣超{amount}[淨水槽{pct}]",
+        "divergence": "{hero}{flow_color}水管{flow_word}{amount}濁度計卻{pct}"
+      },
+      "cast": "博士看濁度計，韭菜被管線纏住"
+    },
+    {
+      "id": "wind_farm",
+      "label": "風力發電場／葉片",
+      "match": [
+        "風力發電",
+        "風機"
+      ],
+      "archetypes": [
+        "大盤強彈",
+        "換手"
+      ],
+      "templates": {
+        "buy": "{hero}紅色風機被買超{amount}吹轉{pct}",
+        "sell": "{hero}綠色葉片停擺賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}風機{flow_word}{amount}發電表卻{pct}"
+      },
+      "cast": "博士看風速計，韭菜抓著帽子"
+    },
+    {
+      "id": "sorting_belt",
+      "label": "物流中心／輸送帶分揀",
+      "match": [
+        "物流中心",
+        "輸送帶"
+      ],
+      "archetypes": [
+        "換手",
+        "權值提款"
+      ],
+      "templates": {
+        "buy": "{hero}紅色包裹被買超{amount}送上快速道{pct}",
+        "sell": "{hero}綠色包裹帶著賣超{amount}被分到退件區{pct}",
+        "divergence": "{hero}{flow_color}包裹{flow_word}{amount}條碼燈卻{pct}"
+      },
+      "cast": "博士拿掃描槍，韭菜追著輸送帶"
+    },
+    {
+      "id": "cold_chain",
+      "label": "冷凍倉庫／冷鏈車",
+      "match": [
+        "冷凍倉庫",
+        "冷鏈"
+      ],
+      "archetypes": [
+        "量價背離",
+        "權值提款"
+      ],
+      "templates": {
+        "buy": "{hero}紅色冷鏈車卸下買超{amount}{pct}",
+        "sell": "{hero}綠色貨架被搬空賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}冷鏈車{flow_word}{amount}溫度計卻{pct}"
+      },
+      "cast": "博士看溫度計，韭菜冷到發抖"
+    },
+    {
+      "id": "brewery",
+      "label": "釀酒廠／發酵槽",
+      "match": [
+        "釀酒廠",
+        "發酵槽"
+      ],
+      "archetypes": [
+        "土洋對作",
+        "單股暴衝"
+      ],
+      "templates": {
+        "buy": "{hero}紅色發酵槽注入買超{amount}[泡沫{pct}]",
+        "sell": "{hero}綠色酒槽被放空賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}發酵槽{flow_word}{amount}比重計卻{pct}"
+      },
+      "cast": "博士看比重計，韭菜捧著空杯"
+    },
+    {
+      "id": "steel_mill",
+      "label": "鋼鐵廠／熔爐",
+      "match": [
+        "鋼鐵廠",
+        "熔爐"
+      ],
+      "archetypes": [
+        "權值提款",
+        "大跌守線",
+        "大盤強彈"
+      ],
+      "templates": {
+        "buy": "{hero}紅色熔爐倒進買超{amount}鋼水{pct}",
+        "sell": "{hero}綠色鋼胚被吊走賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}熔爐{flow_word}{amount}溫度計卻{pct}"
+      },
+      "cast": "博士戴護目鏡看爐溫，韭菜擋著熱浪"
+    },
+    {
+      "id": "parking_lot",
+      "label": "停車場／車位燈",
+      "match": [
+        "停車場",
+        "車位燈"
+      ],
+      "archetypes": [
+        "盤整觀望",
+        "量價背離"
+      ],
+      "templates": {
+        "buy": "{hero}紅色車位燈被買超{amount}停滿{pct}",
+        "sell": "{hero}綠色車流帶著賣超{amount}開出閘門{pct}",
+        "divergence": "{hero}{flow_color}車流{flow_word}{amount}車位燈卻{pct}"
+      },
+      "cast": "博士看空位看板，韭菜繞圈找車位"
+    },
+    {
+      "id": "control_tower",
+      "label": "機場塔台／跑道",
+      "match": [
+        "塔台",
+        "跑道"
+      ],
+      "archetypes": [
+        "大盤強彈",
+        "換手"
+      ],
+      "templates": {
+        "buy": "{hero}紅色班機載著買超{amount}拉升離場{pct}",
+        "sell": "{hero}綠色班機帶著賣超{amount}被拖回機坪{pct}",
+        "divergence": "{hero}{flow_color}班機{flow_word}{amount}高度表卻{pct}"
+      },
+      "cast": "博士在塔台看雷達，韭菜追著登機門"
+    },
+    {
+      "id": "toll_station",
+      "label": "收費站／車道閘門",
+      "match": [
+        "收費站",
+        "車道閘門"
+      ],
+      "archetypes": [
+        "權值提款",
+        "換手"
+      ],
+      "templates": {
+        "buy": "{hero}紅色車道放行買超{amount}{pct}",
+        "sell": "{hero}綠色車道湧出賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}車道{flow_word}{amount}計次器卻{pct}"
+      },
+      "cast": "博士看車流計次，韭菜卡在閘門前"
+    },
+    {
+      "id": "ice_factory",
+      "label": "製冰廠／冰磚模具",
+      "match": [
+        "製冰廠",
+        "冰磚"
+      ],
+      "archetypes": [
+        "量價背離",
+        "盤整觀望"
+      ],
+      "templates": {
+        "buy": "{hero}紅色模具灌進買超{amount}冰磚{pct}",
+        "sell": "{hero}綠色冰磚融化流走賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}模具{flow_word}{amount}溫度計卻{pct}"
+      },
+      "cast": "博士看溫度計，韭菜抱著冰磚"
+    },
+    {
+      "id": "mine_cage",
+      "label": "礦坑／升降籠",
+      "match": [
+        "礦坑",
+        "升降籠"
+      ],
+      "archetypes": [
+        "大跌守線",
+        "權值提款"
+      ],
+      "templates": {
+        "buy": "{hero}紅色礦車載著買超{amount}被拉上地面{pct}",
+        "sell": "{hero}綠色礦車帶著賣超{amount}沉進礦坑{pct}",
+        "divergence": "{hero}{flow_color}礦車{flow_word}{amount}深度計卻{pct}"
+      },
+      "cast": "博士看深度計，韭菜抓著安全帽"
+    },
+    {
+      "id": "beehive",
+      "label": "養蜂場／蜂巢",
+      "match": [
+        "養蜂場",
+        "蜂巢"
+      ],
+      "archetypes": [
+        "土洋對作",
+        "單股暴衝"
+      ],
+      "templates": {
+        "buy": "{hero}紅色蜂巢灌滿買超{amount}蜂蜜{pct}",
+        "sell": "{hero}綠色蜂巢被搬空賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}蜂巢{flow_word}{amount}秤盤卻{pct}"
+      },
+      "cast": "博士戴網帽核對蜂箱，韭菜被蜜蜂追"
+    },
+    {
+      "id": "noodle_shop",
+      "label": "拉麵店／湯鍋",
+      "match": [
+        "拉麵店",
+        "湯鍋"
+      ],
+      "archetypes": [
+        "盤整觀望",
+        "漲停鎖量"
+      ],
+      "templates": {
+        "buy": "{hero}紅色湯鍋熬進買超{amount}{pct}",
+        "sell": "{hero}綠色湯鍋被舀走賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}湯鍋{flow_word}{amount}溫度計卻{pct}"
+      },
+      "cast": "博士看溫度計，韭菜排在店門口"
+    },
+    {
+      "id": "night_market",
+      "label": "夜市／排隊號碼牌",
+      "match": [
+        "夜市",
+        "號碼牌"
+      ],
+      "archetypes": [
+        "漲停鎖量",
+        "單股暴衝"
+      ],
+      "templates": {
+        "buy": "{hero}紅色攤位排進買超{amount}號碼牌{pct}",
+        "sell": "{hero}綠色攤位收攤賣超{amount}{pct}",
+        "divergence": "{hero}{flow_color}攤位{flow_word}{amount}號碼牌卻{pct}"
+      },
+      "cast": "博士核對號碼牌，韭菜擠在隊伍裡"
+    }
+  ]
+}

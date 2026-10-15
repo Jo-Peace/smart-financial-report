@@ -166,12 +166,19 @@ def _hit_rate_watchlist(stock_db: dict, min_samples: int = HIT_RATE_MIN_SAMPLES)
     return weak[:12], strong[:12]
 
 
+def _cover_ab_lines(ab_results=None) -> list[str]:
+    from modules.youtube_learning import cover_ab_lines
+
+    return cover_ab_lines(ab_results)
+
+
 def build_weekly_compounding_brief(
     *,
     log_path: str = DEFAULT_LOG,
     stock_db_path: str = DEFAULT_DB,
     recent_limit: int = 30,
     bans_path: str | None = None,
+    ab_results: list | None = None,
 ) -> str:
     window = _learning_window(log_path, recent_limit)
     channel_story = ""
@@ -231,6 +238,10 @@ def build_weekly_compounding_brief(
         [
             "",
             "只有上方對照有差異的特徵才可當方向；≥ 頻道中位數×2 才當勝負依據（見 youtube_performance_patterns）。",
+            "",
+            "## 封面 A/B（單一變數假設，YouTube 測試與比較）",
+            "",
+            *_cover_ab_lines(ab_results),
             "",
             "## 本週禁止／降權",
             "",

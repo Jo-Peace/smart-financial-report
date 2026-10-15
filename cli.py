@@ -9,6 +9,7 @@ Examples:
   python3 cli.py maintenance check-daily-workflow --date 2026-06-30
   python3 cli.py youtube regen-assets --date 2026-06-30 --visual-theme "FIFA 32強"
   python3 cli.py youtube check-youtube-package --date 2026-06-30
+  python3 cli.py youtube record-ab-result --date 2026-06-30 --winner a --value-a 54.2 --value-b 45.8
   python3 cli.py maintenance migrate-reports --dry-run
 """
 
@@ -58,6 +59,7 @@ def run_tool(spec, argv: list[str]) -> int:
             return 0
         if isinstance(code, int):
             return code
+        print(code, file=sys.stderr)  # as Python does for SystemExit("message"): the refusal stays visible
         return 1
     finally:
         sys.argv = old_argv

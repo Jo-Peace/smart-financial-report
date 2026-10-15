@@ -382,7 +382,9 @@ def _render_broadcast_cards(facts: dict) -> str:
         if card.get("sold_today") or (card.get("foreign_amount") is not None and card.get("foreign_amount") < 0):
             streak_text = "今日賣超（連續買超中斷，勿唸舊天數）"
         elif streak not in (None, 0):
-            streak_text = f"{streak} 日"
+            from modules.foreign_streak import format_streak_text
+
+            streak_text = format_streak_text(streak, card.get("foreign_streak_complete", True)) or f"{streak} 個交易日"
         else:
             streak_text = "資料不足（勿自行發明連續天數）"
         lines = [

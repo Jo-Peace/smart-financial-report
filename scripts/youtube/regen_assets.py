@@ -325,11 +325,12 @@ def _finalized_thumbnail_variants(ab_results):
         path = thumb.get("path", "")
         content = _read_file(path) if path and os.path.exists(path) else thumb.get("prompt", "")
         fields = _extract_thumbnail_text_fields(content)
+        ab_badge = f"A/B {fields['ab_variable']}" if fields.get("ab_variable") else ""
         variants.append(
             {
                 "variant": "ab"[idx] if idx < 2 else str(idx + 1),
                 "cover_text": [t for t in (fields.get("primary"), fields.get("secondary")) if t],
-                "badges": [t for t in (fields.get("date"), thumb.get("scenario"), thumb.get("composition")) if t],
+                "badges": [t for t in (fields.get("date"), thumb.get("scenario"), thumb.get("composition"), ab_badge) if t],
                 "prompt": content,
                 "selected": False,
             }
@@ -348,6 +349,7 @@ def _extract_thumbnail_text_fields(prompt_content):
         ("primary", "Primary"),
         ("secondary", "Secondary"),
         ("date", "Small date label"),
+        ("ab_variable", "A/B variable"),
     ]:
         match = re.search(rf"^- {re.escape(label)}:\s*(.+)$", prompt_content, flags=re.MULTILINE)
         fields[key] = match.group(1).strip() if match else ""
@@ -360,6 +362,8 @@ def _thumbnail_section(thumbnails):
         "",
         "以下內容由本機 `thumbnail_generator` 產生，取代舊版 package 內建封面 prompt。",
         "獨立 `yt_thumbnail_prompt` 檔只作備份；日常上架請優先看本段。",
+        "兩張封面配同一個標題 A、同主角、同數字，只差本週 A/B 變數（其餘不變項見各張的「A/B held constant」）；"
+        "請在 YouTube Studio「測試與比較」同時上傳。",
         "",
     ]
 
@@ -371,12 +375,14 @@ def _thumbnail_section(thumbnails):
         content = _read_file(path) if path and os.path.exists(path) else thumb.get("prompt", "")
         title = thumb.get("title", "")
         scenario = thumb.get("scenario", "")
+        ab_variable = _extract_thumbnail_text_fields(content).get("ab_variable") or thumb.get("ab_variable") or "未宣告"
 
         lines.extend([
             f"#### 封面 Prompt {label}",
             "",
             f"- 對應標題：{title}",
             f"- 情境：{scenario}",
+            f"- A/B 變數：{ab_variable}",
             f"- 備份檔：{filename}",
             "",
             "```markdown",
@@ -389,6 +395,9 @@ def _thumbnail_section(thumbnails):
 
 
 def _notebooklm_cover_section_from_thumbnail(first_prompt_content, visual_theme):
+    from modules.packaging_bans import strip_cover_text_note
+
+    visual_theme = strip_cover_text_note(visual_theme)
     fields = _extract_thumbnail_text_fields(first_prompt_content)
     primary = fields.get("primary") or "主力方向曝光"
     secondary = fields.get("secondary") or "明天驗收"
@@ -407,6 +416,25 @@ def _notebooklm_cover_section_from_thumbnail(first_prompt_content, visual_theme)
         "請不要自行改寫主標題與副標題。",
         "```",
     ])
+
+
+def _apply_cover_ab_guidance(package, ab_results):
+    """Single-variable cover A/B guidance (Studio 測試與比較) replaces the 48-hour title switching."""
+    try:
+        from modules.cover_ab_test import package_section, refresh_package_ab_guidance
+
+        ab = (ab_results or {}).get("ab_test") or {}
+        date_str = re.search(r"YouTube 上架素材包 (\d{4}-\d{2}-\d{2})", package)
+        section = package_section(
+            ab.get("hypothesis"),
+            date_str.group(1) if date_str else datetime.date.today().isoformat(),
+            hero_label=ab.get("hero_label", ""),
+            number=ab.get("number", ""),
+        )
+        return refresh_package_ab_guidance(package, section)
+    except Exception as e:
+        print(f"  ⚠️  封面 A/B 測試說明更新失敗，略過：{e}")
+        return package
 
 
 def integrate_thumbnail_prompts_into_package(package_path, ab_results, visual_theme=""):
@@ -471,9 +499,235 @@ def integrate_thumbnail_prompts_into_package(package_path, ab_results, visual_th
         else:
             package = package.rstrip() + "\n\n" + notebook_section + "\n"
 
+    package = _apply_cover_ab_guidance(package, ab_results)
+    # strip-and-reinsert leaves one more blank line per rerun; keep reruns byte-stable
+    package = re.sub(r"\n{3,}", "\n\n", package)
+
     with open(package_path, "w", encoding="utf-8") as f:
         f.write(package.rstrip() + "\n")
     return True
+
+
+THEME_SOURCES = ("explicit", "logged", "auto", "fallback")
+_UNSET_THEMES = {"", "-", "未指定", "待 /2 設定", "待/2設定", "待設定"}
+
+
+def _logged_visual_theme(date_str):
+    """Today's visual-theme cell in the channel log ("" when unset or no row)."""
+    try:
+        from modules.packaging_bans import scene_only
+        from modules.pipeline_support import _is_story_row, _table_cells
+
+        with open(CHANNEL_STORY_LOG, "r", encoding="utf-8") as f:
+            rows = [_table_cells(line) for line in f if _is_story_row(line)]
+    except Exception:
+        return ""
+    for cells in reversed(rows):
+        if cells and cells[0] == str(date_str) and len(cells) > 4:
+            if cells[4].strip() in _UNSET_THEMES:
+                return ""
+            return scene_only(cells[4]).strip().rstrip("。").strip()
+    return ""
+
+
+def _logged_theme_is_generated(date_str, logged):
+    """
+    True when today's logged theme was produced by /2 itself (auto scene or the
+    fallback) rather than chosen by the operator: it is then re-resolved, so a
+    rerun whose titles name a different cover hero gets a matching scene. A bare
+    「財經戰情室」 without a provenance record is the pre-auto default, not a choice.
+    """
+    from modules.thumbnail_generator import DEFAULT_VISUAL_THEME_LABEL
+    from modules.visual_scene import read_sidecar
+
+    def _norm(text):
+        return str(text or "").strip().rstrip("。").strip()
+
+    meta = read_sidecar(REPORTS_DIR, date_str)
+    logged = _norm(logged)
+    if _norm(meta.get("theme")) == logged:
+        return meta.get("source") in {"auto", "fallback"}
+    if logged in {_norm(t) for t in meta.get("generated_themes") or []}:
+        return True
+    return logged == DEFAULT_VISUAL_THEME_LABEL
+
+
+def _without_cover_text_note(theme):
+    """
+    An operator theme without the old 「A兩行股名+金額，B短句大字」 cover-text note: the
+    week's A/B hypothesis sets each cover's text, and the note would otherwise reach
+    the channel log, the package's NotebookLM cover line and the director card.
+    """
+    from modules.packaging_bans import _COVER_TEXT_NOTE_RE, strip_cover_text_note
+
+    theme = str(theme or "").strip()
+    if not _COVER_TEXT_NOTE_RE.search(theme):
+        return theme
+    print("  ✂️  已移除主題裡的舊 A/B 封面字指示（封面字改由本週 A/B 假設決定）")
+    return strip_cover_text_note(theme)
+
+
+def choose_visual_theme(
+    raw_visual_theme, date_str, bans_path=None, structured_data=None, titles=None, allow_logged=True
+):
+    """
+    The /2 visual theme and which path chose it:
+
+    1. ``explicit`` — ``--visual-theme`` (or DAILY_VISUAL_THEME). 「禁止…」 clauses go to
+       data/packaging_bans.json (TTL／上限／成效豁免); only the positive scene reaches
+       the channel log, covers and NotebookLM.
+    2. ``logged`` — no theme given, but the channel log already has one for this date
+       (an operator theme set earlier today is kept on a rerun).
+    3. ``auto`` — a local deterministic scene from data/visual_scene_library.json for
+       today's facts and cover hero (modules/visual_scene.py; never Gemini).
+    4. ``fallback`` — 「財經戰情室」 when no auto scene can be built.
+
+    ``allow_logged=False`` re-resolves an auto / fallback theme once the final titles
+    (and so the cover hero) are known. Returns {"theme", "source", "bans_state", "auto"}.
+    """
+    raw_visual_theme = str(raw_visual_theme or "").strip()
+    bans_state = None
+    visual_theme = raw_visual_theme
+    try:
+        from modules.packaging_bans import DEFAULT_BANS_PATH, apply_visual_theme
+        from modules.youtube_learning import learning_window
+
+        try:
+            window = learning_window(CHANNEL_STORY_LOG)
+        except Exception:
+            window = None
+        visual_theme, bans_state = apply_visual_theme(
+            raw_visual_theme, date_str, path=bans_path or DEFAULT_BANS_PATH, window=window
+        )
+        if visual_theme != raw_visual_theme:
+            print(f"  ✂️  視覺主題已拆出規則子句（{len(raw_visual_theme) - len(visual_theme)} 字）→ data/packaging_bans.json")
+    except Exception as e:
+        print(f"  ⚠️  視覺主題拆解失敗，沿用原字串：{e}")
+        visual_theme = raw_visual_theme
+    visual_theme = _without_cover_text_note(visual_theme)
+    if visual_theme:
+        print(f"  🎨 視覺主題來源：explicit（--visual-theme）→ {visual_theme[:60]}")
+        return {"theme": visual_theme, "source": "explicit", "bans_state": bans_state, "auto": None}
+
+    logged = _logged_visual_theme(date_str) if allow_logged else ""
+    if logged and not _logged_theme_is_generated(date_str, logged):
+        logged = _without_cover_text_note(logged) or logged
+        print(f"  🎨 視覺主題來源：logged（未指定 --visual-theme，沿用今日 channel log 已設定的主題）→ {logged[:60]}")
+        return {"theme": logged, "source": "logged", "bans_state": bans_state, "auto": None}
+
+    auto = None
+    if structured_data:
+        try:
+            from modules.visual_scene import auto_visual_theme, describe
+
+            auto = auto_visual_theme(
+                date_str,
+                structured_data,
+                titles=titles,
+                log_path=CHANNEL_STORY_LOG,
+                bans_state=bans_state,
+            )
+            if auto:
+                print(f"  🎨 視覺主題來源：auto（本機場景庫，不呼叫 Gemini）→ {auto['theme']}")
+                print(f"     {describe(auto)}")
+                return {"theme": auto["theme"], "source": "auto", "bans_state": bans_state, "auto": auto}
+        except Exception as e:
+            print(f"  ⚠️  自動視覺主題失敗，改用備援：{e}")
+    from modules.thumbnail_generator import DEFAULT_VISUAL_THEME_LABEL
+
+    reason = "無 structured_data" if not structured_data else "找不到可用的主角數字或場景"
+    print(f"  🎨 視覺主題來源：fallback（{reason}）→ {DEFAULT_VISUAL_THEME_LABEL}")
+    return {"theme": DEFAULT_VISUAL_THEME_LABEL, "source": "fallback", "bans_state": bans_state, "auto": None}
+
+
+def resolve_visual_theme(raw_visual_theme, date_str, bans_path=None, structured_data=None, titles=None):
+    """(scene_theme, bans_state) for /2 — see ``choose_visual_theme`` for the four paths."""
+    choice = choose_visual_theme(
+        raw_visual_theme, date_str, bans_path=bans_path, structured_data=structured_data, titles=titles
+    )
+    return choice["theme"], choice["bans_state"]
+
+
+def rechoose_theme_for_titles(choice, raw_visual_theme, date_str, structured_data, titles):
+    """
+    Final titles → final cover hero: an auto / fallback theme is re-resolved so the
+    scene names the same stock and number as the covers. Explicit and logged themes
+    are the operator's and stay.
+    """
+    if not titles or (choice or {}).get("source") not in {"auto", "fallback"}:
+        return choice
+    new_choice = choose_visual_theme(
+        raw_visual_theme, date_str, structured_data=structured_data, titles=titles, allow_logged=False
+    )
+    record_theme_choice(date_str, new_choice)
+    return new_choice
+
+
+def theme_needs_cover_hero(choice, ab_results):
+    """
+    True when an auto / fallback theme does not name the covers' hero. Without a
+    package (--skip-youtube) the theme is resolved before Step 3 writes the local
+    cover titles, so 「南亞」 could lead the theme while the covers print 「2330 台積電」.
+    Operator themes (explicit / logged) are never re-resolved.
+    """
+    if (choice or {}).get("source") not in {"auto", "fallback"}:
+        return False
+    cover_key = ((ab_results or {}).get("hero") or {}).get("key")
+    if not cover_key or not (ab_results or {}).get("titles"):
+        return False
+    theme_key = (((choice or {}).get("auto") or {}).get("hero") or {}).get("key")
+    return cover_key != theme_key
+
+
+def record_theme_choice(date_str, choice):
+    """Provenance sidecar (reports/youtube/<date>/visual_theme.json) for explicit / auto / fallback themes."""
+    if not choice or choice.get("source") not in {"explicit", "auto", "fallback"}:
+        return None
+    try:
+        from modules.visual_scene import read_sidecar, write_sidecar
+
+        auto = choice.get("auto") or {}
+        generated = list(read_sidecar(REPORTS_DIR, date_str).get("generated_themes") or [])
+        if choice["source"] in {"auto", "fallback"} and choice["theme"] not in generated:
+            generated.append(choice["theme"])
+        payload = {"theme": choice["theme"], "source": choice["source"], "generated_themes": generated}
+        for key in ("scene_id", "label", "archetype", "archetypes", "hero", "other", "excluded_recent", "excluded_banned"):
+            if key in auto:
+                payload[key] = auto[key]
+        return write_sidecar(REPORTS_DIR, date_str, payload)
+    except Exception as e:
+        print(f"  ⚠️  視覺主題來源紀錄寫入失敗，略過：{e}")
+        return None
+
+
+def refresh_package_fact_gate(package_path, structured_data):
+    """
+    Title fact gate on the package as it stands (Gemini titles are never rewritten):
+    contradictions with local facts are written into the package and printed loudly;
+    check-youtube-package FAILs on the same rule.
+    """
+    if not package_path or not os.path.exists(package_path):
+        return []
+    try:
+        from modules.title_fact_gate import apply_fact_gate_block, check_titles, format_issue, titles_from_package
+
+        package = _read_file(package_path)
+        issues = check_titles(titles_from_package(package), structured_data)
+        updated = apply_fact_gate_block(package, issues)
+        if updated != package:
+            with open(package_path, "w", encoding="utf-8") as f:
+                f.write(updated.rstrip() + "\n")
+        errors = [issue for issue in issues if issue["level"] == "error"]
+        if errors:
+            print("\n  ⛔⛔ 標題事實對帳 FAIL（上傳前必須修正標題；已寫入 YouTube package）：")
+        for issue in issues:
+            print(f"     {format_issue(issue)}")
+        if not issues:
+            print("  ✅ 標題事實對帳：A/B 標題與本機數據一致")
+        return issues
+    except Exception as e:
+        print(f"  ⚠️  標題事實對帳失敗，略過：{e}")
+        return []
 
 
 def main():
@@ -495,38 +749,11 @@ def main():
 
     date_str = args.date
     raw_visual_theme = args.visual_theme.strip() or DAILY_VISUAL_THEME
-    # 「禁止…」等規則子句改存 data/packaging_bans.json（TTL／上限／成效豁免），
-    # 只有正向場景描述會進 channel log、封面與 NotebookLM 圖像指令。
-    bans_state = None
-    visual_theme = raw_visual_theme
-    try:
-        from modules.packaging_bans import apply_visual_theme
-        from modules.youtube_learning import learning_window
 
-        try:
-            window = learning_window(CHANNEL_STORY_LOG)
-        except Exception:
-            window = None
-        visual_theme, bans_state = apply_visual_theme(raw_visual_theme, date_str, window=window)
-        if visual_theme != raw_visual_theme:
-            print(f"  ✂️  視覺主題已拆出規則子句（{len(raw_visual_theme) - len(visual_theme)} 字）→ data/packaging_bans.json")
-    except Exception as e:
-        print(f"  ⚠️  視覺主題拆解失敗，沿用原字串：{e}")
-        visual_theme = raw_visual_theme
-    print(f"\n{'='*50}")
-    print(f"  素材補跑模式 (scripts/youtube/regen_assets.py)")
-    print(f"  目標日期：{date_str}")
-    print(f"  視覺主題：{visual_theme if visual_theme else '未指定 (預設風格)'}")
-    print(f"{'='*50}\n")
-    print_today_usage(prefix="  ")
-
-    try:
-        update_youtube_performance_wiki(CHANNEL_STORY_LOG, YOUTUBE_PERFORMANCE_WIKI)
-        print(f"✅ YouTube 成效學習摘要已更新：{os.path.relpath(YOUTUBE_PERFORMANCE_WIKI, BASE_DIR)}")
-    except Exception as e:
-        print(f"⚠️  YouTube 成效學習摘要更新失敗，略過：{e}")
-
-    if not GEMINI_API_KEY:
+    needs_gemini = not args.skip_youtube or (
+        not args.skip_wiki and os.getenv("KNOWLEDGE_WIKI_MODE", "").strip().lower() == "ai"
+    )
+    if not GEMINI_API_KEY and needs_gemini:
         print("❌ 請在 .env 設定 GEMINI_API_KEY")
         sys.exit(1)
 
@@ -539,6 +766,37 @@ def main():
         report_content = f.read()
     with open(json_path, "r", encoding="utf-8") as f:
         structured_data = json.load(f)
+
+    # The auto scene names the cover hero, so it starts from the titles already in
+    # today's package (re-resolved below if Gemini writes new ones).
+    existing_package_path = resolve_youtube_artifact(REPORTS_DIR, date_str, "package")
+    existing_titles = []
+    if existing_package_path and os.path.exists(existing_package_path):
+        from modules.title_fact_gate import titles_from_package
+
+        existing_titles = titles_from_package(_read_file(existing_package_path))
+    print("\n🎨 決定今日視覺主題...")
+    theme_choice = choose_visual_theme(
+        raw_visual_theme, date_str, structured_data=structured_data, titles=existing_titles
+    )
+    visual_theme, bans_state = theme_choice["theme"], theme_choice["bans_state"]
+    record_theme_choice(date_str, theme_choice)
+
+    print(f"\n{'='*50}")
+    print(f"  素材補跑模式 (scripts/youtube/regen_assets.py)")
+    print(f"  目標日期：{date_str}")
+    print(f"  視覺主題：{visual_theme}（來源：{theme_choice['source']}）")
+    print(f"{'='*50}\n")
+    print_today_usage(prefix="  ")
+
+    try:
+        update_youtube_performance_wiki(CHANNEL_STORY_LOG, YOUTUBE_PERFORMANCE_WIKI)
+        print(f"✅ YouTube 成效學習摘要已更新：{os.path.relpath(YOUTUBE_PERFORMANCE_WIKI, BASE_DIR)}")
+    except Exception as e:
+        print(f"⚠️  YouTube 成效學習摘要更新失敗，略過：{e}")
+
+    if not GEMINI_API_KEY:
+        print("  ℹ️  未設定 GEMINI_API_KEY：本次只跑本機步驟（--skip-youtube，不呼叫 Gemini）")
 
     print(f"✅ 已載入報告：{os.path.basename(report_path)} ({len(report_content):,} chars)")
     print(f"✅ 已載入結構化數據：{os.path.basename(json_path)}")
@@ -621,6 +879,10 @@ def main():
                 packaging_context=build_packaging_context(structured_data, bans_state=bans_state),
             )
             if yt_package.get("titles"):
+                theme_choice = rechoose_theme_for_titles(
+                    theme_choice, raw_visual_theme, date_str, structured_data, yt_package["titles"]
+                )
+                visual_theme = theme_choice["theme"]
                 yt_package_path = save_youtube_package(
                     yt_package,
                     REPORTS_DIR,
@@ -680,6 +942,10 @@ def main():
                     date_str,
                     reason="Gemini YouTube package 生成失敗或遭遇速率限制",
                 )
+                theme_choice = rechoose_theme_for_titles(
+                    theme_choice, raw_visual_theme, date_str, structured_data, yt_package.get("titles")
+                )
+                visual_theme = theme_choice["theme"]
                 yt_package_path = save_youtube_package(
                     yt_package,
                     REPORTS_DIR,
@@ -721,18 +987,32 @@ def main():
                 )
                 preferred_titles = [title.strip() for title in preferred_titles if title.strip()]
 
-            ab_results = generate_ab_test_thumbnails(
-                gemini_api_key=GEMINI_API_KEY,
-                openai_api_key=None,
-                report_content=report_content,
-                reports_dir=youtube_output_dir,
-                styles=thumbnail_styles,
-                num_titles=2,
-                structured_data=structured_data,
-                run_date=date_str,
-                channel_story=read_story_table_tail(CHANNEL_STORY_LOG, n_rows=STORY_ROWS_FOR_FATIGUE),
-                preferred_titles=preferred_titles,
-            )
+            def _generate_covers(styles, titles):
+                return generate_ab_test_thumbnails(
+                    gemini_api_key=GEMINI_API_KEY,
+                    openai_api_key=None,
+                    report_content=report_content,
+                    reports_dir=youtube_output_dir,
+                    styles=styles,
+                    num_titles=2,
+                    structured_data=structured_data,
+                    run_date=date_str,
+                    channel_story=read_story_table_tail(CHANNEL_STORY_LOG, n_rows=STORY_ROWS_FOR_FATIGUE),
+                    preferred_titles=titles,
+                )
+
+            ab_results = _generate_covers(thumbnail_styles, preferred_titles)
+            # No package yet (--skip-youtube): the theme was resolved before the local
+            # cover titles existed, so its hero can differ from the covers' hero.
+            if theme_needs_cover_hero(theme_choice, ab_results):
+                print("  🔁 封面主角與視覺主題主角不同，依封面標題重算自動主題後重產封面 Prompt")
+                theme_choice = rechoose_theme_for_titles(
+                    theme_choice, raw_visual_theme, date_str, structured_data, (ab_results or {}).get("titles")
+                )
+                if theme_choice["theme"] != visual_theme:
+                    visual_theme = theme_choice["theme"]
+                    # same cover titles (a second local title pass would see the prompts just written)
+                    ab_results = _generate_covers([visual_theme] if visual_theme else None, ab_results.get("titles"))
             print_ab_test_summary(ab_results)
             try:
                 from modules.analytics_store import AnalyticsStore
@@ -748,6 +1028,12 @@ def main():
                 print(f"  ✅ YouTube package 已改用本機完整封面 Prompt：{os.path.basename(yt_package_path)}")
             else:
                 print("  ⚠️  未整合封面 Prompt 到 YouTube package（可能尚未產生 package）")
+            refresh_package_fact_gate(yt_package_path, structured_data)
+            _update_channel_story_visual_theme(
+                date_str=date_str,
+                visual_theme=visual_theme,
+                title_used=final_titles[0] if final_titles else "",
+            )
         except Exception as e:
             print(f"  ⚠️  縮圖 Prompt 生成失敗，略過：{e}")
     elif args.skip_thumbnail:

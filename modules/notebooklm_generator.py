@@ -308,15 +308,17 @@ def _short_date_label(date_str: str) -> str:
 def _scene_theme(visual_theme: str) -> str:
     """
     Positive scene only (finding 82/91): 「禁止…」 clauses, banned stock names and title
-    rules from --visual-theme / DAILY_VISUAL_THEME never reach the NotebookLM cover.
+    rules from --visual-theme / DAILY_VISUAL_THEME never reach the NotebookLM cover,
+    nor does an old 「A兩行股名+金額，B短句大字」 cover-text note (the week's A/B
+    hypothesis sets each cover's text).
     """
     text = str(visual_theme or "").strip()
     if not text:
         return ""
     try:
-        from modules.packaging_bans import scene_only
+        from modules.packaging_bans import scene_only, strip_cover_text_note
 
-        return scene_only(text).rstrip("。")
+        return strip_cover_text_note(scene_only(text).rstrip("。")).rstrip("。")
     except Exception:
         return text[:150]
 

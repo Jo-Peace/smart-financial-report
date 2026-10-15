@@ -24,6 +24,7 @@ class TitleHeroTests(unittest.TestCase):
             SD,
         )
         self.assertEqual(hero["name"], "台積電")
+        # the title states the local -292.5億 correctly as 292億: the cover repeats the title's number
         self.assertEqual(hero["amount"], "292億")
         self.assertEqual(hero["verb"], "砍")
         self.assertEqual(hero["ticker"], "2330")
@@ -47,13 +48,14 @@ class AlignTests(unittest.TestCase):
         ]
         out = align_ab_overlays(scenarios, titles, SD)
         self.assertIn("台積電", out[0]["overlay_primary"])
-        self.assertIn("292億", out[0]["overlay_secondary"])
+        self.assertEqual(out[0]["overlay_secondary"], "外資砍292億")
         self.assertEqual(out[0]["hero"]["name"], out[1]["hero"]["name"])
         self.assertNotIn("上集點名", out[1]["overlay_primary"])
         self.assertIn("砍", out[1]["overlay_primary"])
         self.assertIn("292億", out[1]["overlay_primary"])
-        self.assertTrue("?" in out[1]["overlay_secondary"] or "誰在買" in out[1]["overlay_secondary"])
+        self.assertIn("?", out[1]["overlay_secondary"])
         self.assertNotIn("誰在收", out[1]["overlay_secondary"])
+        self.assertNotIn("誰在買", out[1]["overlay_secondary"])
         self.assertTrue(any("驗收章" in bit for bit in out[1]["avoid"]))
 
 

@@ -61,6 +61,37 @@ python3 cli.py maintenance compare-institutional --date 2026-08-07
 - 連續 2 支：WARN  
 - 連續 ≥3 支：BLOCK（`/2` 產標題時會嘗試剝除疲勞開場）
 
+## /2 每日視覺主題（自動場景，0 Gemini）
+
+`python3 cli.py youtube regen-assets` 依序決定封面視覺主題，並印出用了哪一條路：
+
+1. `explicit`：`--visual-theme "…"`（或 `DAILY_VISUAL_THEME`）一律優先；「禁止…」子句照舊進 `data/packaging_bans.json`。
+2. `logged`：沒帶主題、但 `channel_story_log.md` 今天那列已有操作者設定的主題 → 同日重跑沿用。
+3. `auto`：沒帶主題時，`modules/visual_scene.py` 用本機事實選今日場景（`data/visual_scene_library.json`，50 個日常、非 IP、非體育場景）：
+   - 先分 archetype（換手、權值提款、單股暴衝、量價背離、漲停鎖量、大盤強彈、大跌守線、土洋對作、盤整觀望）；
+   - 排除近 5 個交易日 channel log 用過的場景（「：」前的場景名）、`packaging_bans.json` 有效的 `visual_object` 禁用，以及近 5 個交易日 channel log 主題「禁止A／B／C…」清單點名的場景；近 20 個交易日沒用過的優先；
+   - 以日期為種子決定性挑選（同日同資料 → 同主題）；
+   - 主題寫成「<場景>漫畫（漲紅跌綠）：<比喻>；<博士／韭菜動作>」（≤150 字，不含 A/B 封面字指示），主角、金額、漲跌與封面事實對帳同一組，對照股優先用標題 A 點名的反方向個股，並再過一次 `title_fact_gate`。顏色標的是外資買賣方向（買超紅色、賣超綠色），股價漲跌用文字（噴／跌／守平盤）。
+4. `fallback`：沒有可用主角數字或場景時才用「財經戰情室」。
+
+來源紀錄寫在 `reports/youtube/YYYY-MM-DD/visual_theme.json`：自動／備援產生的主題在重跑時會依最終標題的封面主角重算，操作者指定的主題不會被改。前一天的主題永遠不沿用。
+
+## 封面 A/B 測試（單一變數，YouTube 測試與比較）
+
+`/2` 的封面 A/B 一次只測一個變數，避免同時換標題句法和封面構圖、事後無法歸因：
+
+- `data/ab_test_plan.json`：假設清單（H1 畫風、H2 封面字句型、H3 角色、H4 數字大小／位置），依 ISO 週輪替；`AB_HYPOTHESIS=H3`（或變數名）可覆寫。
+- 兩份封面 Prompt 同主角、同已驗證數字、同配標題 A、同場景與構圖，只差宣告的變數（H1 畫風的場景本身就是變數，只保留同構圖）；各有一行 `- A/B variable: …`。當日主題是「財經戰情室」時 H1 兩組幾乎一樣，當天改測下一個假設。`check-youtube-package` 在主角或數字不同時 FAIL，沒宣告變數時 WARN。
+- 上架用標題 A，在 YouTube Studio「測試與比較」同時上傳封面 A/B；標題 B 留給之後單獨的標題測試。
+- YouTube 回報勝出後記錄（寫入 `analytics.db` 的 `ab_test_results`，並標記 `youtube_thumbnail_variants.selected`）：
+
+```bash
+python3 cli.py youtube record-ab-result --date 2026-10-14 --winner a --metric watch_time_share --value-a 54.2 --value-b 45.8
+```
+
+- 封面 Prompt 沒有 `- A/B variable:` 的舊封面不會被歸到當週假設：`record-ab-result` 直接拒絕，除非明確加 `--hypothesis`；`--winner none` 不會清掉舊的 selected 標記。
+- `youtube_performance_patterns.md` 與 `weekly_compounding_brief.md` 會列出各假設的勝負次數（含 n）；同一假設 ≥3 次有勝負且過半才建議升級預設（手動調整 `LEVER_DEFAULTS`），A/B 結果不產生任何禁令。
+
 ## Knowledge Wiki 模式
 
 `/1` 寫入 `capital_rotation` / `macro_events` / `trading_strategies` 時：

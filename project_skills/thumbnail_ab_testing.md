@@ -6,10 +6,9 @@ Purpose: keep thumbnail tests simple, readable, and measurable.
 
 Generate only two thumbnail concepts:
 
-- A: primary high-confidence concept.
-- B: visually different replacement concept.
-
-A and B must not be the same composition with different words.
+- A and B are one single-variable test (`data/ab_test_plan.json`, one hypothesis per ISO week).
+- Same hero stock, same verified number, same title pairing (title A), same scene and composition.
+- Only the week's variable differs (style / text / characters / number layout); both prompts carry `- A/B variable: …`.
 
 ## Text Rule
 
@@ -64,12 +63,16 @@ Default visual family (2026-07-07 CTR fix):
 
 ## A/B Difference
 
-Recommended split (2026-09-03 YouTube thumbnail-insight test):
+Single-variable tests (2026-10-14 redesign; results were unattributable when title syntax and cover
+composition changed at once):
 
-- A (control): current two-line overlay `股名／代號` + `外資砍／買○○億`; existing composition may stay map-like.
-- B (experiment): same stock and number, but overlay is a fragment (`還紅?` / `砍292億` / `高買低量`). Medium characters, larger type, theme in the background only. No verification stamp, no VERIFIED, no 上集點名.
+- H1 style: 漫畫場景（當日視覺主題） vs 戰情室數據大字牌 (B draws no metaphor scene; only the composition is
+  shared). On a 財經戰情室 day both arms would be war-room pictures, so that day tests the next hypothesis.
+- H2 text: 陳述句 (`1303 南亞 / 外資買55.3億`) vs 問句 (`1303 南亞 / 外資為何買55.3億？`).
+- H3 characters: 有雙角色（博士＋阿明） vs 無角色純數據.
+- H4 number size / position: 大數字左下大字牌 vs 小數字右上角.
 
-The visual layout, character scale, and background should differ between A and B. Overlay must match the title hero.
+Everything not under test stays identical. Overlay must match the title hero.
 
 Track the thumbnail concept type for future learning:
 
@@ -83,7 +86,7 @@ Track the thumbnail concept type for future learning:
 ## Evaluation Rule
 
 - Same-age views below 2× the channel median (see youtube_performance_patterns.md): observation only.
-- CTR below the channel's own average with sufficient impressions: consider replacing thumbnail.
+- CTR below the channel's own average with sufficient impressions: note it; cover changes go through the next single-variable A/B test, not a manual swap.
 - High CTR but low retention: thumbnail/title attracted clicks but video opening may not match.
 - High views and high comments: consider a follow-up episode.
 - If Browse features are the main source, CTR and first 30 seconds retention are the primary thumbnail diagnostics.
@@ -92,7 +95,8 @@ Track the thumbnail concept type for future learning:
 
 ## Daily Workflow
 
-1. Use thumbnail A first.
-2. Record which thumbnail was used.
-3. Record 24-hour and 48-hour metrics.
-4. Only test B if the sample is large enough or CTR is clearly weak.
+1. Upload with title A.
+2. Upload cover A and cover B together in YouTube Studio 「測試與比較」 (Test & compare); do not switch covers by hand later.
+3. When YouTube reports a winner (or no clear difference), run `python3 cli.py youtube record-ab-result --date YYYY-MM-DD --winner a|b|none`.
+4. Promote an arm only after ≥ 3 decided tests of the same hypothesis with a majority; never ban from A/B alone.
+5. Title B is kept for a separate future title test, never run at the same time as a cover test.

@@ -6,6 +6,7 @@ prompts contain the expected upload assets, date label, and safety wording.
 """
 import argparse
 import datetime as dt
+import json
 import os
 import re
 import sys
@@ -16,7 +17,11 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 REPORTS_DIR = os.path.join(BASE_DIR, "reports")
 
-from modules.report_paths import resolve_shared_artifact, resolve_youtube_artifact  # noqa: E402
+from modules.report_paths import (  # noqa: E402
+    resolve_daily_artifact,
+    resolve_shared_artifact,
+    resolve_youtube_artifact,
+)
 
 CHANNEL_STORY_LOG = resolve_shared_artifact(REPORTS_DIR, "channel_story_log")
 
@@ -96,6 +101,127 @@ def check_file_contains(path, label, checks, failures, warnings):
     return content
 
 
+def _thumb_field(content, label):
+    match = re.search(rf"^- {re.escape(label)}:\s*(.+)$", content or "", flags=re.MULTILINE)
+    return match.group(1).strip() if match else ""
+
+
+def _cover_hero_key(facts, content, fallback_contents=()):
+    """Hero the cover numbers belong to: the prompt's fact-source line, else cover A's stock, else Main stocks."""
+    hero_line = _thumb_field(content, "Hero (fact source)")
+    candidates = [hero_line] if hero_line else []
+    for other in fallback_contents:
+        candidates.append(f"{_thumb_field(other, 'Primary')} {_thumb_field(other, 'Secondary')}")
+    candidates.append(_thumb_field(content, "Main stocks").split(",")[0])
+    for text in candidates:
+        for _start, _end, key in facts.find_mentions(text):
+            if key and facts.fact(key) and key not in {"INDEX", "OTHER"}:
+                return key
+    return None
+
+
+def check_fact_gate(date_str, package, thumb_contents, failures, warnings, structured_data=None):
+    """
+    Title A/B and cover Primary/Secondary claims vs local facts (title_fact_gate):
+    a contradiction FAILs with the exact claim and fact.
+    """
+    from modules.title_fact_gate import (
+        build_fact_index,
+        check_cover,
+        check_titles,
+        titles_from_package,
+    )
+
+    if structured_data is None:
+        json_path = resolve_daily_artifact(REPORTS_DIR, date_str, "structured_data")
+        if not json_path:
+            warnings.append("找不到 structured_data.json，無法做標題／封面事實對帳")
+            return
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                structured_data = json.load(f)
+        except (OSError, ValueError) as exc:
+            warnings.append(f"structured_data.json 無法讀取，略過事實對帳：{exc}")
+            return
+    facts = build_fact_index(structured_data)
+    titles = titles_from_package(package)
+    issues = check_titles(titles, facts=facts) if titles else []
+    first_cover = thumb_contents[0] if thumb_contents else ""
+    for index, content in enumerate(thumb_contents, start=1):
+        if not content:
+            continue
+        hero_key = _cover_hero_key(facts, content, fallback_contents=[first_cover] if index > 1 else [])
+        issues.extend(
+            check_cover(
+                _thumb_field(content, "Primary"),
+                _thumb_field(content, "Secondary"),
+                hero_key=hero_key,
+                where=f"封面 Prompt {index}",
+                facts=facts,
+            )
+        )
+        main = _thumb_field(content, "Main stocks").split(",")[0].strip()
+        if hero_key and main and not any(k == hero_key for _s, _e, k in facts.find_mentions(main)):
+            warnings.append(f"縮圖 Prompt {index} 的 Main stocks 第一檔（{main}）不是封面主角 {facts.label(hero_key)}")
+    for issue in issues:
+        text = f"事實對帳 {issue.get('where')}：「{issue.get('clause')}」→ {issue.get('message')}"
+        (failures if issue["level"] == "error" else warnings).append(text)
+    if titles and not any(issue["level"] == "error" for issue in issues):
+        status_line("PASS", "標題 A/B 與封面字的金額／漲跌／方向詞與本機數據一致")
+
+
+def _hero_text(content):
+    """「1303 南亞」 from 「- Hero (fact source): 1303 南亞（外資 +55.3億，…）」."""
+    return re.split(r"[（(]", _thumb_field(content, "Hero (fact source)"), maxsplit=1)[0].strip()
+
+
+def _title_pairing(content):
+    match = re.search(r"^Title pairing:\s*(.+)$", content or "", flags=re.MULTILINE)
+    return match.group(1).strip() if match else ""
+
+
+def check_ab_covers(thumb_contents, failures, warnings):
+    """
+    Single-variable cover A/B: both covers must show the same hero and the same
+    verified number (FAIL otherwise); each must declare its A/B variable (WARN).
+    """
+    from modules.cover_ab_test import parse_variable_line
+    from modules.thumbnail_generator import cover_number
+
+    covers = [c for c in thumb_contents[:2] if c]
+    if len(covers) < 2:
+        return
+    heroes = [_hero_text(c) for c in covers]
+    if all(heroes) and heroes[0] != heroes[1]:
+        failures.append(f"封面 A/B 主角不同（A {heroes[0]} vs B {heroes[1]}）：單一變數測試必須同主角")
+    elif not all(heroes):
+        warnings.append("封面 Prompt 缺少 Hero (fact source)，無法確認 A/B 同主角")
+    numbers = [cover_number(_thumb_field(c, "Primary"), _thumb_field(c, "Secondary")) for c in covers]
+    if numbers[0] != numbers[1]:
+        failures.append(
+            f"封面 A/B 數字不同（A {numbers[0] or '無數字'} vs B {numbers[1] or '無數字'}）：單一變數測試必須同一個已驗證數字"
+        )
+    declared = [parse_variable_line(c) for c in covers]
+    for index, item in enumerate(declared, start=1):
+        if not item:
+            warnings.append(f"縮圖 Prompt {index} 沒有宣告 A/B 變數（- A/B variable: …）")
+    if all(declared):
+        if declared[0]["variable"] != declared[1]["variable"] or declared[0]["hypothesis_id"] != declared[1]["hypothesis_id"]:
+            warnings.append(
+                f"封面 A/B 宣告的變數不一致（A {declared[0]['hypothesis_id']} {declared[0]['variable']} vs "
+                f"B {declared[1]['hypothesis_id']} {declared[1]['variable']}）"
+            )
+        elif [d["arm"] for d in declared] != ["a", "b"]:
+            warnings.append("封面 Prompt 1/2 應分別是 A/B 變數的 A 組與 B 組")
+        else:
+            status_line("PASS", f"封面 A/B 只差 {declared[0]['hypothesis_id']} {declared[0]['variable']}")
+    titles = [_title_pairing(c) for c in covers]
+    if all(titles) and titles[0] != titles[1]:
+        warnings.append("封面 A/B 的 Title pairing 不同：兩張都應配標題 A（標題 B 留給之後單獨的標題測試）")
+    if heroes[0] and heroes[0] == heroes[1] and numbers[0] == numbers[1]:
+        status_line("PASS", f"封面 A/B 同主角 {heroes[0]}、同數字 {numbers[0] or '（無數字）'}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="檢查 /2 YouTube package 與縮圖 prompt 是否完整")
     parser.add_argument("--date", default=dt.datetime.now().strftime("%Y-%m-%d"), help="YYYY-MM-DD")
@@ -127,6 +253,7 @@ def main():
         warnings,
     )
 
+    thumb_contents = []
     for index, thumb_path in enumerate(thumb_paths, start=1):
         content = check_file_contains(
             thumb_path,
@@ -142,6 +269,17 @@ def main():
 
         if content and has_any(content, RISKY_IP_TERMS) and not has_any(content, SAFE_PHRASES):
             warnings.append(f"縮圖 Prompt {index} 含 IP 風格詞，但缺少明確原創/避開角色/logo 的安全描述")
+        thumb_contents.append(content or "")
+
+    if package:
+        try:
+            check_fact_gate(args.date, package, thumb_contents, failures, warnings)
+        except Exception as exc:  # never hide the rest of the report
+            warnings.append(f"事實對帳執行失敗：{exc}")
+    try:
+        check_ab_covers(thumb_contents, failures, warnings)
+    except Exception as exc:
+        warnings.append(f"封面 A/B 檢查執行失敗：{exc}")
 
     if package and has_any(package, RISKY_IP_TERMS) and not has_any(package, SAFE_PHRASES):
         warnings.append("YouTube package 含 IP 風格詞，但缺少明確原創/避開角色/logo 的安全描述")
