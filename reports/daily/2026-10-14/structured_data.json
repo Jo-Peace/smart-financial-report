@@ -1,317 +1,121 @@
 {
   "sectors": {
-    "AI電子化學與基礎材料": [
-      "南亞",
-      "台塑"
+    "AI 基礎材料": [
+      "南亞 (CCL 關鍵材料)",
+      "台塑 (噴出漲停)",
+      "台玻 (玻纖布)",
+      "台化 (高階工程塑料)"
     ],
-    "AI玻纖布材料": [
-      "台玻"
+    "被動元件": [
+      "國巨* (站上 MA20)",
+      "華新科"
     ],
-    "AI伺服器被動元件": [
-      "國巨*"
+    "晶圓代工與封測": [
+      "台積電 (結算提款)",
+      "聯發科 (高位提款)",
+      "南亞科 (遭撤資)",
+      "京元電子 (資金撤出)",
+      "聯電"
     ],
-    "AI伺服器系統": [
+    "光學": [
+      "大立光 (退潮)",
+      "玉晶光"
+    ],
+    "PCB與伺服器": [
+      "金像電",
+      "欣興",
       "緯穎"
-    ],
-    "AI邊緣人機介面": [
-      "友達"
-    ],
-    "晶圓代工與IC設計": [
-      "台積電 (遭外資賣超)",
-      "聯發科 (遭外資賣超)"
     ]
   },
   "ai_data_picks": [
-    "國巨* (外資大買且量縮)",
-    "南亞 (外資買超第一)"
+    "南亞 (外資買超第一)",
+    "國巨* (突破 MA20)"
   ],
   "prediction_targets": [
     {
-      "id": "1802",
-      "name": "台玻",
+      "id": "1303",
+      "name": "南亞",
       "direction": "多",
-      "trigger": "外資買超全台第三，量增比1.57倍，且成交量位居前五",
-      "stop_loss_price": 62,
-      "stop_loss_desc": "收盤跌破62元"
+      "trigger": "外資買超 55.3 億居冠，且基本面毛利率連三季改善",
+      "stop_loss_price": 319.0,
+      "stop_loss_desc": "跌破 319.0（MA5）"
     },
     {
       "id": "2327",
       "name": "國巨*",
       "direction": "多",
-      "trigger": "買超金額全台第二但量未進前二十，典型主力先行訊號",
-      "stop_loss_price": 584.85,
-      "stop_loss_desc": "收盤跌破MA20"
+      "trigger": "外資買超第 3 名（36.6 億），股價轉強突破 MA20",
+      "stop_loss_price": 584.0,
+      "stop_loss_desc": "收盤跌破 584.0（MA20）"
     }
   ],
   "price_volume_divergence": [
-    "2327 國巨*：外資買超全台第二(36.6億)，但成交量未進前20名，顯示法人靜默吸籌，市場尚未過熱"
+    "2408 南亞科與 1303 南亞法人分歧：資金從終端應用逃往上游材料，呈現產業位階平移",
+    "台積電與聯發科：成交值位居前段但因結算日遭外資巨額賣超提款"
   ],
-  "conservative_strategy": "關注國巨*等量縮但法人大買標的，等待量能補上後的波段機會。",
-  "aggressive_strategy": "南亞與台玻短線RSI過高，應待回踩均線不破再考慮佈局，不宜在此重倉追價。",
+  "conservative_strategy": "避開高位震盪的晶圓權值股，保留 30% 現金，關注位階較低且營收改善的 AI 材料股。",
+  "aggressive_strategy": "分批布局已站上 MA20 的 AI 基礎材料與被動元件股，觀察明日洗盤承接力道並嚴格設定 5% 停損。",
   "date": "2026-10-14",
   "index_action": "上漲 284.5點（+0.59%）",
   "heavyweights_dumped": [
     "台積電 (-168.1億)",
-    "聯發科 (-158.9億)",
-    "南亞科 (-112.1億)",
-    "京元電子 (-69.1億)",
-    "大立光 (-45.7億)"
+    "聯發科 (-157.2億)",
+    "南亞科 (-110.4億)",
+    "京元電子 (-67.2億)",
+    "大立光 (-49.1億)"
   ],
   "safe_havens_bought": [
-    "南亞 (+50.6億)",
+    "南亞 (+55.3億)",
+    "台塑 (+47.5億)",
     "國巨* (+36.6億)",
-    "台玻 (+30.8億)",
-    "台塑 (+29.4億)",
-    "緯穎 (+27.1億)"
+    "台玻 (+31.2億)",
+    "台化 (+23.5億)"
   ],
   "trust_conflicts": [
     "台積電：外資賣、投信買，外資 -168.1億，投信 +19.7億",
-    "聯發科：外資賣、投信買，外資 -158.9億，投信 +10.8億",
-    "京元電子：外資賣、投信買，外資 -69.1億，投信 +0.4億",
-    "大立光：外資賣、投信買，外資 -45.7億，投信 +10.8億",
-    "緯穎：外資買、投信賣，外資 +27.1億，投信 -41.4億"
+    "聯發科：外資賣、投信買，外資 -157.2億，投信 +10.7億",
+    "京元電子：外資賣、投信買，外資 -67.2億，投信 +0.4億",
+    "大立光：外資賣、投信買，外資 -49.1億，投信 +11.6億",
+    "健策：外資賣、投信買，外資 -24.0億，投信 +17.9億"
   ],
   "commodities": [
-    "黃金 (收$4174.6, -0.06%)",
-    "原油 (收$94.04, -0.11%)",
-    "白銀 (收$59.01, -0.25%)"
+    "黃金 (報價$4165, 1日-0.29%)",
+    "原油 (報價$94.44, 1日+0.32%)",
+    "白銀 (報價$58.72, 1日-0.75%)"
   ],
   "prev_day_picks_result": [
     "2449 京元電子 (-2.79%, 預測未成立)",
     "1303 南亞 (+9.40%, 預測成立，成交量排名第6)"
   ],
-  "short_term_horizon": "1~5日",
-  "long_term_horizon": "2~6週 / 1~3個月",
-  "short_term_validation_window": "1D / 3D / 5D",
-  "long_term_validation_window": "20D",
-  "short_term_picks": [
-    {
-      "ticker": "1802",
-      "name": "台玻",
-      "direction": "多",
-      "time_scale": "短線",
-      "horizon": "1~5日",
-      "validation_window": "1D / 3D / 5D",
-      "reason": "外資買超全台第三，量增比1.57倍，且成交量位居前五",
-      "invalidation": "收盤跌破62元"
-    },
-    {
-      "ticker": "2327",
-      "name": "國巨*",
-      "direction": "多",
-      "time_scale": "短線",
-      "horizon": "1~5日",
-      "validation_window": "1D / 3D / 5D",
-      "reason": "買超金額全台第二但量未進前二十，典型主力先行訊號",
-      "invalidation": "收盤跌破MA20"
-    }
+  "global_overnight": [
+    "台積電ADR 2026-10-13 收445.12 (+0.17%)",
+    "費半 2026-10-13 收12208.79 (-0.23%)",
+    "VIX 2026-10-14 報價15.21 (-0.39%)",
+    "那斯達克期貨 2026-10-14 報價30791.5 (+0.00%)",
+    "美元兌台幣 2026-10-14 報價32.14 (+0.67%)"
   ],
-  "long_term_picks": [
-    {
-      "theme": "2327 國巨",
-      "time_scale": "中期",
-      "horizon": "2~6週",
-      "validation_window": "20D",
-      "thesis": "5D +14.86%、10D +14.86%、20D -36.38%",
-      "evidence": "5D +14.86%、10D +14.86%、20D -36.38%"
-    }
+  "market_extras": [
+    "上櫃外資買超：台燿(+19.3億)、良維(+17.2億)、華星光(+17.0億)（2026-10-14）",
+    "上櫃外資賣超：旺矽(-17.4億)、環球晶(-15.3億)、信驊(-15.3億)（2026-10-14）"
   ],
-  "horizon_reliability": {
-    "primary_leads": true,
-    "primary_days": 20,
-    "one_liner": "依目前本機回測樣本，20D 命中率 55.6%（n=126）優於 1D/3D/5D 平均 46.8%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。",
-    "sentences": [
-      "依目前本機回測樣本，20D 命中率 55.6%（n=126）優於 1D/3D/5D 平均 46.8%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。",
-      "同一批樣本下 20D 平均超額 +6.70%，中期方向的可說服力通常高於隔日漲跌。",
-      "因此口播／標題若只用 1D 驗收論成敗，容易把噪音當成系統失準；隔日結果可提一句，但成敗尺子請放在 20D。"
-    ]
-  },
-  "long_term_thesis": "依目前本機回測樣本，20D 命中率 55.6%（n=126）優於 1D/3D/5D 平均 46.8%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。 長線主軸仍應優先看供應鏈與族群是否有多日驗證延續，而不是單日爆量。",
-  "long_term_evidence": [
-    "依目前本機回測樣本，20D 命中率 55.6%（n=126）優於 1D/3D/5D 平均 46.8%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。",
-    "同一批樣本下 20D 平均超額 +6.70%，中期方向的可說服力通常高於隔日漲跌。",
-    "因此口播／標題若只用 1D 驗收論成敗，容易把噪音當成系統失準；隔日結果可提一句，但成敗尺子請放在 20D。",
-    "事件雷達與族群同步性，應優先高於單日籌碼雜訊。"
+  "top_value_stocks": [
+    "台積電 成交值624億",
+    "南亞 成交值602億",
+    "聯發科 成交值352億",
+    "大立光 成交值300億",
+    "國巨* 成交值295億",
+    "南亞科 成交值266億",
+    "金像電 成交值202億",
+    "欣興 成交值202億",
+    "台達電 成交值174億",
+    "台塑化 成交值172億"
   ],
-  "timeframe_history": {
-    "horizon_performance": [
-      {
-        "horizon_days": 1,
-        "samples": 183,
-        "hit_rate": 0.4207650273224044,
-        "avg_return": 0.0926232826192936,
-        "avg_excess": -0.1859998291438284
-      },
-      {
-        "horizon_days": 3,
-        "samples": 159,
-        "hit_rate": 0.48427672955974843,
-        "avg_return": 1.3203652268210802,
-        "avg_excess": 0.7153283508112892
-      },
-      {
-        "horizon_days": 5,
-        "samples": 146,
-        "hit_rate": 0.5,
-        "avg_return": 2.854007608888719,
-        "avg_excess": 2.1932450969406174
-      },
-      {
-        "horizon_days": 20,
-        "samples": 126,
-        "hit_rate": 0.5555555555555556,
-        "avg_return": 7.1951082175248136,
-        "avg_excess": 6.69645742387402
-      }
-    ],
-    "recent_results": [
-      {
-        "prediction_date": "2026-10-12",
-        "ticker": "2603",
-        "name": "長榮",
-        "direction": "多",
-        "horizon_days": 1,
-        "evaluated_date": "2026-10-13",
-        "return_pct": 3.326810176125244,
-        "index_return_pct": -1.95,
-        "excess_return_pct": 5.276810176125244,
-        "hit": 1,
-        "result_desc": "1日驗收: +3.33% -> 命中"
-      },
-      {
-        "prediction_date": "2026-10-12",
-        "ticker": "3443",
-        "name": "創意",
-        "direction": "多",
-        "horizon_days": 1,
-        "evaluated_date": "2026-10-13",
-        "return_pct": -0.06172839506172839,
-        "index_return_pct": -1.95,
-        "excess_return_pct": 1.8882716049382715,
-        "hit": 0,
-        "result_desc": "1日驗收: -0.06% -> 失準"
-      },
-      {
-        "prediction_date": "2026-09-23",
-        "ticker": "2408",
-        "name": "南亞科",
-        "direction": "多",
-        "horizon_days": 20,
-        "evaluated_date": "2026-10-13",
-        "return_pct": -5.242718446601942,
-        "index_return_pct": -1.95,
-        "excess_return_pct": -3.292718446601942,
-        "hit": 0,
-        "result_desc": "20日驗收: -5.24% -> 失準"
-      },
-      {
-        "prediction_date": "2026-10-08",
-        "ticker": "3037",
-        "name": "欣興",
-        "direction": "多",
-        "horizon_days": 1,
-        "evaluated_date": "2026-10-12",
-        "return_pct": -1.1811023622047243,
-        "index_return_pct": -0.02,
-        "excess_return_pct": -1.1611023622047243,
-        "hit": 0,
-        "result_desc": "1日驗收: -1.18% -> 失準"
-      },
-      {
-        "prediction_date": "2026-10-08",
-        "ticker": "3037",
-        "name": "欣興",
-        "direction": "多",
-        "horizon_days": 3,
-        "evaluated_date": "2026-10-12",
-        "return_pct": -1.1811023622047243,
-        "index_return_pct": -0.02,
-        "excess_return_pct": -1.1611023622047243,
-        "hit": 0,
-        "result_desc": "3日驗收: -1.18% -> 失準"
-      },
-      {
-        "prediction_date": "2026-10-08",
-        "ticker": "3231",
-        "name": "緯創",
-        "direction": "多",
-        "horizon_days": 1,
-        "evaluated_date": "2026-10-12",
-        "return_pct": 0.5305039787798408,
-        "index_return_pct": -0.02,
-        "excess_return_pct": 0.5505039787798408,
-        "hit": 1,
-        "result_desc": "1日驗收: +0.53% -> 命中"
-      },
-      {
-        "prediction_date": "2026-10-08",
-        "ticker": "3231",
-        "name": "緯創",
-        "direction": "多",
-        "horizon_days": 3,
-        "evaluated_date": "2026-10-12",
-        "return_pct": 0.5305039787798408,
-        "index_return_pct": -0.02,
-        "excess_return_pct": 0.5505039787798408,
-        "hit": 1,
-        "result_desc": "3日驗收: +0.53% -> 命中"
-      },
-      {
-        "prediction_date": "2026-10-07",
-        "ticker": "2344",
-        "name": "華邦電",
-        "direction": "多",
-        "horizon_days": 1,
-        "evaluated_date": "2026-10-08",
-        "return_pct": -1.392757660167131,
-        "index_return_pct": -0.99,
-        "excess_return_pct": -0.402757660167131,
-        "hit": 0,
-        "result_desc": "1日驗收: -1.39% -> 失準"
-      }
-    ],
-    "recent_trends": {
-      "2327": {
-        "latest_date": "2026-10-05",
-        "latest_price": 626.0,
-        "latest_pct_change": 0.0,
-        "trends": {
-          "5D": {
-            "from_date": "2026-09-14",
-            "to_date": "2026-10-05",
-            "base_price": 545.0,
-            "latest_price": 626.0,
-            "pct_change": 14.862385321100918
-          },
-          "10D": {
-            "from_date": "2026-08-31",
-            "to_date": "2026-10-05",
-            "base_price": 545.0,
-            "latest_price": 626.0,
-            "pct_change": 14.862385321100918
-          },
-          "20D": {
-            "from_date": "2026-06-17",
-            "to_date": "2026-10-05",
-            "base_price": 984.0,
-            "latest_price": 626.0,
-            "pct_change": -36.38211382113821
-          }
-        }
-      },
-      "1802": {
-        "latest_date": "2026-05-04",
-        "latest_price": 66.2,
-        "latest_pct_change": -1.19,
-        "trends": {}
-      }
-    },
-    "tickers": [
-      "1802",
-      "2327",
-      "4174"
-    ],
-    "reliability_note": "依目前本機回測樣本，20D 命中率 55.6%（n=126）優於 1D/3D/5D 平均 46.8%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。"
+  "data_scope": {
+    "institutional_scope": "TWSE_listed",
+    "institutional_scope_label": "上市",
+    "institutional_data_date": "2026-10-14",
+    "amount_price_date": "2026-10-14",
+    "amount_basis": "同日收盤價 × 外資買賣超股數（估算）"
   },
   "validation_results": [
     {
@@ -324,15 +128,20 @@
       "price": 296.5,
       "pct_change": -2.79,
       "hit": false,
+      "raw_hit": false,
+      "outcome": "miss",
+      "index_pct_change": 0.59,
+      "excess_pct": -3.38,
+      "hit_basis": "excess",
       "result": "預測未成立",
       "stop_loss_triggered": false,
       "volume_rank": null,
       "institutional_side": "sell",
       "institutional_rank": 4,
-      "institutional_est_amount": -69.1,
+      "institutional_est_amount": -67.17,
       "evidence": [
-        "收盤 296.5，漲跌 -2.79%",
-        "外資賣超第 4 名，-69.1 億",
+        "收盤 296.5，漲跌 -2.79%（大盤 +0.59%，超額 -3.38%）",
+        "外資賣超第 4 名，-67.2 億",
         "未觸發停損：收盤跌破 MA20"
       ]
     },
@@ -346,16 +155,21 @@
       "price": 349.0,
       "pct_change": 9.4,
       "hit": true,
+      "raw_hit": true,
+      "outcome": "hit",
+      "index_pct_change": 0.59,
+      "excess_pct": 8.81,
+      "hit_basis": "excess",
       "result": "預測成立",
       "stop_loss_triggered": false,
       "volume_rank": 6,
       "institutional_side": "buy",
       "institutional_rank": 1,
-      "institutional_est_amount": 50.58,
+      "institutional_est_amount": 55.33,
       "evidence": [
-        "收盤 349，漲跌 +9.40%",
+        "收盤 349，漲跌 +9.40%（大盤 +0.59%，超額 +8.81%）",
         "成交量排名第 6 名",
-        "外資買超第 1 名，+50.6 億",
+        "外資買超第 1 名，+55.3 億",
         "未觸發停損：跌破 295 元"
       ]
     }
@@ -368,57 +182,93 @@
     "max_trading_gap": 1
   },
   "editorial_frame": {
-    "frame": "major_event_day",
-    "label": "重大事件日",
-    "confidence": 76,
+    "frame": "continuation_day",
+    "label": "續航日",
+    "confidence": 66,
     "reasons": [
-      "今日有重大事件或跨市場線索，應由事件帶出台股影響。",
+      "1303 南亞 近 5 個交易日（含今日）外資買超榜出現 3 天，且今日觀察分 48。",
       "昨日驗收有 1 命中、1 失準；1303 南亞 波動 9.4%（預設只作短段可信度，不自動佔主軸）。"
     ],
     "allowed_tones": [
-      "事件影響",
-      "風險傳導",
-      "隔日風險",
-      "確認條件"
+      "續買",
+      "續量",
+      "守住關鍵位",
+      "等待確認"
     ],
     "prohibited_tones": [
       "上集點名驗收",
-      "主力還在",
-      "接棒",
       "暗藏殺機",
       "背離警訊",
-      "資金續航",
       "資金輪動",
       "退潮警報",
       "驗收上集點名"
     ],
-    "title_fatigue_report": "# 近期包裝疲勞檢查\n- 檢查最近 8 支影片標題。\n- 檢查最近 10 份縮圖 Prompt。\n- 封面避免再用的 scenario：短句實驗。\n- 封面題型家族已連續出現：other；今日必須換另一種問法。\n- 若資料支持換手，請改問：為什麼逆勢、量價哪裡矛盾、明日失效條件是什麼。\n- 連續 3 天內不得重複「榜外吸籌 + 資金換手」A/B 配對。\n- 同一開場關鍵字（如 AMD）連續 ≥3 支：禁止再開場；事件可放描述中後段。\n- 「外資Ｎ億狂掃／狂砍」連兩支即換鉤；B 組不要連用「誰在收？」。\n- 禁止標題出現成交量未進前20的買超／把未公布的升息、非農當結果開場。\n- 標題前 20 字優先：已驗證金額 + 核心股名 + 反直覺矛盾（非品牌事件名）。",
+    "title_fatigue_report": "# 近期包裝疲勞檢查\n- 檢查最近 8 支影片標題。\n- 檢查最近 10 份縮圖 Prompt。\n- 封面避免再用的 scenario：短句實驗。\n- 封面題型家族已連續出現：other；今日必須換另一種問法。\n- 開場鉤子：標題骨架「股名金額開場」已連續 8 支：A 可保留金額+股名，B 組改用另一種結構家族（矛盾句／問句／漲跌開場）測試，見「標題結構輪替」。\n- 若資料支持換手，請改問：為什麼逆勢、量價哪裡矛盾、明日失效條件是什麼。\n- 連續 3 天內不得重複「榜外吸籌 + 資金換手」A/B 配對。\n- 同一開場關鍵字（如 AMD）連續 ≥3 支：禁止再開場；事件可放描述中後段。\n- 「外資Ｎ億狂掃／狂砍」連兩支即換鉤；B 組不要連用「誰在收？」。\n- 禁止標題出現影子建倉／把未公布的升息、非農當結果開場。\n- 標題前 20 字優先：已驗證金額 + 核心股名 + 反直覺矛盾（非品牌事件名）。",
     "validation_placement": "brief",
     "validation_story_score": 56,
     "validation_fatigued": false,
     "validation_hits": 1,
-    "validation_misses": 1
+    "validation_misses": 1,
+    "frame_scores": {
+      "continuation_day": 66,
+      "quiet_setup_day": 50
+    },
+    "event_evidence": [
+      "事件雷達：台灣AI供應鏈從受惠到主導差在哪？ - 股市爆料同學會（影響 88／new）",
+      "事件影響族群與今日焦點股重疊",
+      "大盤 +0.59%",
+      "有事件但台股盤面未反應（大盤未達 ±1%），不升級為重大事件日"
+    ],
+    "event_rejected": [
+      "Instagram：來源為社群／論壇（instagram.com），未分級"
+    ]
   },
   "supply_chain_event_radar": [
     {
-      "event": "先進封裝CoWoS與HBM如何改變AI伺服器TCO？",
-      "url": "https://readmo.cmoney.tw/article/9274eaa8-5d86-46a3-83fa-c99ece02f93b",
-      "snippet": "2026 OCP 全球高峰會於美國加州聖荷西登場，台灣伺服器供應鏈大廠技嘉(2376)、緯創(3231)、緯穎(6669)、微星(2377)與神達旗下神雲科技同步亮相，主軸聚焦新世代人工智慧機櫃級運算架構、先進液冷技術與共同封裝光學解決方案。 此次展出重點在於回應大規模人工智慧工廠運作所面臨的高密度運算、散熱與供電挑戰，顯示資料中心硬體正朝更高整合度與更高擴充性發展。台灣供應鏈涵蓋運算節點、高速儲存、熱管理與供電結構，從客製化設計到機櫃整合，展現完整系統工程能力。 技嘉(2376)展出配置 NVIDIA Vera Rubin NVL72 平台與 Vera CPU 機櫃，單一機櫃可共享 20.7",
-      "impact_score": 40,
+      "event": "台灣AI供應鏈從受惠到主導差在哪？ - 股市爆料同學會",
+      "url": "https://www.cmoney.tw/forum/readmo/42a07568-3550-4ee6-bd81-8d5cde1bea7f",
+      "snippet": "過去台灣 AI 供應鏈多扮演國際品牌與 GPU 大廠的「代工伙伴」，接單、擴產、壓成本是主軸，技術與規格由國外客戶說了算。進入 Rubin/Vera 世代後，差異開始出現：首先，先進封裝與 HBM 整合能力變成產能瓶頸，台積電 CoWoS 和相關 substrate、封測廠主導模組設計與產能排程，國際晶片設計公司反而需要配合台廠時程。其次，在整機 ODM、機構設計與系統整合方面，台灣廠商針對液冷散熱、高功率電源、機架空間利用提出完整 reference design，影響雲端服務商導入的速度與成本結構。這種從「按照規格生產」轉為「共同定義下一代伺服器藍圖」的角色轉換，就是從受惠走向主導的本質差",
+      "impact_score": 88,
       "raw_score": 88,
-      "freshness": "stale",
-      "prior_days": 7,
+      "freshness": "new",
+      "prior_days": 0,
       "matched_factors": [
+        "investment",
         "advanced_packaging",
         "ai_server",
         "taiwan",
-        "mega_buyer",
         "forward_demand"
       ],
       "impacted_roles": [
         "先進封裝 / CoWoS / 2.5D",
         "AI 伺服器 / 機架系統",
-        "HBM / 記憶體"
+        "GPU / CPU 平台",
+        "基板 / 載板",
+        "HBM / 記憶體",
+        "晶圓代工 / 先進製程"
+      ]
+    },
+    {
+      "event": "Instagram",
+      "url": "https://www.instagram.com/p/DeQ97ddExnb",
+      "snippet": "伯恩斯坦拆解輝達供應鏈，台廠卡位每一環！  \n#伯恩斯坦拆解輝達AI伺服器供應鏈上下游  \n美國券商伯恩斯坦（Bernstein）公布 AI 伺服器供應鏈圖，把輝達（NVIDIA）GPU 從設計到整櫃出貨的上下游廠商串成一條流程。  \n  \n#輝達與雲端大廠設計分兩路  \n圖中輝達與超微（AMD）的 GPU 直接送往晶圓代工；Google、亞馬遜（Amazon）、Meta 等雲端公司，則先找博通（Broadcom）、世芯、創意、聯發科等 ASIC 設計服務業者，再進台積電代工。  \n  \n#封裝端匯集載板與HBM  \n晶圓進入先進封裝，由台積電、Amkor、日月光承接，再交京元電子測試。封裝端",
+      "impact_score": 80,
+      "raw_score": 80,
+      "freshness": "new",
+      "prior_days": 0,
+      "matched_factors": [
+        "advanced_packaging",
+        "ai_server",
+        "taiwan",
+        "mega_buyer"
+      ],
+      "impacted_roles": [
+        "先進封裝 / CoWoS / 2.5D",
+        "AI 伺服器 / 機架系統",
+        "GPU / CPU 平台",
+        "基板 / 載板",
+        "HBM / 記憶體",
+        "晶圓代工 / 先進製程"
       ]
     }
   ],
@@ -431,30 +281,380 @@
       "text": "台股休市（國慶日補假）。禁止把這天講成開盤；下一交易日用語跟 session_calendar，不要猜明天／下週一。"
     }
   ],
+  "role_score_inputs": {
+    "as_of": "2026-10-14",
+    "volume": {
+      "1101": {
+        "turnover_rank": 83,
+        "share_rank": 18,
+        "turnover_yi": 21.92,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 2.66
+      },
+      "1301": {
+        "turnover_rank": 12,
+        "share_rank": 4,
+        "turnover_yi": 167.48,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 9.89
+      },
+      "1303": {
+        "turnover_rank": 2,
+        "share_rank": 6,
+        "turnover_yi": 601.97,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 9.4
+      },
+      "1312": {
+        "turnover_rank": 55,
+        "share_rank": 3,
+        "turnover_yi": 38.39,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 7.08
+      },
+      "1326": {
+        "turnover_rank": 29,
+        "share_rank": 13,
+        "turnover_yi": 87.48,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 9.9
+      },
+      "1605": {
+        "turnover_rank": 63,
+        "share_rank": 20,
+        "turnover_yi": 29.71,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 5.58
+      },
+      "1718": {
+        "turnover_rank": 115,
+        "share_rank": 14,
+        "turnover_yi": 12.37,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 6.17
+      },
+      "1802": {
+        "turnover_rank": 17,
+        "share_rank": 5,
+        "turnover_yi": 124.76,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 8.41
+      },
+      "2002": {
+        "turnover_rank": 86,
+        "share_rank": 12,
+        "turnover_yi": 20.14,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 1.83
+      },
+      "2303": {
+        "turnover_rank": 15,
+        "share_rank": 10,
+        "turnover_yi": 156.43,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 0.35
+      },
+      "2308": {
+        "turnover_rank": 9,
+        "share_rank": null,
+        "turnover_yi": 174.38,
+        "on_share_board": false,
+        "rank_basis": "market"
+      },
+      "2327": {
+        "turnover_rank": 5,
+        "share_rank": null,
+        "turnover_yi": 294.52,
+        "on_share_board": false,
+        "rank_basis": "market",
+        "pct_change": 4.67
+      },
+      "2330": {
+        "turnover_rank": 1,
+        "share_rank": null,
+        "turnover_yi": 624.31,
+        "on_share_board": false,
+        "rank_basis": "market",
+        "pct_change": 0.0
+      },
+      "2368": {
+        "turnover_rank": 7,
+        "share_rank": null,
+        "turnover_yi": 202.26,
+        "on_share_board": false,
+        "rank_basis": "market"
+      },
+      "2383": {
+        "turnover_rank": 16,
+        "share_rank": null,
+        "turnover_yi": 129.52,
+        "on_share_board": false,
+        "rank_basis": "market"
+      },
+      "2408": {
+        "turnover_rank": 6,
+        "share_rank": null,
+        "turnover_yi": 265.59,
+        "on_share_board": false,
+        "rank_basis": "market",
+        "pct_change": -1.54
+      },
+      "2409": {
+        "turnover_rank": 20,
+        "share_rank": 2,
+        "turnover_yi": 108.14,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 6.15
+      },
+      "2449": {
+        "turnover_rank": 11,
+        "share_rank": null,
+        "turnover_yi": 167.99,
+        "on_share_board": false,
+        "rank_basis": "market",
+        "pct_change": -2.79
+      },
+      "2454": {
+        "turnover_rank": 3,
+        "share_rank": null,
+        "turnover_yi": 351.63,
+        "on_share_board": false,
+        "rank_basis": "market",
+        "pct_change": -1.1
+      },
+      "3008": {
+        "turnover_rank": 4,
+        "share_rank": null,
+        "turnover_yi": 299.68,
+        "on_share_board": false,
+        "rank_basis": "market"
+      },
+      "3026": {
+        "turnover_rank": 19,
+        "share_rank": null,
+        "turnover_yi": 110.0,
+        "on_share_board": false,
+        "rank_basis": "market"
+      },
+      "3037": {
+        "turnover_rank": 8,
+        "share_rank": null,
+        "turnover_yi": 202.05,
+        "on_share_board": false,
+        "rank_basis": "market"
+      },
+      "3189": {
+        "turnover_rank": 13,
+        "share_rank": null,
+        "turnover_yi": 161.73,
+        "on_share_board": false,
+        "rank_basis": "market"
+      },
+      "3406": {
+        "turnover_rank": 18,
+        "share_rank": null,
+        "turnover_yi": 116.49,
+        "on_share_board": false,
+        "rank_basis": "market"
+      },
+      "3481": {
+        "turnover_rank": 43,
+        "share_rank": 15,
+        "turnover_yi": 45.71,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 1.8
+      },
+      "6505": {
+        "turnover_rank": 10,
+        "share_rank": 8,
+        "turnover_yi": 172.46,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 0.42
+      },
+      "6669": {
+        "turnover_rank": 14,
+        "share_rank": null,
+        "turnover_yi": 161.12,
+        "on_share_board": false,
+        "rank_basis": "market"
+      },
+      "6770": {
+        "turnover_rank": 33,
+        "share_rank": 11,
+        "turnover_yi": 74.19,
+        "on_share_board": true,
+        "rank_basis": "market",
+        "pct_change": 5.19
+      }
+    },
+    "market": {
+      "2454": {
+        "vol_ratio": 1.16,
+        "pct_change": -1.1,
+        "turnover_yi": 345.77
+      },
+      "1303": {
+        "vol_ratio": 1.77,
+        "pct_change": 9.4,
+        "turnover_yi": 611.89
+      },
+      "2408": {
+        "vol_ratio": 1.1,
+        "pct_change": -1.54,
+        "turnover_yi": 262.1
+      },
+      "2330": {
+        "vol_ratio": 1.14,
+        "pct_change": 0.0,
+        "turnover_yi": 615.03
+      },
+      "2449": {
+        "vol_ratio": 1.67,
+        "pct_change": -2.79,
+        "turnover_yi": 166.04
+      },
+      "2327": {
+        "vol_ratio": 0.97,
+        "pct_change": 4.67,
+        "turnover_yi": 298.35
+      },
+      "1301": {
+        "vol_ratio": 1.4,
+        "pct_change": 9.89,
+        "turnover_yi": 170.31
+      }
+    },
+    "base_roles": {
+      "1301": "elastic_attack",
+      "1303": "theme_confirmation",
+      "1326": "theme_confirmation",
+      "1802": "elastic_attack",
+      "2327": "elastic_attack",
+      "2330": "direction_indicator",
+      "2408": "elastic_attack",
+      "2449": "theme_confirmation",
+      "2454": "theme_confirmation",
+      "3008": "theme_confirmation"
+    },
+    "price_stats": {
+      "1301": {
+        "vol_daily_pct": 3.308,
+        "beta": -0.037,
+        "n": 20,
+        "beta_n": 20,
+        "basis": "consecutive_20d",
+        "from": "2026-09-11",
+        "to": "2026-10-13"
+      },
+      "1303": {
+        "vol_daily_pct": 3.933,
+        "beta": 1.162,
+        "n": 20,
+        "beta_n": 20,
+        "basis": "consecutive_20d",
+        "from": "2026-09-11",
+        "to": "2026-10-13"
+      },
+      "1326": {
+        "vol_daily_pct": 3.917,
+        "beta": null,
+        "n": 2,
+        "beta_n": 2,
+        "from": "2026-06-24",
+        "to": "2026-06-25"
+      },
+      "2327": {
+        "vol_daily_pct": 3.588,
+        "beta": 1.828,
+        "n": 20,
+        "beta_n": 20,
+        "basis": "consecutive_20d",
+        "from": "2026-09-11",
+        "to": "2026-10-13"
+      },
+      "2330": {
+        "vol_daily_pct": 1.284,
+        "beta": 1.016,
+        "n": 20,
+        "beta_n": 20,
+        "basis": "consecutive_20d",
+        "from": "2026-09-11",
+        "to": "2026-10-13"
+      },
+      "2408": {
+        "vol_daily_pct": 3.598,
+        "beta": 1.895,
+        "n": 20,
+        "beta_n": 20,
+        "basis": "consecutive_20d",
+        "from": "2026-09-11",
+        "to": "2026-10-13"
+      },
+      "2449": {
+        "vol_daily_pct": 3.315,
+        "beta": 1.13,
+        "n": 20,
+        "beta_n": 20,
+        "basis": "consecutive_20d",
+        "from": "2026-09-11",
+        "to": "2026-10-13"
+      },
+      "2454": {
+        "vol_daily_pct": 3.336,
+        "beta": 2.087,
+        "n": 20,
+        "beta_n": 20,
+        "basis": "consecutive_20d",
+        "from": "2026-09-11",
+        "to": "2026-10-13"
+      },
+      "3008": {
+        "vol_daily_pct": 1.757,
+        "beta": null,
+        "n": 3,
+        "beta_n": 3,
+        "from": "2026-09-02",
+        "to": "2026-09-21"
+      }
+    },
+    "recent_leads": [
+      "2603",
+      "3037",
+      "3037",
+      "4958",
+      "3037"
+    ],
+    "mechanical_flow": []
+  },
   "focus_ranking": [
     {
       "ticker": "2327",
       "name": "國巨*",
       "base_role": "elastic_attack",
       "role_label": "彈性攻擊股",
-      "elasticity": 78,
-      "foreign_buy_strength": 100,
-      "volume_confirmation": 72,
+      "elasticity": 72,
+      "foreign_buy_strength": 81,
+      "volume_confirmation": 48,
       "validation_credibility": 60,
-      "title_priority": 100,
+      "title_priority": 85,
+      "title_score": 85.08,
+      "volume_flags": [
+        "shadow_low_volume_buy"
+      ],
       "source_text": "國巨* (+36.6億)"
-    },
-    {
-      "ticker": "1301",
-      "name": "台塑",
-      "base_role": "elastic_attack",
-      "role_label": "彈性攻擊股",
-      "elasticity": 86,
-      "foreign_buy_strength": 94,
-      "volume_confirmation": 25,
-      "validation_credibility": 70,
-      "title_priority": 89,
-      "source_text": "台塑 (+29.4億)"
     },
     {
       "ticker": "1802",
@@ -462,212 +662,1339 @@
       "base_role": "elastic_attack",
       "role_label": "彈性攻擊股",
       "elasticity": 78,
-      "foreign_buy_strength": 100,
-      "volume_confirmation": 25,
+      "foreign_buy_strength": 86,
+      "volume_confirmation": 71,
       "validation_credibility": 40,
-      "title_priority": 87,
-      "source_text": "台玻 (+30.8億)"
+      "title_priority": 82,
+      "title_score": 81.86,
+      "volume_flags": [],
+      "source_text": "台玻 (+31.2億)"
     },
     {
       "ticker": "1303",
       "name": "南亞",
       "base_role": "theme_confirmation",
       "role_label": "題材確認股",
-      "elasticity": 66,
-      "foreign_buy_strength": 100,
-      "volume_confirmation": 25,
+      "elasticity": 62,
+      "foreign_buy_strength": 83,
+      "volume_confirmation": 75,
       "validation_credibility": 70,
-      "title_priority": 78,
-      "source_text": "南亞 (+50.6億)"
+      "title_priority": 80,
+      "title_score": 80.18,
+      "volume_flags": [],
+      "source_text": "南亞 (+55.3億)"
     },
     {
-      "ticker": "6669",
-      "name": "緯穎",
+      "ticker": "1301",
+      "name": "台塑",
+      "base_role": "elastic_attack",
+      "role_label": "彈性攻擊股",
+      "elasticity": 33,
+      "foreign_buy_strength": 96,
+      "volume_confirmation": 67,
+      "validation_credibility": 70,
+      "title_priority": 71,
+      "title_score": 70.78,
+      "volume_flags": [
+        "limit_up"
+      ],
+      "source_text": "台塑 (+47.5億)"
+    },
+    {
+      "ticker": "1326",
+      "name": "台化",
       "base_role": "theme_confirmation",
       "role_label": "題材確認股",
       "elasticity": 58,
-      "foreign_buy_strength": 84,
-      "volume_confirmation": 25,
-      "validation_credibility": 40,
-      "title_priority": 55,
-      "source_text": "緯穎 (+27.1億)"
+      "foreign_buy_strength": 81,
+      "volume_confirmation": 62,
+      "validation_credibility": 60,
+      "title_priority": 66,
+      "title_score": 65.68,
+      "volume_flags": [
+        "limit_up"
+      ],
+      "source_text": "台化 (+23.5億)"
     }
   ],
+  "short_term_horizon": "1~5日",
+  "long_term_horizon": "2~6週 / 1~3個月",
+  "short_term_validation_window": "1D / 3D / 5D",
+  "long_term_validation_window": "20D",
+  "short_term_picks": [
+    {
+      "ticker": "1303",
+      "name": "南亞",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資買超 55.3 億居冠，且基本面毛利率連三季改善",
+      "invalidation": "跌破 319.0（MA5）"
+    },
+    {
+      "ticker": "2327",
+      "name": "國巨*",
+      "direction": "多",
+      "time_scale": "短線",
+      "horizon": "1~5日",
+      "validation_window": "1D / 3D / 5D",
+      "reason": "外資買超第 3 名（36.6 億），股價轉強突破 MA20",
+      "invalidation": "收盤跌破 584.0（MA20）"
+    }
+  ],
+  "long_term_picks": [
+    {
+      "ticker": "",
+      "name": "",
+      "theme": "台灣AI供應鏈從受惠到主導差在哪？ - 股市爆料同學會",
+      "time_scale": "中長期",
+      "horizon": "2~6週 / 1~3個月",
+      "validation_window": "20D",
+      "direction": "待驗證",
+      "as_of": "2026-10-14",
+      "thesis": "待驗證事件（影響分數 88）：可能影響 先進封裝 / CoWoS / 2.5D、AI 伺服器 / 機架系統、GPU / CPU 平台；需 20D 族群量價確認，不是結論。",
+      "evidence": "先進封裝 / CoWoS / 2.5D、AI 伺服器 / 機架系統、GPU / CPU 平台；來源 https://www.cmoney.tw/forum/readmo/42a07568-3550-4ee6-bd81-8d5cde1bea7f",
+      "url": "https://www.cmoney.tw/forum/readmo/42a07568-3550-4ee6-bd81-8d5cde1bea7f",
+      "source": "supply_chain_event_radar"
+    },
+    {
+      "ticker": "2454",
+      "name": "聯發科",
+      "theme": "2454 聯發科",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "direction": "空",
+      "as_of": "2026-10-14",
+      "trends": {
+        "5D": -9.04,
+        "10D": -8.86,
+        "20D": -5.19
+      },
+      "extreme": false,
+      "thesis": "中期偏空：5D -9.04%、10D -8.86%、20D -5.19%（資料截至 2026-10-14）",
+      "evidence": "5D 2026-10-06→2026-10-14（5 交易日）；10D 2026-09-29→2026-10-14（10 交易日）；20D 2026-09-10→2026-10-14（21 交易日）",
+      "source": "local_market_snapshots"
+    },
+    {
+      "ticker": "3037",
+      "name": "欣興",
+      "theme": "3037 欣興",
+      "time_scale": "中期",
+      "horizon": "2~6週",
+      "validation_window": "20D",
+      "direction": "多",
+      "as_of": "2026-10-12",
+      "trends": {
+        "5D": -3.83,
+        "10D": 8.19
+      },
+      "extreme": false,
+      "thesis": "中期偏多：5D -3.83%、10D +8.19%（資料截至 2026-10-12）",
+      "evidence": "5D 2026-10-02→2026-10-12（5 交易日）；10D 2026-09-23→2026-10-12（10 交易日）",
+      "source": "local_market_snapshots"
+    }
+  ],
+  "horizon_reliability": {
+    "primary_leads": false,
+    "primary_days": 20,
+    "one_liner": "依本機回測（交易日窗、扣同窗大盤），各時間窗超額命中率的 95% 信賴區間都未高於 50% 基準，樣本不足以判定哪個時間窗較準；先並列 1D/3D/5D/20D，勿稱任一窗較準，也勿把命中率當成敗尺子。",
+    "sentences": [
+      "依本機回測（交易日窗、扣同窗大盤），各時間窗超額命中率的 95% 信賴區間都未高於 50% 基準，樣本不足以判定哪個時間窗較準；先並列 1D/3D/5D/20D，勿稱任一窗較準，也勿把命中率當成敗尺子。",
+      "參考：20D 目前超額命中率 20.3%（95% CI 11–35%，n=74），整段區間低於 50% 基準（目前樣本沒有贏過大盤）。"
+    ]
+  },
+  "long_term_thesis": "台灣AI供應鏈從受惠到主導差在哪？ - 股市爆料同學會：待驗證事件（影響分數 88）：可能影響 先進封裝 / CoWoS / 2.5D、AI 伺服器 / 機架系統、GPU / CPU 平台；需 20D 族群量價確認，不是結論。；2454 聯發科：中期偏空：5D -9.04%、10D -8.86%、20D -5.19%（資料截至 2026-10-14）；3037 欣興：中期偏多：5D -3.83%、10D +8.19%（資料截至 2026-10-12）",
+  "long_term_evidence": [
+    "台灣AI供應鏈從受惠到主導差在哪？ - 股市爆料同學會：先進封裝 / CoWoS / 2.5D、AI 伺服器 / 機架系統、GPU / CPU 平台；來源 https://www.cmoney.tw/forum/readmo/42a07568-3550-4ee6-bd81-8d5cde1bea7f",
+    "2454 聯發科：5D 2026-10-06→2026-10-14（5 交易日）；10D 2026-09-29→2026-10-14（10 交易日）；20D 2026-09-10→2026-10-14（21 交易日）",
+    "3037 欣興：5D 2026-10-02→2026-10-12（5 交易日）；10D 2026-09-23→2026-10-12（10 交易日）"
+  ],
+  "timeframe_history": {
+    "horizon_performance": [
+      {
+        "samples": 136,
+        "hit_rate": 0.47794117647058826,
+        "baseline": 0.5,
+        "effective_samples": 112,
+        "hit_ci_low": 0.3877055116134196,
+        "hit_ci_high": 0.5696398939180283,
+        "avg_return": 0.5530082658391231,
+        "avg_excess": 0.26113506002576264,
+        "raw_samples": 159,
+        "raw_hit_rate": 0.4339622641509434,
+        "raw_ci_low": 0.3509547766328093,
+        "raw_ci_high": 0.5208475789967429,
+        "index_up_rate": 0.5548387096774193,
+        "due": 181,
+        "evaluated": 155,
+        "missing": 22,
+        "unjudged": 4,
+        "non_directional": 0,
+        "coverage": 0.856353591160221,
+        "neutral": 19,
+        "stopped": 14,
+        "conditional_entries": 8,
+        "horizon_days": 1,
+        "horizon_unit": "sessions",
+        "method": "sessions_v2",
+        "entry_basis": "close_to_close"
+      },
+      {
+        "samples": 59,
+        "hit_rate": 0.423728813559322,
+        "baseline": 0.5,
+        "effective_samples": 49,
+        "hit_ci_low": 0.2959212054305592,
+        "hit_ci_high": 0.5626262974613585,
+        "avg_return": 0.4273585593708688,
+        "avg_excess": -0.27105086290528163,
+        "raw_samples": 69,
+        "raw_hit_rate": 0.4492753623188406,
+        "raw_ci_low": 0.3264584406640063,
+        "raw_ci_high": 0.5786049363130489,
+        "index_up_rate": 0.5692307692307692,
+        "due": 177,
+        "evaluated": 65,
+        "missing": 108,
+        "unjudged": 4,
+        "non_directional": 0,
+        "coverage": 0.3672316384180791,
+        "neutral": 6,
+        "stopped": 22,
+        "conditional_entries": 3,
+        "horizon_days": 3,
+        "horizon_unit": "sessions",
+        "method": "sessions_v2",
+        "entry_basis": "close_to_close"
+      },
+      {
+        "samples": 59,
+        "hit_rate": 0.3728813559322034,
+        "baseline": 0.5,
+        "effective_samples": 53,
+        "hit_ci_low": 0.25546551630538045,
+        "hit_ci_high": 0.5074796458437068,
+        "avg_return": 1.928282845854245,
+        "avg_excess": 1.031569207967912,
+        "raw_samples": 64,
+        "raw_hit_rate": 0.390625,
+        "raw_ci_low": 0.2747401820901234,
+        "raw_ci_high": 0.5203219135812593,
+        "index_up_rate": 0.6031746031746031,
+        "due": 173,
+        "evaluated": 63,
+        "missing": 109,
+        "unjudged": 1,
+        "non_directional": 0,
+        "coverage": 0.36416184971098264,
+        "neutral": 4,
+        "stopped": 29,
+        "conditional_entries": 2,
+        "horizon_days": 5,
+        "horizon_unit": "sessions",
+        "method": "sessions_v2",
+        "entry_basis": "close_to_close"
+      },
+      {
+        "samples": 74,
+        "hit_rate": 0.20270270270270271,
+        "baseline": 0.5,
+        "effective_samples": 41,
+        "hit_ci_low": 0.10778013952976927,
+        "hit_ci_high": 0.3485644516895811,
+        "avg_return": 0.3438360082709913,
+        "avg_excess": -0.4917766347217181,
+        "raw_samples": 79,
+        "raw_hit_rate": 0.25316455696202533,
+        "raw_ci_low": 0.1481850446026704,
+        "raw_ci_high": 0.39778501101123526,
+        "index_up_rate": 0.4935064935064935,
+        "due": 150,
+        "evaluated": 77,
+        "missing": 71,
+        "unjudged": 2,
+        "non_directional": 0,
+        "coverage": 0.5133333333333333,
+        "neutral": 3,
+        "stopped": 52,
+        "conditional_entries": 3,
+        "horizon_days": 20,
+        "horizon_unit": "sessions",
+        "method": "sessions_v2",
+        "entry_basis": "close_to_close"
+      }
+    ],
+    "recent_results": [
+      {
+        "prediction_date": "2026-10-12",
+        "ticker": "2603",
+        "name": "長榮",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-13",
+        "target_date": "2026-10-13",
+        "status": "ok",
+        "return_pct": 3.326810176125244,
+        "index_return_pct": -1.948502655878187,
+        "excess_return_pct": 5.275312832003431,
+        "hit": 1,
+        "raw_hit": 1,
+        "result_desc": "1D（2026-10-12→2026-10-13）：報酬 +3.33%，大盤 -1.95%，超額 +5.28% → 命中"
+      },
+      {
+        "prediction_date": "2026-10-12",
+        "ticker": "3443",
+        "name": "創意",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-13",
+        "target_date": "2026-10-13",
+        "status": "ok",
+        "return_pct": -0.06172839506172839,
+        "index_return_pct": -1.948502655878187,
+        "excess_return_pct": 1.8867742608164586,
+        "hit": 1,
+        "raw_hit": 0,
+        "result_desc": "1D（2026-10-12→2026-10-13）：報酬 -0.06%，大盤 -1.95%，超額 +1.89% → 命中"
+      },
+      {
+        "prediction_date": "2026-10-08",
+        "ticker": "3037",
+        "name": "欣興",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-12",
+        "target_date": "2026-10-12",
+        "status": "ok",
+        "return_pct": -1.1811023622047243,
+        "index_return_pct": -0.023279657634923057,
+        "excess_return_pct": -1.1578227045698013,
+        "hit": 0,
+        "raw_hit": 0,
+        "result_desc": "1D（2026-10-08→2026-10-12）：報酬 -1.18%，大盤 -0.02%，超額 -1.16% → 失準"
+      },
+      {
+        "prediction_date": "2026-10-08",
+        "ticker": "3231",
+        "name": "緯創",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-12",
+        "target_date": "2026-10-12",
+        "status": "ok",
+        "return_pct": 0.5305039787798408,
+        "index_return_pct": -0.023279657634923057,
+        "excess_return_pct": 0.5537836364147638,
+        "hit": 1,
+        "raw_hit": 1,
+        "result_desc": "1D（2026-10-08→2026-10-12）：報酬 +0.53%，大盤 -0.02%，超額 +0.55% → 命中"
+      },
+      {
+        "prediction_date": "2026-10-07",
+        "ticker": "2344",
+        "name": "華邦電",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-08",
+        "target_date": "2026-10-08",
+        "status": "ok",
+        "return_pct": -1.392757660167131,
+        "index_return_pct": -0.9896926838876238,
+        "excess_return_pct": -0.4030649762795072,
+        "hit": null,
+        "raw_hit": 0,
+        "result_desc": "1D（2026-10-07→2026-10-08）：報酬 -1.39%，大盤 -0.99%，超額 -0.40% → 與大盤持平（不計）"
+      },
+      {
+        "prediction_date": "2026-10-07",
+        "ticker": "4958",
+        "name": "臻鼎-KY",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-08",
+        "target_date": "2026-10-08",
+        "status": "ok",
+        "return_pct": -0.5042016806722689,
+        "index_return_pct": -0.9896926838876238,
+        "excess_return_pct": 0.4854910032153549,
+        "hit": null,
+        "raw_hit": 0,
+        "result_desc": "1D（2026-10-07→2026-10-08）：報酬 -0.50%，大盤 -0.99%，超額 +0.49% → 與大盤持平（不計）"
+      },
+      {
+        "prediction_date": "2026-10-01",
+        "ticker": "3231",
+        "name": "緯創",
+        "direction": "多",
+        "horizon_days": 5,
+        "evaluated_date": "2026-10-08",
+        "target_date": "2026-10-08",
+        "status": "ok",
+        "return_pct": -1.0498687664041995,
+        "index_return_pct": 1.9852755199262853,
+        "excess_return_pct": -3.0351442863304845,
+        "hit": 0,
+        "raw_hit": 0,
+        "result_desc": "5D（2026-10-01→2026-10-08）：報酬 -1.05%，大盤 +1.99%，超額 -3.04% → 失準"
+      },
+      {
+        "prediction_date": "2026-10-06",
+        "ticker": "2313",
+        "name": "華通",
+        "direction": "多",
+        "horizon_days": 1,
+        "evaluated_date": "2026-10-07",
+        "target_date": "2026-10-07",
+        "status": "ok",
+        "return_pct": -2.380952380952381,
+        "index_return_pct": -0.032475254678855835,
+        "excess_return_pct": -2.348477126273525,
+        "hit": 0,
+        "raw_hit": 0,
+        "result_desc": "1D（2026-10-06→2026-10-07）：報酬 -2.38%，大盤 -0.03%，超額 -2.35% → 失準"
+      }
+    ],
+    "recent_trends": {
+      "1301": {
+        "latest_date": "2026-10-14",
+        "latest_price": 88.9,
+        "latest_pct_change": 9.89,
+        "trends": {}
+      },
+      "1303": {
+        "latest_date": "2026-10-14",
+        "latest_price": 349.0,
+        "latest_pct_change": 9.4,
+        "trends": {
+          "5D": {
+            "from_date": "2026-10-07",
+            "to_date": "2026-10-14",
+            "sessions": 4,
+            "base_price": 314.0,
+            "latest_price": 349.0,
+            "pct_change": 11.146496815286625
+          },
+          "10D": {
+            "from_date": "2026-09-29",
+            "to_date": "2026-10-14",
+            "sessions": 10,
+            "base_price": 247.0,
+            "latest_price": 349.0,
+            "pct_change": 41.29554655870445
+          }
+        }
+      },
+      "1802": {
+        "latest_date": "2026-10-14",
+        "latest_price": 67.0,
+        "latest_pct_change": 8.41,
+        "trends": {}
+      },
+      "2327": {
+        "latest_date": "2026-10-14",
+        "latest_price": 627.0,
+        "latest_pct_change": 4.67,
+        "trends": {
+          "5D": {
+            "from_date": "2026-10-05",
+            "to_date": "2026-10-14",
+            "sessions": 6,
+            "base_price": 626.0,
+            "latest_price": 627.0,
+            "pct_change": 0.1597444089456869
+          },
+          "10D": {
+            "from_date": "2026-09-29",
+            "to_date": "2026-10-14",
+            "sessions": 10,
+            "base_price": 548.0,
+            "latest_price": 627.0,
+            "pct_change": 14.416058394160583
+          },
+          "20D": {
+            "from_date": "2026-09-14",
+            "to_date": "2026-10-14",
+            "sessions": 19,
+            "base_price": 545.0,
+            "latest_price": 627.0,
+            "pct_change": 15.045871559633028
+          }
+        }
+      },
+      "2330": {
+        "latest_date": "2026-10-14",
+        "latest_price": 2490.0,
+        "latest_pct_change": 0.0,
+        "trends": {
+          "5D": {
+            "from_date": "2026-10-06",
+            "to_date": "2026-10-14",
+            "sessions": 5,
+            "base_price": 2585.0,
+            "latest_price": 2490.0,
+            "pct_change": -3.67504835589942
+          },
+          "10D": {
+            "from_date": "2026-09-29",
+            "to_date": "2026-10-14",
+            "sessions": 10,
+            "base_price": 2475.0,
+            "latest_price": 2490.0,
+            "pct_change": 0.6060606060606061
+          },
+          "20D": {
+            "from_date": "2026-09-11",
+            "to_date": "2026-10-14",
+            "sessions": 20,
+            "base_price": 2410.0,
+            "latest_price": 2490.0,
+            "pct_change": 3.319502074688797
+          }
+        }
+      },
+      "2408": {
+        "latest_date": "2026-10-14",
+        "latest_price": 480.5,
+        "latest_pct_change": -1.54,
+        "trends": {
+          "5D": {
+            "from_date": "2026-10-05",
+            "to_date": "2026-10-14",
+            "sessions": 6,
+            "base_price": 530.0,
+            "latest_price": 480.5,
+            "pct_change": -9.339622641509433
+          },
+          "10D": {
+            "from_date": "2026-09-24",
+            "to_date": "2026-10-14",
+            "sessions": 11,
+            "base_price": 503.0,
+            "latest_price": 480.5,
+            "pct_change": -4.473161033797217
+          },
+          "20D": {
+            "from_date": "2026-09-11",
+            "to_date": "2026-10-14",
+            "sessions": 20,
+            "base_price": 493.0,
+            "latest_price": 480.5,
+            "pct_change": -2.535496957403651
+          }
+        }
+      },
+      "2449": {
+        "latest_date": "2026-10-14",
+        "latest_price": 296.5,
+        "latest_pct_change": -2.79,
+        "trends": {}
+      },
+      "2454": {
+        "latest_date": "2026-10-14",
+        "latest_price": 4475.0,
+        "latest_pct_change": -1.1,
+        "trends": {
+          "5D": {
+            "from_date": "2026-10-06",
+            "to_date": "2026-10-14",
+            "sessions": 5,
+            "base_price": 4920.0,
+            "latest_price": 4475.0,
+            "pct_change": -9.044715447154472
+          },
+          "10D": {
+            "from_date": "2026-09-29",
+            "to_date": "2026-10-14",
+            "sessions": 10,
+            "base_price": 4910.0,
+            "latest_price": 4475.0,
+            "pct_change": -8.859470468431772
+          },
+          "20D": {
+            "from_date": "2026-09-10",
+            "to_date": "2026-10-14",
+            "sessions": 21,
+            "base_price": 4720.0,
+            "latest_price": 4475.0,
+            "pct_change": -5.190677966101695
+          }
+        }
+      },
+      "3037": {
+        "latest_date": "2026-10-12",
+        "latest_price": 1255.0,
+        "latest_pct_change": -1.18,
+        "trends": {
+          "5D": {
+            "from_date": "2026-10-02",
+            "to_date": "2026-10-12",
+            "sessions": 5,
+            "base_price": 1305.0,
+            "latest_price": 1255.0,
+            "pct_change": -3.8314176245210727
+          },
+          "10D": {
+            "from_date": "2026-09-23",
+            "to_date": "2026-10-12",
+            "sessions": 10,
+            "base_price": 1160.0,
+            "latest_price": 1255.0,
+            "pct_change": 8.189655172413794
+          }
+        }
+      }
+    },
+    "tickers": [
+      "1301",
+      "1303",
+      "1326",
+      "1802",
+      "2303",
+      "2327",
+      "2330",
+      "2368",
+      "2408",
+      "2449",
+      "2454",
+      "2492",
+      "3008",
+      "3037",
+      "6669"
+    ],
+    "as_of": "2026-10-14",
+    "reliability_note": "依本機回測（交易日窗、扣同窗大盤），各時間窗超額命中率的 95% 信賴區間都未高於 50% 基準，樣本不足以判定哪個時間窗較準；先並列 1D/3D/5D/20D，勿稱任一窗較準，也勿把命中率當成敗尺子。"
+  },
+  "local_market_facts": {
+    "data_date": "2026-10-14",
+    "inst_top_n": 10,
+    "volume_top_n": 20,
+    "volume_complete": true,
+    "stocks": {
+      "1303": {
+        "ticker": "1303",
+        "name": "南亞",
+        "foreign_amount": 55.33,
+        "foreign_net": 15854598,
+        "trust_net": 4541206,
+        "total_net": 19527513,
+        "buy_rank": 1,
+        "listing": "twse",
+        "est_price": 349.0,
+        "est_price_date": "2026-10-14",
+        "volume_rank": 6,
+        "volume": 175417461,
+        "close": 349.0,
+        "close_source": "twse_volume_rank",
+        "pct_change": 9.4,
+        "pct_source": "twse_volume_rank",
+        "ma20": 264.02,
+        "ma5": 319.0,
+        "vol_ratio": 1.77
+      },
+      "1301": {
+        "ticker": "1301",
+        "name": "台塑",
+        "foreign_amount": 47.46,
+        "foreign_net": 53390342,
+        "trust_net": 4315000,
+        "total_net": 56691793,
+        "buy_rank": 2,
+        "listing": "twse",
+        "est_price": 88.9,
+        "est_price_date": "2026-10-14",
+        "volume_rank": 4,
+        "volume": 191655031,
+        "close": 88.9,
+        "close_source": "twse_volume_rank",
+        "pct_change": 9.89,
+        "pct_source": "twse_volume_rank",
+        "ma20": 69.3,
+        "ma5": 81.44,
+        "vol_ratio": 1.4
+      },
+      "2327": {
+        "ticker": "2327",
+        "name": "國巨*",
+        "foreign_amount": 36.65,
+        "foreign_net": 5845443,
+        "trust_net": 936714,
+        "total_net": 6707578,
+        "buy_rank": 3,
+        "listing": "twse",
+        "est_price": 627.0,
+        "est_price_date": "2026-10-14",
+        "close": 627.0,
+        "close_source": "market_data",
+        "pct_change": 4.67,
+        "pct_source": "market_data",
+        "ma20": 584.85,
+        "ma5": 628.8,
+        "vol_ratio": 0.97
+      },
+      "1802": {
+        "ticker": "1802",
+        "name": "台玻",
+        "foreign_amount": 31.17,
+        "foreign_net": 46522820,
+        "trust_net": 375000,
+        "total_net": 49315315,
+        "buy_rank": 4,
+        "listing": "twse",
+        "est_price": 67.0,
+        "est_price_date": "2026-10-14",
+        "volume_rank": 5,
+        "volume": 186880731,
+        "close": 67.0,
+        "close_source": "twse_volume_rank",
+        "pct_change": 8.41,
+        "pct_source": "twse_volume_rank"
+      },
+      "1326": {
+        "ticker": "1326",
+        "name": "台化",
+        "foreign_amount": 23.49,
+        "foreign_net": 27479405,
+        "trust_net": 0,
+        "total_net": 27667975,
+        "buy_rank": 5,
+        "listing": "twse",
+        "est_price": 85.5,
+        "est_price_date": "2026-10-14",
+        "volume_rank": 13,
+        "volume": 103560276,
+        "close": 85.5,
+        "close_source": "twse_volume_rank",
+        "pct_change": 9.9,
+        "pct_source": "twse_volume_rank"
+      },
+      "6669": {
+        "ticker": "6669",
+        "name": "緯穎",
+        "foreign_amount": 23.0,
+        "foreign_net": 1087502,
+        "trust_net": -1663492,
+        "total_net": -728422,
+        "buy_rank": 6,
+        "listing": "twse",
+        "est_price": 2115.0,
+        "est_price_date": "2026-10-14",
+        "close": 2115.0,
+        "close_source": "institutional_price_map"
+      },
+      "2344": {
+        "ticker": "2344",
+        "name": "華邦電",
+        "foreign_amount": 17.87,
+        "foreign_net": 10827629,
+        "trust_net": -1168561,
+        "total_net": 10267342,
+        "buy_rank": 7,
+        "listing": "twse",
+        "est_price": 165.0,
+        "est_price_date": "2026-10-14",
+        "close": 165.0,
+        "close_source": "institutional_price_map"
+      },
+      "2492": {
+        "ticker": "2492",
+        "name": "華新科",
+        "foreign_amount": 15.96,
+        "foreign_net": 3747263,
+        "trust_net": -10000,
+        "total_net": 4611200,
+        "buy_rank": 8,
+        "listing": "twse",
+        "est_price": 426.0,
+        "est_price_date": "2026-10-14",
+        "close": 426.0,
+        "close_source": "institutional_price_map"
+      },
+      "2885": {
+        "ticker": "2885",
+        "name": "元大金",
+        "foreign_amount": 15.55,
+        "foreign_net": 21535930,
+        "trust_net": 362919,
+        "total_net": 22112173,
+        "buy_rank": 9,
+        "listing": "twse",
+        "est_price": 72.2,
+        "est_price_date": "2026-10-14",
+        "close": 72.2,
+        "close_source": "institutional_price_map"
+      },
+      "2002": {
+        "ticker": "2002",
+        "name": "中鋼",
+        "foreign_amount": 15.02,
+        "foreign_net": 77005602,
+        "trust_net": -3000,
+        "total_net": 79580138,
+        "buy_rank": 10,
+        "listing": "twse",
+        "est_price": 19.5,
+        "est_price_date": "2026-10-14",
+        "volume_rank": 12,
+        "volume": 103580211,
+        "close": 19.5,
+        "close_source": "twse_volume_rank",
+        "pct_change": 1.83,
+        "pct_source": "twse_volume_rank"
+      },
+      "2330": {
+        "ticker": "2330",
+        "name": "台積電",
+        "foreign_amount": -168.13,
+        "foreign_net": -6752241,
+        "trust_net": 791788,
+        "total_net": -5424947,
+        "sell_rank": 1,
+        "listing": "twse",
+        "est_price": 2490.0,
+        "est_price_date": "2026-10-14",
+        "close": 2490.0,
+        "close_source": "market_data",
+        "pct_change": 0.0,
+        "pct_source": "market_data",
+        "ma20": 2485.55,
+        "ma5": 2531.0,
+        "vol_ratio": 1.14
+      },
+      "2454": {
+        "ticker": "2454",
+        "name": "聯發科",
+        "foreign_amount": -157.19,
+        "foreign_net": -3512599,
+        "trust_net": 238033,
+        "total_net": -3257985,
+        "sell_rank": 2,
+        "listing": "twse",
+        "est_price": 4475.0,
+        "est_price_date": "2026-10-14",
+        "close": 4475.0,
+        "close_source": "market_data",
+        "pct_change": -1.1,
+        "pct_source": "market_data",
+        "ma20": 4819.25,
+        "ma5": 4630.0,
+        "vol_ratio": 1.16
+      },
+      "2408": {
+        "ticker": "2408",
+        "name": "南亞科",
+        "foreign_amount": -110.36,
+        "foreign_net": -22967700,
+        "trust_net": -718234,
+        "total_net": -24960934,
+        "sell_rank": 3,
+        "listing": "twse",
+        "est_price": 480.5,
+        "est_price_date": "2026-10-14",
+        "close": 480.5,
+        "close_source": "market_data",
+        "pct_change": -1.54,
+        "pct_source": "market_data",
+        "ma20": 507.07,
+        "ma5": 508.3,
+        "vol_ratio": 1.1
+      },
+      "2449": {
+        "ticker": "2449",
+        "name": "京元電子",
+        "foreign_amount": -67.17,
+        "foreign_net": -22655711,
+        "trust_net": 143793,
+        "total_net": -24396562,
+        "sell_rank": 4,
+        "listing": "twse",
+        "est_price": 296.5,
+        "est_price_date": "2026-10-14",
+        "close": 296.5,
+        "close_source": "market_data",
+        "pct_change": -2.79,
+        "pct_source": "market_data",
+        "ma20": 292.4,
+        "ma5": 301.1,
+        "vol_ratio": 1.67
+      },
+      "3008": {
+        "ticker": "3008",
+        "name": "大立光",
+        "foreign_amount": -49.12,
+        "foreign_net": -713921,
+        "trust_net": 168083,
+        "total_net": -585823,
+        "sell_rank": 5,
+        "listing": "twse",
+        "est_price": 6880.0,
+        "est_price_date": "2026-10-14",
+        "close": 6880.0,
+        "close_source": "institutional_price_map"
+      },
+      "3653": {
+        "ticker": "3653",
+        "name": "健策",
+        "foreign_amount": -24.0,
+        "foreign_net": -339491,
+        "trust_net": 252984,
+        "total_net": -155548,
+        "sell_rank": 6,
+        "listing": "twse",
+        "est_price": 7070.0,
+        "est_price_date": "2026-10-14",
+        "close": 7070.0,
+        "close_source": "institutional_price_map"
+      },
+      "6505": {
+        "ticker": "6505",
+        "name": "台塑化",
+        "foreign_amount": -23.87,
+        "foreign_net": -19974507,
+        "trust_net": 14106792,
+        "total_net": -7314262,
+        "sell_rank": 7,
+        "listing": "twse",
+        "est_price": 119.5,
+        "est_price_date": "2026-10-14",
+        "volume_rank": 8,
+        "volume": 139480586,
+        "close": 119.5,
+        "close_source": "twse_volume_rank",
+        "pct_change": 0.42,
+        "pct_source": "twse_volume_rank"
+      },
+      "2303": {
+        "ticker": "2303",
+        "name": "聯電",
+        "foreign_amount": -22.72,
+        "foreign_net": -16001819,
+        "trust_net": -5909116,
+        "total_net": -22099067,
+        "sell_rank": 8,
+        "listing": "twse",
+        "est_price": 142.0,
+        "est_price_date": "2026-10-14",
+        "volume_rank": 10,
+        "volume": 110349913,
+        "close": 142.0,
+        "close_source": "twse_volume_rank",
+        "pct_change": 0.35,
+        "pct_source": "twse_volume_rank"
+      },
+      "2308": {
+        "ticker": "2308",
+        "name": "台達電",
+        "foreign_amount": -22.06,
+        "foreign_net": -1236029,
+        "trust_net": 288249,
+        "total_net": -979242,
+        "sell_rank": 9,
+        "listing": "twse",
+        "est_price": 1785.0,
+        "est_price_date": "2026-10-14",
+        "close": 1785.0,
+        "close_source": "institutional_price_map"
+      },
+      "3406": {
+        "ticker": "3406",
+        "name": "玉晶光",
+        "foreign_amount": -21.74,
+        "foreign_net": -2041371,
+        "trust_net": 1000,
+        "total_net": -2060603,
+        "sell_rank": 10,
+        "listing": "twse",
+        "est_price": 1065.0,
+        "est_price_date": "2026-10-14",
+        "close": 1065.0,
+        "close_source": "institutional_price_map"
+      },
+      "00406A": {
+        "ticker": "00406A",
+        "name": "主動中信台灣收益",
+        "volume_rank": 1,
+        "listing": "twse",
+        "volume": 309102652,
+        "close": 9.91,
+        "close_source": "twse_volume_rank",
+        "pct_change": 0.61,
+        "pct_source": "twse_volume_rank"
+      },
+      "2409": {
+        "ticker": "2409",
+        "name": "友達",
+        "volume_rank": 2,
+        "listing": "twse",
+        "volume": 305718702,
+        "close": 36.25,
+        "close_source": "twse_volume_rank",
+        "pct_change": 6.15,
+        "pct_source": "twse_volume_rank"
+      },
+      "1312": {
+        "ticker": "1312",
+        "name": "國喬",
+        "volume_rank": 3,
+        "listing": "twse",
+        "volume": 210154056,
+        "close": 18.9,
+        "close_source": "twse_volume_rank",
+        "pct_change": 7.08,
+        "pct_source": "twse_volume_rank"
+      },
+      "00685L": {
+        "ticker": "00685L",
+        "name": "群益臺灣加權正2",
+        "volume_rank": 7,
+        "listing": "twse",
+        "volume": 157000786,
+        "close": 13.2,
+        "close_source": "twse_volume_rank",
+        "pct_change": 1.38,
+        "pct_source": "twse_volume_rank"
+      },
+      "00631L": {
+        "ticker": "00631L",
+        "name": "元大台灣50正2",
+        "volume_rank": 9,
+        "listing": "twse",
+        "volume": 122057134,
+        "close": 39.78,
+        "close_source": "twse_volume_rank",
+        "pct_change": 1.22,
+        "pct_source": "twse_volume_rank"
+      },
+      "6770": {
+        "ticker": "6770",
+        "name": "力積電",
+        "volume_rank": 11,
+        "listing": "twse",
+        "volume": 106437316,
+        "close": 71.0,
+        "close_source": "twse_volume_rank",
+        "pct_change": 5.19,
+        "pct_source": "twse_volume_rank"
+      },
+      "1718": {
+        "ticker": "1718",
+        "name": "中纖",
+        "volume_rank": 14,
+        "listing": "twse",
+        "volume": 96426751,
+        "close": 12.9,
+        "close_source": "twse_volume_rank",
+        "pct_change": 6.17,
+        "pct_source": "twse_volume_rank"
+      },
+      "3481": {
+        "ticker": "3481",
+        "name": "群創",
+        "volume_rank": 15,
+        "listing": "twse",
+        "volume": 89848751,
+        "close": 50.9,
+        "close_source": "twse_volume_rank",
+        "pct_change": 1.8,
+        "pct_source": "twse_volume_rank"
+      },
+      "00985A": {
+        "ticker": "00985A",
+        "name": "主動野村台灣50",
+        "volume_rank": 16,
+        "listing": "twse",
+        "volume": 85767516,
+        "close": 23.8,
+        "close_source": "twse_volume_rank",
+        "pct_change": 0.63,
+        "pct_source": "twse_volume_rank"
+      },
+      "00981A": {
+        "ticker": "00981A",
+        "name": "主動統一台股增長",
+        "volume_rank": 17,
+        "listing": "twse",
+        "volume": 81853331,
+        "close": 31.19,
+        "close_source": "twse_volume_rank",
+        "pct_change": 0.42,
+        "pct_source": "twse_volume_rank"
+      },
+      "1101": {
+        "ticker": "1101",
+        "name": "台泥",
+        "volume_rank": 18,
+        "listing": "twse",
+        "volume": 80795741,
+        "close": 27.05,
+        "close_source": "twse_volume_rank",
+        "pct_change": 2.66,
+        "pct_source": "twse_volume_rank"
+      },
+      "00403A": {
+        "ticker": "00403A",
+        "name": "主動統一升級50",
+        "volume_rank": 19,
+        "listing": "twse",
+        "volume": 78836121,
+        "close": 11.0,
+        "close_source": "twse_volume_rank",
+        "pct_change": 0.73,
+        "pct_source": "twse_volume_rank"
+      },
+      "1605": {
+        "ticker": "1605",
+        "name": "華新",
+        "volume_rank": 20,
+        "listing": "twse",
+        "volume": 73495026,
+        "close": 40.7,
+        "close_source": "twse_volume_rank",
+        "pct_change": 5.58,
+        "pct_source": "twse_volume_rank"
+      }
+    }
+  },
   "broadcast_facts": {
     "opening": {
-      "hook_line": "南亞 +50.6億 vs 台積電 -168.1億；國巨*成交量未進前20",
-      "contrast_line": "南亞 +50.6億 vs 台積電 -168.1億",
+      "hook_line": "南亞 +55.3億 vs 台積電 -168.1億；南亞量第6，國巨*量增比1.0x",
+      "contrast_line": "南亞 +55.3億 vs 台積電 -168.1億",
       "index_action": "上漲 284.5點（+0.59%）"
     },
     "heroes": [
       {
+        "ticker": "1303",
+        "name": "南亞",
+        "role_label": "題材確認股",
+        "foreign_amount": 55.33,
+        "pct_change": 9.4,
+        "volume_rank": 6,
+        "off_rank": false,
+        "close": 349.0,
+        "ma20": 264.02,
+        "vol_ratio": 1.77,
+        "one_day_flip": false,
+        "sold_today": false,
+        "volume_confirmation": 75,
+        "foreign_streak_days": 1,
+        "admission": "official",
+        "admission_reason": "已進預測帳本",
+        "caution": false,
+        "invalidation": "跌破 319.0（MA5）（距今收盤 -8.6%）",
+        "evidence": "南亞 (+55.3億)；2408 南亞科與 1303 南亞法人分歧：資金從終端應用逃往上游材料，呈現產業位階平移",
+        "number_source": {
+          "foreign_amount": "local",
+          "pct_change": "local",
+          "volume_rank": "local"
+        },
+        "llm_numbers": {
+          "foreign_amount": 55.3
+        },
+        "say_line": "1303 南亞，外資約 +55.3億，收盤 349，漲跌 +9.40%，成交量第 6 名",
+        "ma20_gap_pct": 32.19
+      },
+      {
         "ticker": "2327",
         "name": "國巨*",
         "role_label": "彈性攻擊股",
-        "foreign_amount": 36.6,
-        "pct_change": null,
+        "foreign_amount": 36.65,
+        "pct_change": 4.67,
         "volume_rank": null,
         "off_rank": true,
+        "close": 627.0,
+        "ma20": 584.85,
+        "vol_ratio": 0.97,
         "one_day_flip": false,
         "sold_today": false,
-        "volume_confirmation": 72,
+        "volume_confirmation": 48,
         "foreign_streak_days": 1,
         "admission": "official",
         "admission_reason": "已進預測帳本，但含單日矛盾，口播必須標成節奏而非趨勢",
         "caution": true,
-        "invalidation": "收盤跌破MA20",
-        "evidence": "國巨* (+36.6億)；2327 國巨*：外資買超全台第二(36.6億)，但成交量未進前20名，顯示法人靜默吸籌，市場尚未過熱",
-        "say_line": "2327 國巨*，外資約 +36.6億，成交量未進前 20"
+        "invalidation": "收盤跌破 584.0（MA20）（距今收盤 -6.9%）",
+        "evidence": "國巨* (+36.6億)",
+        "number_source": {
+          "foreign_amount": "local",
+          "pct_change": "local",
+          "volume_rank": "local"
+        },
+        "llm_numbers": {
+          "foreign_amount": 36.6
+        },
+        "say_line": "2327 國巨*，外資約 +36.6億，收盤 627，漲跌 +4.67%，量增比 1.0x",
+        "ma20_gap_pct": 7.21
       },
       {
-        "ticker": "1301",
-        "name": "台塑",
+        "ticker": "1802",
+        "name": "台玻",
         "role_label": "彈性攻擊股",
-        "foreign_amount": 29.4,
-        "pct_change": null,
-        "volume_rank": null,
+        "foreign_amount": 31.17,
+        "pct_change": 8.41,
+        "volume_rank": 5,
         "off_rank": false,
+        "close": 67.0,
+        "ma20": null,
+        "vol_ratio": null,
         "one_day_flip": false,
         "sold_today": false,
-        "volume_confirmation": 25,
+        "volume_confirmation": 71,
         "foreign_streak_days": 1,
         "admission": "context",
         "admission_reason": "對照股，不是下一交易日主盯",
         "caution": false,
         "invalidation": "",
-        "evidence": "台塑 (+29.4億)",
-        "say_line": "1301 台塑，外資約 +29.4億"
-      },
-      {
-        "ticker": "1802",
-        "name": "台玻",
-        "role_label": "彈性攻擊股",
-        "foreign_amount": 30.8,
-        "pct_change": null,
-        "volume_rank": null,
-        "off_rank": false,
-        "one_day_flip": false,
-        "sold_today": false,
-        "volume_confirmation": 25,
-        "foreign_streak_days": 1,
-        "admission": "official",
-        "admission_reason": "已進預測帳本",
-        "caution": false,
-        "invalidation": "收盤跌破62元",
-        "evidence": "台玻 (+30.8億)",
-        "say_line": "1802 台玻，外資約 +30.8億"
+        "evidence": "台玻 (+31.2億)",
+        "number_source": {
+          "foreign_amount": "local",
+          "pct_change": "local",
+          "volume_rank": "local"
+        },
+        "llm_numbers": {
+          "foreign_amount": 31.2
+        },
+        "say_line": "1802 台玻，外資約 +31.2億，收盤 67，漲跌 +8.41%，成交量第 5 名"
       }
     ],
     "official_watch": [
       {
-        "ticker": "2327",
-        "name": "國巨*",
-        "role_label": "彈性攻擊股",
-        "foreign_amount": 36.6,
-        "pct_change": null,
-        "volume_rank": null,
-        "off_rank": true,
-        "one_day_flip": false,
-        "sold_today": false,
-        "volume_confirmation": 72,
-        "foreign_streak_days": 1,
-        "admission": "official",
-        "admission_reason": "已進預測帳本，但含單日矛盾，口播必須標成節奏而非趨勢",
-        "caution": true,
-        "invalidation": "收盤跌破MA20",
-        "evidence": "國巨* (+36.6億)；2327 國巨*：外資買超全台第二(36.6億)，但成交量未進前20名，顯示法人靜默吸籌，市場尚未過熱",
-        "say_line": "2327 國巨*，外資約 +36.6億，成交量未進前 20"
-      },
-      {
-        "ticker": "1802",
-        "name": "台玻",
-        "role_label": "彈性攻擊股",
-        "foreign_amount": 30.8,
-        "pct_change": null,
-        "volume_rank": null,
+        "ticker": "1303",
+        "name": "南亞",
+        "role_label": "題材確認股",
+        "foreign_amount": 55.33,
+        "pct_change": 9.4,
+        "volume_rank": 6,
         "off_rank": false,
+        "close": 349.0,
+        "ma20": 264.02,
+        "vol_ratio": 1.77,
         "one_day_flip": false,
         "sold_today": false,
-        "volume_confirmation": 25,
+        "volume_confirmation": 75,
         "foreign_streak_days": 1,
         "admission": "official",
         "admission_reason": "已進預測帳本",
         "caution": false,
-        "invalidation": "收盤跌破62元",
-        "evidence": "台玻 (+30.8億)",
-        "say_line": "1802 台玻，外資約 +30.8億"
+        "invalidation": "跌破 319.0（MA5）（距今收盤 -8.6%）",
+        "evidence": "南亞 (+55.3億)；2408 南亞科與 1303 南亞法人分歧：資金從終端應用逃往上游材料，呈現產業位階平移",
+        "number_source": {
+          "foreign_amount": "local",
+          "pct_change": "local",
+          "volume_rank": "local"
+        },
+        "llm_numbers": {
+          "foreign_amount": 55.3
+        },
+        "say_line": "1303 南亞，外資約 +55.3億，收盤 349，漲跌 +9.40%，成交量第 6 名",
+        "ma20_gap_pct": 32.19
+      },
+      {
+        "ticker": "2327",
+        "name": "國巨*",
+        "role_label": "彈性攻擊股",
+        "foreign_amount": 36.65,
+        "pct_change": 4.67,
+        "volume_rank": null,
+        "off_rank": true,
+        "close": 627.0,
+        "ma20": 584.85,
+        "vol_ratio": 0.97,
+        "one_day_flip": false,
+        "sold_today": false,
+        "volume_confirmation": 48,
+        "foreign_streak_days": 1,
+        "admission": "official",
+        "admission_reason": "已進預測帳本，但含單日矛盾，口播必須標成節奏而非趨勢",
+        "caution": true,
+        "invalidation": "收盤跌破 584.0（MA20）（距今收盤 -6.9%）",
+        "evidence": "國巨* (+36.6億)",
+        "number_source": {
+          "foreign_amount": "local",
+          "pct_change": "local",
+          "volume_rank": "local"
+        },
+        "llm_numbers": {
+          "foreign_amount": 36.6
+        },
+        "say_line": "2327 國巨*，外資約 +36.6億，收盤 627，漲跌 +4.67%，量增比 1.0x",
+        "ma20_gap_pct": 7.21
       }
     ],
     "talk_only": [],
-    "ruler_line": "依目前本機回測樣本，20D 命中率 55.6%（n=126）優於 1D/3D/5D 平均 46.8%，約高 9 個百分點；選標與標題主角宜以 20D 可信度為準，短線窗只當節奏參考。"
+    "ruler_line": "依本機回測（交易日窗、扣同窗大盤），各時間窗超額命中率的 95% 信賴區間都未高於 50% 基準，樣本不足以判定哪個時間窗較準；先並列 1D/3D/5D/20D，勿稱任一窗較準，也勿把命中率當成敗尺子。",
+    "number_source": "local"
   },
   "similar_sessions": [
     {
-      "date": "2026-08-31",
-      "score": 48,
+      "date": "2026-09-22",
+      "score": 49,
       "reasons": [
         "大盤同向",
-        "同買 1303",
-        "同賣 2330、2449",
-        "賣超冠軍相同"
+        "同賣 2408、3008",
+        "賣超領頭相同（排除權值/ETF）"
       ],
-      "index_action": "上漲 153.2點（+0.33%）",
-      "index_pct": 0.33,
-      "bought": "6770 力積電 (+49.6億)、2408 南亞科 (+41.3億)、3037 欣興 (+26.0億)",
-      "sold": "2330 台積電 (-110.2億)、國巨* (-75.7億)、3711 日月光投控 (-55.0億)",
+      "index_action": "上漲 81.3點（+0.17%）",
+      "index_pct": 0.17,
+      "bought": "2409 友達 (+81.8億)、2454 聯發科 (+77.2億)、2303 聯電 (+69.2億)",
+      "sold": "2408 南亞科 (-115.8億)、2330 台積電 (-107.4億)、3231 緯創 (-56.5億)",
       "predictions": [
         {
-          "ticker": "2408",
-          "name": "南亞科",
+          "ticker": "2303",
+          "name": "聯電",
           "direction": "多",
-          "trigger": "外資買超第 2 名（41.3 億），量增比 1.8 倍爆量突破 MA20"
+          "trigger": "外資買超第3名且籌碼結構穩健，為AI輔助晶片領頭羊"
         },
         {
-          "ticker": "6770",
-          "name": "力積電",
+          "ticker": "2409",
+          "name": "友達",
           "direction": "多",
-          "trigger": "外資買超第一名，且毛利率已連兩季從負值強勢轉正，營收年增 20.3%"
+          "trigger": "強勢站上 MA20 且外資買超，突破型態確立"
         }
       ],
-      "next_date": "2026-09-01",
+      "next_date": "2026-09-23",
       "next_day_results": [
-        "2408 南亞科 (-4.60%, 預測未成立)",
-        "6770 力積電 (-3.01%, 預測未成立，成交量排名第8)"
+        "2303 聯電 (+0.00%, 預測未成立，成交量排名第9)",
+        "2409 友達 (-5.32%, 預測未成立，成交量排名第1)"
       ],
+      "next_index_dir": "up",
       "frame_label": "重大事件日"
     },
     {
-      "date": "2026-10-02",
-      "score": 44,
+      "date": "2026-04-14",
+      "score": 45,
       "reasons": [
         "大盤同向",
-        "同賣 2330、2454",
-        "賣超冠軍相同"
+        "同買 1802",
+        "同賣 2408",
+        "賣超領頭相同（排除權值/ETF）"
       ],
-      "index_action": "上漲 122.2點（+0.25%）",
-      "index_pct": 0.25,
-      "bought": "4958 臻鼎-KY (+71.1億)、3037 欣興 (+62.0億)、2408 南亞科 (+37.2億)",
-      "sold": "2330 台積電 (-148.4億)、2454 聯發科 (-73.3億)、3231 緯創 (-40.3億)",
-      "predictions": [
-        {
-          "ticker": "4958",
-          "name": "臻鼎-KY",
-          "direction": "多",
-          "trigger": "外資買超金額第一名且爆量漲停，帶量突破 MA20 底部成型"
-        },
-        {
-          "ticker": "2408",
-          "name": "南亞科",
-          "direction": "多",
-          "trigger": "外資買超第三名且站上 MA20，營收年增展現復甦跡象"
-        }
-      ],
-      "next_date": "2026-10-05",
-      "next_day_results": [
-        "4958 臻鼎-KY (+2.67%, 預測成立)",
-        "2408 南亞科 (+0.76%, 預測成立)"
-      ],
-      "frame_label": "異常日"
+      "index_action": "狂飆 838.83 點 (漲幅 2.37%)",
+      "index_pct": 2.37,
+      "bought": "2330 台積電 (+389.5億)、0050 元大台灣50 (+54.8億)、2337 旺宏 (+41.5億)",
+      "sold": "2408 南亞科 (-91.5億)、2313 華通 (-52.9億)、6239 力成 (-28.3億)",
+      "predictions": [],
+      "next_date": "2026-04-16",
+      "next_day_results": [],
+      "next_index_dir": null,
+      "frame_label": ""
     }
-  ]
+  ],
+  "fact_check": {
+    "status": "pass",
+    "checked": 9,
+    "issues": [],
+    "tables": [
+      "成交值表：AI 列 5 列（2330, 1303, 2454, 3008, 2327），已改為本機前 10 名",
+      "法人籌碼：AI 列 10 檔，已改為本機買超前 10＋賣超前 10"
+    ],
+    "annotated": 0,
+    "mode": "annotate"
+  },
+  "sanitize_hits": {
+    "report": {
+      "外資倒貨": 1,
+      "外資提款": 1
+    },
+    "structured_data": {}
+  }
 }

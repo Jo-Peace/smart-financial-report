@@ -27,41 +27,46 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "formal_prediction_target",
+      "role_source": "rule",
+      "latest_flow_state": "foreign_buy_focus",
       "last_observed": "2026-10-14",
       "evidence": [
         "sector=AI 玻纖布材料族群",
         "supply_chain_role=AI 伺服器 CCL 高頻低損耗玻纖布供應商",
-        "latest_flow_state=formal_prediction_target",
+        "latest_flow_state=foreign_buy_focus",
         "last_foreign_buy_date=2026-10-14",
-        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+        "role_rule=elastic_attack matched CCL in local DB text"
       ],
-      "reason": "彈性攻擊股；formal_prediction_target；AI 伺服器 CCL 高頻低損耗玻纖布供應商；佐證: sector=AI 玻纖布材料族群；title_priority=82 (E78/F100/V25/C40)",
+      "reason": "彈性攻擊股；foreign_buy_focus；AI 伺服器 CCL 高頻低損耗玻纖布供應商；佐證: sector=AI 玻纖布材料族群；title_priority=82 (E78/F86/V71/C40)",
       "scores": {
         "elasticity": 78,
-        "foreign_buy_strength": 100,
-        "volume_confirmation": 25,
+        "foreign_buy_strength": 86,
+        "volume_confirmation": 71,
         "validation_credibility": 40,
         "title_priority": 82,
         "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=elastic_attack:78"
+          "prior=elastic_attack:78",
+          "basis=category_prior(no_local_price_history)"
         ],
         "foreign_buy_strength": [
-          "buy_rank=3",
-          "buy_amount=+30.8億"
+          "buy_rank=4",
+          "buy_amount=+31.2億",
+          "flow_intensity=25.0%_of_turnover"
         ],
-        "volume_confirmation": [],
+        "volume_confirmation": [
+          "turnover_rank=17(market)"
+        ],
         "validation_credibility": [
           "no_tracking_history"
         ],
         "title_priority": [
-          "weighted=65.7",
-          "elastic_title_boost",
-          "flow_x_elastic_boost",
-          "hit_rate_track=skip samples=0<3"
+          "weighted=71.9",
+          "elastic_title_bonus+6",
+          "flow_x_elastic_bonus+4",
+          "hit_rate_track=skip samples=0<6"
         ]
       }
     }
@@ -83,45 +88,51 @@
       "傳產"
     ],
     "market_role": {
-      "base_role": "theme_confirmation",
-      "label": "題材確認股",
-      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
-      "latest_flow_state": "validated_previous_target",
+      "base_role": "elastic_attack",
+      "label": "彈性攻擊股",
+      "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "role_source": "rule",
+      "latest_flow_state": "formal_prediction_target",
       "last_observed": "2026-10-14",
       "evidence": [
         "sector=AI 電子化學基礎族群",
         "supply_chain_role=AI 伺服器載板與 PCB 用環氧樹脂及電解銅箔供應商",
-        "latest_flow_state=validated_previous_target",
+        "latest_flow_state=formal_prediction_target",
         "tracking=2 predictions, 2 hits, hit_rate=100.0%",
         "last_foreign_buy_date=2026-10-14",
-        "role_rule=theme validation/material/test/BOM marker in local DB"
+        "role_rule=elastic_attack matched 載板/PCB in local DB text"
       ],
-      "reason": "題材確認股；validated_previous_target；歷史驗收 2 次，命中率 100.0%；AI 伺服器載板與 PCB 用環氧樹脂及電解銅箔供應商；佐證: sector=AI 電子化學基礎族群；title_priority=75 (E66/F100/V25/C70)",
+      "reason": "彈性攻擊股；formal_prediction_target；歷史驗收 2 次，命中率 100.0%；AI 伺服器載板與 PCB 用環氧樹脂及電解銅箔供應商；佐證: sector=AI 電子化學基礎族群；title_priority=78 (E62/F83/V75/C70)",
       "scores": {
-        "elasticity": 66,
-        "foreign_buy_strength": 100,
-        "volume_confirmation": 25,
+        "elasticity": 62,
+        "foreign_buy_strength": 83,
+        "volume_confirmation": 75,
         "validation_credibility": 70,
-        "title_priority": 75,
+        "title_priority": 78,
         "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=theme_confirmation:58",
-          "elastic_sector_boost"
+          "realized_vol_20d=3.93%/day n=20 (consecutive sessions)",
+          "beta_vs_TWII=1.16 n=20",
+          "basis=realized trust=1.00 prior=elastic_attack:78"
         ],
         "foreign_buy_strength": [
           "buy_rank=1",
-          "buy_amount=+50.6億"
+          "buy_amount=+55.3億",
+          "flow_intensity=9.0%_of_turnover"
         ],
-        "volume_confirmation": [],
+        "volume_confirmation": [
+          "vol_ratio=1.77x",
+          "turnover_rank=2(context_only)"
+        ],
         "validation_credibility": [
           "predictions=2, hit_rate=100%, trust=0.40"
         ],
         "title_priority": [
-          "weighted=67.2",
-          "flow_x_elastic_boost",
-          "hit_rate_track=skip samples=2<3"
+          "weighted=72.2",
+          "elastic_title_bonus+6",
+          "hit_rate_track=skip samples=2<6"
         ]
       }
     },
@@ -130,7 +141,7 @@
       "hit_count": 2,
       "hit_rate": "100.0%",
       "last_recommended": "2026-10-14",
-      "consecutive_foreign_buy_days": 2,
+      "consecutive_foreign_buy_days": 1,
       "last_foreign_buy_date": "2026-10-14",
       "history": [
         {
@@ -142,10 +153,14 @@
         },
         {
           "date": "2026-10-14",
+          "prediction_date": "2026-10-13",
           "direction": "多",
           "trigger": "外資買超 24.3 億，收 319 元、上漲 5.28%",
           "stop_loss": "跌破 295 元",
-          "result": "實際 +9.40% → ✅ 命中"
+          "result": "實際 +9.40%，大盤 +0.59%，超額 +8.81% → ✅ 命中",
+          "hit": true,
+          "counted": true,
+          "basis": "excess_1d"
         }
       ]
     }
@@ -465,42 +480,50 @@
       "base_role": "direction_indicator",
       "label": "方向指標股",
       "title_guidance": "適合用來確認資金方向，不宜包裝成最大彈性飆股。",
-      "latest_flow_state": "mentioned",
+      "role_source": "structural:mega_cap_index_weight",
+      "latest_flow_state": "foreign_sell_risk",
       "last_observed": "2026-10-14",
       "evidence": [
         "sector=AI 核心半導體製程族群",
         "supply_chain_role=AI 加速器唯一先進製程與 CoWoS 先進封裝供應商",
-        "latest_flow_state=mentioned",
+        "latest_flow_state=foreign_sell_risk",
         "last_foreign_buy_date=2026-10-05",
-        "role_rule=large-cap/core-or-vertical-integration marker in local DB"
+        "role_rule=direction_indicator via structural:mega_cap_index_weight"
       ],
-      "reason": "方向指標股；mentioned；AI 加速器唯一先進製程與 CoWoS 先進封裝供應商；佐證: sector=AI 核心半導體製程族群；title_priority=9 (E22/F0/V25/C40)",
+      "reason": "方向指標股；foreign_sell_risk；AI 加速器唯一先進製程與 CoWoS 先進封裝供應商；佐證: sector=AI 核心半導體製程族群；title_priority=12 (E25/F0/V57/C40)",
       "scores": {
-        "elasticity": 22,
+        "elasticity": 25,
         "foreign_buy_strength": 0,
-        "volume_confirmation": 25,
+        "volume_confirmation": 57,
         "validation_credibility": 40,
-        "title_priority": 9,
+        "title_priority": 12,
         "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=direction_indicator:22",
+          "realized_vol_20d=1.28%/day n=20 (consecutive sessions)",
+          "beta_vs_TWII=1.02 n=20",
+          "basis=realized trust=1.00 prior=direction_indicator:22",
           "mega_cap_direction_cap"
         ],
         "foreign_buy_strength": [
           "sell_rank=1",
           "sell_amount=-168.1億",
+          "flow_intensity=-27.3%_of_turnover",
           "flow=foreign_sell_risk"
         ],
-        "volume_confirmation": [],
+        "volume_confirmation": [
+          "vol_ratio=1.14x",
+          "turnover_rank=1(context_only)",
+          "flag=in_divergence_list"
+        ],
         "validation_credibility": [
           "no_tracking_history"
         ],
         "title_priority": [
-          "weighted=19.7",
+          "weighted=27.7",
           "direction_indicator_title_penalty",
-          "hit_rate_track=skip samples=0<3"
+          "hit_rate_track=skip samples=0<6"
         ]
       }
     }
@@ -597,6 +620,7 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
+      "role_source": "rule",
       "latest_flow_state": "formal_prediction_target",
       "last_observed": "2026-10-14",
       "evidence": [
@@ -605,36 +629,41 @@
         "latest_flow_state=formal_prediction_target",
         "tracking=3 predictions, 2 hits, hit_rate=66.7%",
         "last_foreign_buy_date=2026-10-14",
-        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+        "role_rule=elastic_attack matched 電源 in local DB text"
       ],
-      "reason": "彈性攻擊股；formal_prediction_target；歷史驗收 3 次，命中率 66.7%；AI 伺服器電源管理模組高階 MLCC/電感供應商；佐證: sector=AI 伺服器被動元件族群；title_priority=100 (E78/F100/V72/C60)",
+      "reason": "彈性攻擊股；formal_prediction_target；歷史驗收 3 次，命中率 66.7%；AI 伺服器電源管理模組高階 MLCC/電感供應商；佐證: sector=AI 伺服器被動元件族群；title_priority=77 (E72/F81/V48/C60)",
       "scores": {
-        "elasticity": 78,
-        "foreign_buy_strength": 100,
-        "volume_confirmation": 72,
+        "elasticity": 72,
+        "foreign_buy_strength": 81,
+        "volume_confirmation": 48,
         "validation_credibility": 60,
-        "title_priority": 100,
+        "title_priority": 77,
         "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=elastic_attack:78"
+          "realized_vol_20d=3.59%/day n=20 (consecutive sessions)",
+          "beta_vs_TWII=1.83 n=20",
+          "basis=realized trust=1.00 prior=elastic_attack:78"
         ],
         "foreign_buy_strength": [
-          "buy_rank=2",
-          "buy_amount=+36.6億"
+          "buy_rank=3",
+          "buy_amount=+36.6億",
+          "flow_intensity=12.3%_of_turnover"
         ],
         "volume_confirmation": [
-          "divergence_shadow_or_offboard"
+          "vol_ratio=0.97x",
+          "turnover_rank=5(context_only)",
+          "flag=shadow_low_volume_buy"
         ],
         "validation_credibility": [
           "predictions=3, hit_rate=67%, trust=0.60"
         ],
         "title_priority": [
-          "weighted=79.6",
-          "elastic_title_boost",
-          "flow_x_elastic_boost",
-          "hit_rate_track samples=3 rate=67% mult=1.09 title_priority 97→100"
+          "weighted=67.1",
+          "elastic_title_bonus+6",
+          "flow_x_elastic_bonus+4",
+          "hit_rate_track=skip samples=3<6"
         ]
       }
     },
@@ -829,43 +858,50 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "mentioned",
+      "role_source": "rule",
+      "latest_flow_state": "foreign_sell_risk",
       "last_observed": "2026-10-14",
       "evidence": [
         "sector=AI 記憶體關鍵材料族群",
         "supply_chain_role=AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商",
-        "latest_flow_state=mentioned",
-        "tracking=20 predictions, 7 hits, hit_rate=35.0%",
+        "latest_flow_state=foreign_sell_risk",
+        "tracking=19 predictions, 6 hits, hit_rate=31.6%",
         "last_foreign_buy_date=2026-10-08",
-        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+        "role_rule=elastic_attack matched 記憶體 in local DB text"
       ],
-      "reason": "彈性攻擊股；mentioned；歷史驗收 20 次，命中率 35.0%；AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商；佐證: sector=AI 記憶體關鍵材料族群；title_priority=40 (E86/F0/V25/C35)",
+      "reason": "彈性攻擊股；foreign_sell_risk；歷史驗收 19 次，命中率 31.6%；AI 伺服器與邊緣 AI 設備 DDR4/DDR5 記憶體供應商；佐證: sector=AI 記憶體關鍵材料族群；title_priority=44 (E74/F0/V55/C32)",
       "scores": {
-        "elasticity": 86,
+        "elasticity": 74,
         "foreign_buy_strength": 0,
-        "volume_confirmation": 25,
-        "validation_credibility": 35,
-        "title_priority": 40,
+        "volume_confirmation": 55,
+        "validation_credibility": 32,
+        "title_priority": 44,
         "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=elastic_attack:78",
-          "elastic_sector_boost"
+          "realized_vol_20d=3.60%/day n=20 (consecutive sessions)",
+          "beta_vs_TWII=1.90 n=20",
+          "basis=realized trust=1.00 prior=elastic_attack:78"
         ],
         "foreign_buy_strength": [
           "sell_rank=3",
-          "sell_amount=-112.1億",
+          "sell_amount=-110.4億",
+          "flow_intensity=-42.1%_of_turnover",
           "flow=foreign_sell_risk"
         ],
-        "volume_confirmation": [],
+        "volume_confirmation": [
+          "vol_ratio=1.1x",
+          "turnover_rank=6(context_only)",
+          "flag=in_divergence_list"
+        ],
         "validation_credibility": [
-          "predictions=20, hit_rate=35%, trust=1.00"
+          "predictions=19, hit_rate=32%, trust=1.00"
         ],
         "title_priority": [
-          "weighted=39.3",
-          "elastic_title_boost",
-          "hit_rate_track samples=20 rate=35% mult=0.92 title_priority 44→40"
+          "weighted=41.5",
+          "elastic_title_bonus+6",
+          "hit_rate_track samples=19 rate=32% mult=0.93 title_score 47.5→44.0"
         ]
       }
     }
@@ -2171,43 +2207,49 @@
       "base_role": "elastic_attack",
       "label": "彈性攻擊股",
       "title_guidance": "適合放進標題或封面回答「誰先動、誰彈性大」。",
-      "latest_flow_state": "mentioned",
+      "role_source": "rule",
+      "latest_flow_state": "foreign_buy_focus",
       "last_observed": "2026-10-14",
       "evidence": [
         "sector=AI 伺服器基礎材料族群",
         "supply_chain_role=AI 伺服器用高階 PCB/CCL 電子級環氧樹脂供應商",
-        "latest_flow_state=mentioned",
+        "latest_flow_state=foreign_buy_focus",
         "tracking=2 predictions, 2 hits, hit_rate=100.0%",
         "last_foreign_buy_date=2026-10-14",
-        "role_rule=memory/PCB/power/ODM/systems-integration elasticity marker in local DB"
+        "role_rule=elastic_attack matched PCB/CCL in local DB text"
       ],
-      "reason": "彈性攻擊股；mentioned；歷史驗收 2 次，命中率 100.0%；AI 伺服器用高階 PCB/CCL 電子級環氧樹脂供應商；佐證: sector=AI 伺服器基礎材料族群；title_priority=89 (E86/F94/V25/C70)",
+      "reason": "彈性攻擊股；foreign_buy_focus；歷史驗收 2 次，命中率 100.0%；AI 伺服器用高階 PCB/CCL 電子級環氧樹脂供應商；佐證: sector=AI 伺服器基礎材料族群；title_priority=71 (E33/F96/V67/C70)",
       "scores": {
-        "elasticity": 86,
-        "foreign_buy_strength": 94,
-        "volume_confirmation": 25,
+        "elasticity": 33,
+        "foreign_buy_strength": 96,
+        "volume_confirmation": 67,
         "validation_credibility": 70,
-        "title_priority": 89,
+        "title_priority": 71,
         "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=elastic_attack:78",
-          "elastic_sector_boost"
+          "realized_vol_20d=3.31%/day n=20 (consecutive sessions)",
+          "beta_vs_TWII=-0.04 n=20",
+          "basis=realized trust=1.00 prior=elastic_attack:78"
         ],
         "foreign_buy_strength": [
-          "buy_rank=4",
-          "buy_amount=+29.4億"
+          "buy_rank=2",
+          "buy_amount=+47.5億",
+          "flow_intensity=27.9%_of_turnover"
         ],
-        "volume_confirmation": [],
+        "volume_confirmation": [
+          "vol_ratio=1.4x",
+          "turnover_rank=12(context_only)",
+          "flag=limit_up"
+        ],
         "validation_credibility": [
           "predictions=2, hit_rate=100%, trust=0.40"
         ],
         "title_priority": [
-          "weighted=71.9",
-          "elastic_title_boost",
-          "flow_x_elastic_boost",
-          "hit_rate_track=skip samples=2<3"
+          "weighted=64.8",
+          "elastic_title_bonus+6",
+          "hit_rate_track=skip samples=2<6"
         ]
       }
     },
@@ -2254,35 +2296,46 @@
       "base_role": "theme_confirmation",
       "label": "題材確認股",
       "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
-      "latest_flow_state": "mentioned",
-      "last_observed": "2026-07-13",
+      "role_source": "default",
+      "latest_flow_state": "foreign_buy_focus",
+      "last_observed": "2026-10-14",
       "evidence": [
         "sector=AI 伺服器高階工程塑料族群",
         "supply_chain_role=AI 伺服器連接器與內部機構件特種工程塑料供應商",
-        "latest_flow_state=mentioned",
+        "latest_flow_state=foreign_buy_focus",
         "tracking=1 predictions, 1 hits, hit_rate=100.0%",
-        "role_rule=theme validation/material/test/BOM marker in local DB"
+        "last_foreign_buy_date=2026-10-14",
+        "role_rule=default theme_confirmation (no role marker matched in local DB text)"
       ],
-      "reason": "題材確認股；mentioned；歷史驗收 1 次，命中率 100.0%；AI 伺服器連接器與內部機構件特種工程塑料供應商；佐證: sector=AI 伺服器高階工程塑料族群；title_priority=37 (E58/F15/V25/C60)",
+      "reason": "題材確認股；foreign_buy_focus；歷史驗收 1 次，命中率 100.0%；AI 伺服器連接器與內部機構件特種工程塑料供應商；佐證: sector=AI 伺服器高階工程塑料族群；title_priority=66 (E58/F81/V62/C60)",
       "scores": {
         "elasticity": 58,
-        "foreign_buy_strength": 15,
-        "volume_confirmation": 25,
+        "foreign_buy_strength": 81,
+        "volume_confirmation": 62,
         "validation_credibility": 60,
-        "title_priority": 37,
-        "as_of": "2026-07-13"
+        "title_priority": 66,
+        "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=theme_confirmation:58"
+          "prior=theme_confirmation:58",
+          "basis=category_prior(insufficient_local_samples n=2<8)"
         ],
-        "foreign_buy_strength": [],
-        "volume_confirmation": [],
+        "foreign_buy_strength": [
+          "buy_rank=5",
+          "buy_amount=+23.5億",
+          "flow_intensity=26.9%_of_turnover"
+        ],
+        "volume_confirmation": [
+          "turnover_rank=29(market)",
+          "flag=limit_up"
+        ],
         "validation_credibility": [
           "predictions=1, hit_rate=100%, trust=0.20"
         ],
         "title_priority": [
-          "weighted=37.0"
+          "weighted=65.7",
+          "hit_rate_track=skip samples=1<6"
         ]
       }
     },
@@ -4500,7 +4553,7 @@
       "hit_count": 0,
       "hit_rate": "0.0%",
       "last_recommended": null,
-      "consecutive_foreign_buy_days": 2,
+      "consecutive_foreign_buy_days": 1,
       "last_foreign_buy_date": "2026-10-14",
       "history": []
     }
@@ -5015,6 +5068,7 @@
       "base_role": "theme_confirmation",
       "label": "題材確認股",
       "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
+      "role_source": "rule",
       "latest_flow_state": "validated_previous_target",
       "last_observed": "2026-10-14",
       "evidence": [
@@ -5023,33 +5077,39 @@
         "latest_flow_state=validated_previous_target",
         "tracking=5 predictions, 0 hits, hit_rate=0.0%",
         "last_foreign_buy_date=2026-10-13",
-        "role_rule=theme validation/material/test/BOM marker in local DB"
+        "role_rule=theme_confirmation matched 測試 in local DB text"
       ],
-      "reason": "題材確認股；validated_previous_target；歷史驗收 5 次，命中率 0.0%；AI 伺服器核心處理器成品測試 (Final Test)；佐證: sector=AI 晶片測試族群；title_priority=17 (E58/F0/V25/C0)",
+      "reason": "題材確認股；validated_previous_target；歷史驗收 5 次，命中率 0.0%；AI 伺服器核心處理器成品測試 (Final Test)；佐證: sector=AI 晶片測試族群；title_priority=34 (E56/F0/V73/C0)",
       "scores": {
-        "elasticity": 58,
+        "elasticity": 56,
         "foreign_buy_strength": 0,
-        "volume_confirmation": 25,
+        "volume_confirmation": 73,
         "validation_credibility": 0,
-        "title_priority": 17,
+        "title_priority": 34,
         "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=theme_confirmation:58"
+          "realized_vol_20d=3.31%/day n=20 (consecutive sessions)",
+          "beta_vs_TWII=1.13 n=20",
+          "basis=realized trust=1.00 prior=theme_confirmation:58"
         ],
         "foreign_buy_strength": [
           "sell_rank=4",
-          "sell_amount=-69.1億",
+          "sell_amount=-67.2億",
+          "flow_intensity=-40.5%_of_turnover",
           "flow=foreign_sell_risk"
         ],
-        "volume_confirmation": [],
+        "volume_confirmation": [
+          "vol_ratio=1.67x",
+          "turnover_rank=11(context_only)"
+        ],
         "validation_credibility": [
           "predictions=5, hit_rate=0%, trust=1.00"
         ],
         "title_priority": [
-          "weighted=24.1",
-          "hit_rate_track samples=5 rate=0% mult=0.72 title_priority 24→17"
+          "weighted=34.0",
+          "hit_rate_track=skip samples=5<6"
         ]
       }
     },
@@ -5091,10 +5151,14 @@
         },
         {
           "date": "2026-10-14",
+          "prediction_date": "2026-10-13",
           "direction": "多",
           "trigger": "外資買超 20.7 億全台第三，收 305 元、上漲 1.67%",
           "stop_loss": "收盤跌破 MA20",
-          "result": "實際 -2.79% → ❌ 失準"
+          "result": "實際 -2.79%，大盤 +0.59%，超額 -3.38% → ❌ 失準",
+          "hit": false,
+          "counted": true,
+          "basis": "excess_1d"
         }
       ]
     }
@@ -5397,7 +5461,7 @@
       "hit_rate": "0.0%",
       "last_recommended": null,
       "consecutive_foreign_buy_days": 1,
-      "last_foreign_buy_date": "2026-10-07",
+      "last_foreign_buy_date": "2026-10-14",
       "history": []
     }
   },
@@ -7328,45 +7392,52 @@
       "history": []
     },
     "market_role": {
-      "base_role": "theme_confirmation",
-      "label": "題材確認股",
-      "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
-      "latest_flow_state": "mentioned",
+      "base_role": "direction_indicator",
+      "label": "方向指標股",
+      "title_guidance": "適合用來確認資金方向，不宜包裝成最大彈性飆股。",
+      "role_source": "structural:mega_cap_index_weight",
+      "latest_flow_state": "foreign_sell_risk",
       "last_observed": "2026-10-14",
       "evidence": [
         "sector=AI 邊緣運算晶片族群",
         "supply_chain_role=Edge AI 處理器與客製化晶片 (ASIC) 設計商",
-        "latest_flow_state=mentioned",
+        "latest_flow_state=foreign_sell_risk",
         "last_foreign_buy_date=2026-10-05",
-        "role_rule=theme validation/material/test/BOM marker in local DB"
+        "role_rule=direction_indicator via structural:mega_cap_index_weight"
       ],
-      "reason": "題材確認股；mentioned；Edge AI 處理器與客製化晶片 (ASIC) 設計商；佐證: sector=AI 邊緣運算晶片族群；title_priority=9 (E25/F0/V25/C40)",
+      "reason": "方向指標股；foreign_sell_risk；Edge AI 處理器與客製化晶片 (ASIC) 設計商；佐證: sector=AI 邊緣運算晶片族群；title_priority=13 (E25/F0/V58/C40)",
       "scores": {
         "elasticity": 25,
         "foreign_buy_strength": 0,
-        "volume_confirmation": 25,
+        "volume_confirmation": 58,
         "validation_credibility": 40,
-        "title_priority": 9,
+        "title_priority": 13,
         "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=theme_confirmation:58",
+          "realized_vol_20d=3.34%/day n=20 (consecutive sessions)",
+          "beta_vs_TWII=2.09 n=20",
+          "basis=realized trust=1.00 prior=direction_indicator:22",
           "mega_cap_direction_cap"
         ],
         "foreign_buy_strength": [
           "sell_rank=2",
-          "sell_amount=-158.9億",
+          "sell_amount=-157.2億",
+          "flow_intensity=-45.5%_of_turnover",
           "flow=foreign_sell_risk"
         ],
-        "volume_confirmation": [],
+        "volume_confirmation": [
+          "vol_ratio=1.16x",
+          "turnover_rank=3(context_only)"
+        ],
         "validation_credibility": [
           "no_tracking_history"
         ],
         "title_priority": [
-          "weighted=20.7",
+          "weighted=28.0",
           "direction_indicator_title_penalty",
-          "hit_rate_track=skip samples=0<3"
+          "hit_rate_track=skip samples=0<6"
         ]
       }
     }
@@ -7551,40 +7622,45 @@
       "base_role": "theme_confirmation",
       "label": "題材確認股",
       "title_guidance": "適合用來驗證族群邏輯，標題應搭配更有彈性的同族群標的。",
-      "latest_flow_state": "mentioned",
+      "role_source": "default",
+      "latest_flow_state": "foreign_sell_risk",
       "last_observed": "2026-10-14",
       "evidence": [
         "sector=AI 邊緣運算光學感測族群",
         "supply_chain_role=Edge AI 影像辨識與自動化機器視覺高階鏡頭",
-        "latest_flow_state=mentioned",
+        "latest_flow_state=foreign_sell_risk",
         "last_foreign_buy_date=2026-09-15",
-        "role_rule=theme validation/material/test/BOM marker in local DB"
+        "role_rule=default theme_confirmation (no role marker matched in local DB text)"
       ],
-      "reason": "題材確認股；mentioned；Edge AI 影像辨識與自動化機器視覺高階鏡頭；佐證: sector=AI 邊緣運算光學感測族群；title_priority=31 (E58/F0/V25/C40)",
+      "reason": "題材確認股；foreign_sell_risk；Edge AI 影像辨識與自動化機器視覺高階鏡頭；佐證: sector=AI 邊緣運算光學感測族群；title_priority=46 (E58/F0/V90/C40)",
       "scores": {
         "elasticity": 58,
         "foreign_buy_strength": 0,
-        "volume_confirmation": 25,
+        "volume_confirmation": 90,
         "validation_credibility": 40,
-        "title_priority": 31,
+        "title_priority": 46,
         "as_of": "2026-10-14"
       },
       "score_evidence": {
         "elasticity": [
-          "prior=theme_confirmation:58"
+          "prior=theme_confirmation:58",
+          "basis=category_prior(insufficient_local_samples n=3<8)"
         ],
         "foreign_buy_strength": [
           "sell_rank=5",
-          "sell_amount=-45.7億",
+          "sell_amount=-49.1億",
+          "flow_intensity=-16.4%_of_turnover",
           "flow=foreign_sell_risk"
         ],
-        "volume_confirmation": [],
+        "volume_confirmation": [
+          "turnover_rank=4(market)"
+        ],
         "validation_credibility": [
           "no_tracking_history"
         ],
         "title_priority": [
-          "weighted=31.3",
-          "hit_rate_track=skip samples=0<3"
+          "weighted=45.6",
+          "hit_rate_track=skip samples=0<6"
         ]
       }
     }
@@ -8449,5 +8525,58 @@
       "傳統 LED 廠",
       "光電元件業"
     ]
+  },
+  "3653": {
+    "name": "健策精密工業",
+    "twse_industry": "電子零組件業",
+    "sector": "電子零組件業",
+    "supply_chain_role": "全球精密電子零件製造商，提供半導體封裝及伺服器散熱解決方案之關鍵零件。",
+    "key_products": [
+      "均熱片",
+      "導線架",
+      "通訊連接器",
+      "電子沖壓件"
+    ],
+    "ai_connection": "提供高效能運算 (HPC) 與 AI GPU/CPU 封裝所需之高階均熱片。",
+    "ai_evidence": "公司法說會報告與年報（揭露 AI 伺服器均熱片為主要成長動能，且為主要 AI 晶片廠之重要供應商）。",
+    "not_classify_as": [],
+    "source": "gemini_draft",
+    "reviewed": false,
+    "created_at": "2026-10-14",
+    "tracking": {
+      "prediction_count": 0,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": null,
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": []
+    }
+  },
+  "3406": {
+    "name": "玉晶光電",
+    "twse_industry": "光電業",
+    "sector": "光電業",
+    "supply_chain_role": "光學鏡頭精密元件製造商，主要供應行動裝置、穿戴式設備及車載應用之鏡頭模組。",
+    "key_products": [
+      "手機鏡頭",
+      "VR/AR/MR 光學元件",
+      "車載鏡頭"
+    ],
+    "ai_connection": null,
+    "ai_evidence": null,
+    "not_classify_as": [],
+    "source": "gemini_draft",
+    "reviewed": false,
+    "created_at": "2026-10-14",
+    "tracking": {
+      "prediction_count": 0,
+      "hit_count": 0,
+      "hit_rate": "0.0%",
+      "last_recommended": null,
+      "consecutive_foreign_buy_days": 0,
+      "last_foreign_buy_date": null,
+      "history": []
+    }
   }
 }
