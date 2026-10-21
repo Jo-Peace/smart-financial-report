@@ -14,6 +14,7 @@ import sys
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, BASE_DIR)
 from modules.report_paths import ensure_shared_dir, shared_dir  # noqa: E402
 
 REPORTS_DIR = os.path.join(BASE_DIR, "reports")
