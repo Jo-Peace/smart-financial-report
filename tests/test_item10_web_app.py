@@ -389,7 +389,7 @@ class FrontendQuotaTest(unittest.TestCase):
     def test_exhausted_quota_does_not_block_free_cache_reads(self):
         with open(os.path.join(BASE_DIR, "app", "static", "app.js"), encoding="utf-8") as f:
             source = f.read()
-        body = source.split("async function updateQuota()", 1)[1].split("// === Search ===", 1)[0]
+        body = source.split("async function updateQuota(", 1)[1].split("// === Search ===", 1)[0]
         self.assertNotIn(".disabled = true", body)
         self.assertIn("仍可查詢已生成的報告", body)
 

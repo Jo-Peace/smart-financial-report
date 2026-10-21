@@ -66,6 +66,7 @@ switch to the preferred name. When both are set, the preferred name wins.
 | `LOG_CLIENT_IP_HEADERS` | off | `1` logs the raw forwarding headers and the resolved IP once per process (one WARNING line `client-ip headers:`). On for the first Render deploy (render.yaml) to verify `TRUSTED_PROXY_HOPS` / `CLIENT_IP_HEADER`; turn off afterwards. |
 | `WEB_GEMINI_MAX_RETRIES` | `1` | Gemini retries per web report (batch default is 3). |
 | `WEB_TAVILY_SEARCHES_PER_REPORT` | `2` | Tavily searches per web report. |
+| `RENDER_GIT_COMMIT` | – (set by Render) | Shown (7 chars) as `info.commit` in `/healthz` to confirm which commit is live. |
 | `TZ` | – | Set to `Asia/Taipei` on Render so every daily counter shares one day boundary. |
 
 ## /1 exit codes

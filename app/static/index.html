@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 個股研究員 — 智能深度分析</title>
-    <meta name="description" content="輸入股票代號，AI 幫你生成分析師等級的深度研究報告">
+    <title>AI 個股研究員 MVP Beta — 台股個股深度研究</title>
+    <meta name="description" content="輸入台股代號，AI 結合證交所/櫃買資料、三大法人籌碼、月營收與新聞，生成個股深度研究報告（MVP Beta，每人每日 3 份）">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap"
@@ -27,7 +27,7 @@
             <div class="quota-group">
                 <div class="quota-display" id="quotaDisplay">
                     <span class="quota-label">👤 個人額度</span>
-                    <span class="quota-value" id="quotaValue">—/5</span>
+                    <span class="quota-value" id="quotaValue">—/3</span>
                 </div>
                 <div class="quota-display quota-global" id="globalQuotaDisplay">
                     <span class="quota-label">🌐 全站</span>
@@ -46,9 +46,20 @@
                 <br>一鍵生成分析師報告
             </h1>
             <p class="hero-subtitle">
-                輸入股票代號，5 分鐘內獲得完整的深度研究報告<br>
-                涵蓋技術面、籌碼面、營收分析、成長引擎與風險評估
+                輸入台股代號，約 1 分鐘獲得個股深度研究報告<br>
+                涵蓋技術面、三大法人籌碼、月營收、成長引擎與風險評估
             </p>
+
+            <div class="feature-chips" style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 1.2rem;font-size:0.85rem;color:#94a3b8;">
+                <span>📊 Yahoo＋證交所雙資料源備援</span>
+                <span>🏦 三大法人買賣超</span>
+                <span>📈 月營收 YoY/MoM</span>
+                <span>🔎 數字事實校驗</span>
+                <span>👤 每人每日 3 份・🌐 全站 20 份</span>
+            </div>
+            <div id="coldStartNote" role="status" style="display:none;max-width:640px;margin:0 auto 1.2rem;padding:10px 16px;border-radius:10px;background:rgba(250,204,21,0.08);border:1px solid rgba(250,204,21,0.25);color:#fde68a;font-size:0.9rem;">
+                ☕ 伺服器正在從休眠中喚醒（免費主機閒置 15 分鐘會休眠），首次載入約需 30～90 秒，請稍候，不需重新整理。
+            </div>
 
             <!-- YouTube Subscribe Banner -->
             <div style="text-align: center; margin-bottom: 2rem;">
@@ -144,7 +155,7 @@
                     <div class="step" id="step3">🧠 AI 深度分析中</div>
                     <div class="step" id="step4">📝 生成研究報告</div>
                 </div>
-                <p class="loading-hint">首次分析約需 30~60 秒，請耐心等候</p>
+                <p class="loading-hint">新報告約需 30～90 秒（若伺服器剛從休眠喚醒會再久一點），請勿關閉頁面；已生成過的報告會立即顯示且不扣額度</p>
             </div>
         </section>
 
@@ -180,7 +191,7 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <p>© 2026 AI 個股研究員 — Powered by Gemini AI</p>
+        <p>© 2026 AI 個股研究員 MVP Beta — Powered by Gemini AI・資料來源：Yahoo Finance、臺灣證券交易所、櫃買中心・僅供研究參考，不構成投資建議</p>
     </footer>
 
     <!-- Markdown rendering + sanitizer (exact versions + SRI; app.js falls back to plain text if blocked) -->

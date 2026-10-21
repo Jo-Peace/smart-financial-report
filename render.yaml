@@ -49,6 +49,8 @@ services:
         value: "1"
       # - key: CLIENT_IP_HEADER
       #   value: True-Client-IP
+      # Logs a single line per process start (cheap). Kept on until the hop
+      # count is verified in Render Logs; see docs/web_app_deploy.md.
       - key: LOG_CLIENT_IP_HEADERS
         value: "1"
       # - key: STOCK_RESEARCH_DB_PATH

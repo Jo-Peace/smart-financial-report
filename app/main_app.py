@@ -101,7 +101,7 @@ GENERIC_FAILURE = "報告生成失敗，請稍後再試"
 NO_CHARGE_NOTE = "（本次不扣額度）"
 
 # === Init ===
-app = FastAPI(title="AI 個股研究員", version="1.1.0")
+app = FastAPI(title="AI 個股研究員", version="1.2.0")
 init_db()
 
 # Serve static files
@@ -549,7 +549,7 @@ def home():
         return HTMLResponse(content=f.read())
 
 
-@app.get("/healthz")
+@app.api_route("/healthz", methods=["GET", "HEAD"])
 def healthz():
     """Deploy health check: DB writable + required keys configured (no secrets returned)."""
     checks = {"db": False, "gemini_key": bool(GEMINI_API_KEY), "tavily_key": bool(TAVILY_API_KEY)}
@@ -562,7 +562,11 @@ def healthz():
     checks["configured_storage"] = storage_fallback_from() is None
     ok = all(checks.values())
     # Informational: without a configured disk the DB is ephemeral (quotas/cache reset on restart).
-    info = {"persistent_storage": storage_is_persistent()}
+    info = {
+        "persistent_storage": storage_is_persistent(),
+        "version": app.version,
+        "commit": (os.getenv("RENDER_GIT_COMMIT") or "")[:7] or None,
+    }
     return JSONResponse(status_code=200 if ok else 503, content={"ok": ok, "checks": checks, "info": info})
 
 

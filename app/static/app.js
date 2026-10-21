@@ -23,9 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // === Quota ===
-async function updateQuota() {
+// Cold start: Render free instances sleep after 15 min idle. If the first API
+// call is slow, show a friendly note; retry a few times instead of failing.
+let coldStartChecked = false;
+async function updateQuota(attempt = 0) {
+    const note = document.getElementById('coldStartNote');
+    const slowTimer = (!coldStartChecked && note) ? setTimeout(() => { note.style.display = 'block'; }, 2500) : null;
     try {
         const res = await fetch('/api/quota');
+        if (!res.ok && attempt < 4 && (res.status === 502 || res.status === 503 || res.status === 504)) {
+            if (note) note.style.display = 'block';
+            setTimeout(() => updateQuota(attempt + 1), 15000);
+            return;
+        }
         const data = await res.json();
         let noQuota = false;
         let quotaMessage = '';
@@ -70,8 +80,13 @@ async function updateQuota() {
             tickerInput.title = noQuota ? `今日${quotaMessage}，新報告明天再產生；已生成的報告仍可免費查閱` : '';
         }
 
+        coldStartChecked = true;
+        if (note) note.style.display = 'none';
     } catch (e) {
         console.error('Quota check failed:', e);
+        if (attempt < 4) setTimeout(() => updateQuota(attempt + 1), 15000);
+    } finally {
+        if (slowTimer) clearTimeout(slowTimer);
     }
 }
 
@@ -110,7 +125,7 @@ async function handleSearch() {
 
         showReport(data);
     } catch (e) {
-        showError('網路連線失敗', '請確認伺服器是否運行中');
+        showError('網路連線失敗', '伺服器可能剛從休眠喚醒或暫時忙碌，請等 30 秒後再試一次（已生成的報告不扣額度）');
     } finally {
         isLoading = false;
         updateQuota();

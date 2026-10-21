@@ -18,7 +18,7 @@ from modules.tz import TAIPEI_TZ  # noqa: F401
 
 DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stock_research.db")
 DB_PATH = os.getenv("STOCK_RESEARCH_DB_PATH") or DEFAULT_DB_PATH
-DAILY_FREE_QUOTA = 5
+DAILY_FREE_QUOTA = 3  # 每人每日新報告額度（Render 免費方案，保護 Gemini 免費額度）
 DAILY_GLOBAL_LIMIT = 20  # 全站每日新報告暫時設定為 20 份 (保護免費 API，等綁定信用卡後可改回 200)
 # Generation attempts (success + failure) per day. Failed attempts still spend
 # Tavily / TWSE / yfinance calls, so they need their own ceiling.
