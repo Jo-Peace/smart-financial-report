@@ -323,6 +323,9 @@ class QuotaAndListingEndpointsTest(WebAppTestBase):
         for pick in picks:
             self.assertIsNone(pick["views"])
             self.assertIsNone(pick["date"])
+        # Only a report in the 3-day cache is free to open.
+        self.assertTrue(real[0]["cached"])
+        self.assertTrue(all(pick["cached"] is False for pick in picks))
 
     def test_repeated_cache_hits_count_one_view_per_viewer_per_day(self):
         fake_fetcher, _ = _fetcher_factory()

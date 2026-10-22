@@ -344,6 +344,13 @@ async function loadHotStocks() {
             return;
         }
 
+        const hasHot = data.some(item => !item.editor_pick);
+        const hasPick = data.some(item => item.editor_pick);
+        const title = document.getElementById('hotStocksTitle');
+        if (title) {
+            title.textContent = hasHot ? (hasPick ? '🔥 熱門報告與 📌 推薦個股' : '🔥 本週熱門報告（近 7 日實際觀看）') : '📌 推薦個股';
+        }
+
         data.forEach(item => {
             const btn = document.createElement('button');
             // Using inline styling for immediate visual impact without extra CSS edits
@@ -388,6 +395,10 @@ async function loadHotStocks() {
                 dateSpan.title = '報告生成日期';
                 meta.append(views, textSpan('|', 'opacity: 0.6;'), dateSpan);
             }
+            // Only a report still in the 3-day cache opens without spending quota.
+            const cost = textSpan(item.cached ? '免扣額度' : '新生成・扣 1 次', item.cached ? 'color:#4ade80;' : 'color:#fbbf24;');
+            cost.title = item.cached ? '已有快取報告，直接查閱' : '尚無近 3 日報告，點擊會生成新報告並使用 1 次額度';
+            meta.append(textSpan('|', 'opacity: 0.6;'), cost);
             btn.appendChild(meta);
 
             btn.onclick = () => quickSearch(item.ticker);

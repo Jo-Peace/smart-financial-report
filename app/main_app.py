@@ -764,8 +764,10 @@ def recent_reports():
 def hot_stocks():
     """Most viewed cached reports this week (real view counts) + labelled editor picks."""
     hot = get_top_hot_stocks(limit=5)
+    # The hot list spans 7 days but the free cache only 3: flag what is really free to open.
     for r in hot:
         r["name"] = _display_name(r["ticker"])
+        r["cached"] = get_cached_report(r["ticker"]) is not None
     return hot
 
 
