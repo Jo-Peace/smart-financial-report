@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+import json
 
 from modules.data_fetcher import DataFetcher
 from modules.fetch_result import is_fetch_result, unwrap_fetch_result
@@ -31,6 +32,7 @@ from app.database import (
     DAILY_FREE_QUOTA, DAILY_GLOBAL_LIMIT, DAILY_IP_FAILED_ATTEMPT_LIMIT,
 )
 from modules.twse_tape import pct_text
+from modules.data_quality_gate import evaluate_single_stock_quality
 from app.research_data import (
     STOCK_NAMES,
     format_institutional_lines,
@@ -60,6 +62,9 @@ def _int_env(name, default):
 
 # Web requests should fail fast: 1 retry (2 Gemini calls max) instead of the batch default.
 WEB_GEMINI_MAX_RETRIES = max(0, _int_env("WEB_GEMINI_MAX_RETRIES", 1))
+# Web: a 503/429 on the primary model may go to the fallback model (flash-lite) from
+# this attempt on (1 = first attempt), so one overload does not fail the report.
+WEB_GEMINI_FALLBACK_AFTER = max(1, _int_env("WEB_GEMINI_FALLBACK_AFTER_ATTEMPTS", 1))
 # get_news does at most one fallback search → 2 Tavily calls per report.
 WEB_TAVILY_SEARCHES_PER_REPORT = max(1, _int_env("WEB_TAVILY_SEARCHES_PER_REPORT", 2))
 # Number of trusted reverse proxies that append to X-Forwarded-For (Render: 1).
@@ -258,6 +263,86 @@ def _fetch_price(fetcher, ticker: str, market: str | None):
     return symbols[0], None
 
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HIT_RATES_PATH = os.path.join(BASE_DIR, "data", "web_hit_rates.json")
+_hit_rates_cache: dict | None = None
+
+
+def load_hit_rates() -> dict:
+    """Channel prediction stats per ticker (built locally by scripts/build_web_hit_rates.py)."""
+    global _hit_rates_cache
+    if _hit_rates_cache is None:
+        try:
+            with open(HIT_RATES_PATH, encoding="utf-8") as f:
+                _hit_rates_cache = json.load(f) or {}
+        except (OSError, ValueError):
+            logger.warning("web_hit_rates.json missing or unreadable; hit-rate block disabled")
+            _hit_rates_cache = {}
+    return _hit_rates_cache
+
+
+def hit_record(ticker) -> dict | None:
+    rec = load_hit_rates().get(str(ticker or "").upper())
+    return rec if rec and rec.get("total") else None
+
+
+def format_hit_record(rec: dict | None) -> str:
+    if not rec:
+        return "- 本站每日盤後報告尚未將此股列為正式預測標的（無歷史命中紀錄）"
+    pct = round(100 * rec["hits"] / rec["total"], 1)
+    line = f"- 本站每日盤後報告曾預測 {rec['total']} 次，命中 {rec['hits']} 次（{pct}%），最近一次 {rec.get('last_date') or '日期未提供'}"
+    if rec["total"] < 5:
+        line += "；樣本少於 5 次，僅供參考"
+    return line
+
+
+ROLE_LABELS = {
+    "direction_indicator": "方向指標股",
+    "elastic_attack": "彈性攻擊股",
+    "theme_confirmation": "題材確認股",
+    "capital_vehicle": "資金載體",
+    "defensive_income": "防守收息股",
+    "risk_warning": "風險提醒股",
+    "indirect_infrastructure": "間接受惠基建股",
+}
+
+# Compact digest of project_skills/market_analysis_memory.md + stock_history_card.md
+# + data/knowledge_wiki/stock_role_taxonomy.md (the daily pipeline's judgement rules).
+JUDGEMENT_RULES = """# 判斷規則（本站每日盤後分析邏輯）
+- 籌碼解讀要具體：寫出哪個法人（外資/投信/自營商）買或賣、張數，以及量能是否確認價格（價漲量增＝確認；價漲量縮或法人反賣＝背離），不要只寫「資金輪動」。
+- 主力意圖只能寫成「推測」，並附對應數據。
+- 角色分類（擇一並說明理由）：方向指標股＝權值/龍頭，用來確認資金方向，買超大也不等於彈性最大；彈性攻擊股＝中小型、題材明確、外資買超占成交比重高，漲跌幅都大；題材確認股＝用來驗證族群邏輯；風險提醒股＝法人連續賣超或高檔套現。
+- 時間尺度：1～5 日只是節奏，約 20 個交易日才是趨勢；勿以單日漲跌斷定趨勢。
+- 歷史命中率只能引用下方「本站歷史紀錄」，不得自行編造；頁首已自動顯示此紀錄與資料品質提醒，正文開頭不必重複。"""
+
+
+def _skill_summary() -> str:
+    try:
+        from modules.project_skill_registry import format_skill_summary, select_skills
+
+        return format_skill_summary(select_skills(["research", "prediction_validation"], base_dir=BASE_DIR))
+    except Exception:
+        return "project skills unavailable"
+
+
+def format_quality_block(quality) -> str:
+    if quality is None or not quality.issues:
+        return "- 資料檢查通過：股價、法人、營收、新聞皆已取得且日期一致"
+    return "\n".join(f"- ⚠️ {issue.message}" for issue in quality.issues)
+
+
+def format_page_notes(quality, rec, role_label) -> str:
+    """Fixed (non-AI) note prepended to the report so it is visible on the page."""
+    lines = []
+    if quality is not None and quality.issues:
+        lines.append("> [!WARNING] 資料品質提醒（系統自動檢查）：" + "；".join(i.message for i in quality.issues) + "。相關段落以「資料未提供」或註明日期呈現。")
+    hist = format_hit_record(rec)[2:]
+    if role_label:
+        hist += f"；本機分類：{role_label}"
+    lines.append(f"> [!NOTE] 本站歷史紀錄：{hist}")
+    return "\n\n".join(lines)
+
+
 def _fmt(value, suffix="") -> str:
     if value is None or value == "":
         return "資料未提供"
@@ -278,6 +363,9 @@ def build_research_prompt(
     revenue,
     news,
     date_str,
+    quality=None,
+    hit=None,
+    role_label="",
 ):
     """Build the research prompt from ground-truth blocks only (pure function, unit-tested)."""
     name_label = stock_name or "公司名稱未提供"
@@ -365,6 +453,16 @@ def build_research_prompt(
     - 引用新聞中的數字時，必須說明出自哪則新聞。
     - 單位已換算：成交量與法人買賣超都是「張」（1 張 = 1,000 股），不要再換算。
 
+    - 下方「資料品質檢查」列出的缺漏或過期項目：對應段落必須寫明「資料未提供」或資料日期，不得補造。
+
+    {JUDGEMENT_RULES}
+
+    # 資料品質檢查
+    {format_quality_block(quality)}
+
+    # 本站歷史紀錄
+    {format_hit_record(hit)}{f"；本機角色分類：{role_label}" if role_label else ""}
+
     # 公司基本資料
     {chr(10).join(company_lines)}
 
@@ -389,6 +487,7 @@ def build_research_prompt(
     - 建立表格包含：價格、漲跌、漲跌幅、成交量（張）、MA5、MA20、RSI。
     - 均線與量價判斷（例如：多頭/空頭/糾結、量價配合度）。
     - 籌碼動態解讀（只用上方法人買賣超張數；若法人資料非當日，必須寫明資料日期）。
+    - 依「判斷規則」標出角色（方向指標股／彈性攻擊股／題材確認股／風險提醒股），一句話說明理由。
 
     ## 3. 📊 基本面與營收動能
     {revenue_rule}
@@ -476,6 +575,22 @@ def generate_stock_research(ticker: str) -> dict:
             except Exception:
                 logger.exception("monthly revenue lookup failed for %s", ticker)
 
+    now = taipei_now()
+    quality = evaluate_single_stock_quality(
+        run_date=now.strftime("%Y-%m-%d"),
+        price_date=_iso_date(stock_data.get("bar_date")),
+        institutional=institutional,
+        institutional_date=institutional_date,
+        institutional_expected=listed_only,
+        revenue=revenue,
+        revenue_expected=listed_only,
+        news_count=len(news_data),
+        after_close=(now.hour, now.minute) >= (14, 30),
+    )
+    hit = hit_record(ticker)
+    role_label = ROLE_LABELS.get((hit or {}).get("role") or "", "")
+    logger.info("research %s quality=%s skills=%s", ticker, [i.code for i in quality.issues], _skill_summary())
+
     prompt = build_research_prompt(
         ticker=ticker,
         stock_name=stock_name,
@@ -488,22 +603,60 @@ def generate_stock_research(ticker: str) -> dict:
         institutional_date=institutional_date,
         revenue=revenue,
         news=news_data,
-        date_str=taipei_now().strftime("%Y-%m-%d"),
+        date_str=now.strftime("%Y-%m-%d"),
+        quality=quality,
+        hit=hit,
+        role_label=role_label,
     )
 
-    report = analyzer._call_gemini_with_retry(prompt, max_retries=WEB_GEMINI_MAX_RETRIES)
+    report = analyzer._call_gemini_with_retry(
+        prompt, max_retries=WEB_GEMINI_MAX_RETRIES, fallback_after=WEB_GEMINI_FALLBACK_AFTER
+    )
     if not report or not str(report).strip():
         raise ResearchError(502, GENERIC_FAILURE, NO_CHARGE_NOTE.strip("（）"))
     if str(report).startswith("Error generating"):
-        logger.warning("Gemini generation failed for %s: %s", ticker, str(report)[:300])
+        logger.warning("Gemini generation failed for %s: %s", ticker, str(report)[:500])
+        _record_gemini_error(str(report))
         if "daily call limit" in str(report).lower():
             raise ResearchError(
                 503,
                 "今日 AI 分析額度已用完 🔒",
                 "已生成的報告仍可免費查閱，明天再來產生新報告" + NO_CHARGE_NOTE,
             )
-        raise ResearchError(502, GENERIC_FAILURE, "AI 服務暫時無法回應" + NO_CHARGE_NOTE)
-    return {"content": report, "name": stock_name or ticker}
+        kind = classify_gemini_error(str(report))
+        hint = {
+            "overloaded": "AI 服務目前流量過大（503），請 1～2 分鐘後再試",
+            "rate_limited": "AI 服務額度暫時用盡（429），請稍後再試",
+            "auth": "AI 服務金鑰設定有誤，已記錄，請稍後再試",
+            "timeout": "AI 回應逾時，請稍後再試",
+        }.get(kind, "AI 服務暫時無法回應")
+        raise ResearchError(502, GENERIC_FAILURE, hint + NO_CHARGE_NOTE)
+    return {"content": format_page_notes(quality, hit, role_label) + "\n\n" + str(report), "name": stock_name or ticker}
+
+
+_last_gemini_error: dict = {}
+
+
+def classify_gemini_error(text: str) -> str:
+    t = str(text or "")
+    low = t.lower()
+    if "503" in t or "unavailable" in low or "overloaded" in low:
+        return "overloaded"
+    if "429" in t or "resource_exhausted" in low or "quota" in low:
+        return "rate_limited"
+    if any(k in t for k in ("401", "403", "API_KEY_INVALID", "PERMISSION_DENIED")) or "api key" in low:
+        return "auth"
+    if "timeout" in low or "timed out" in low or "deadline" in low:
+        return "timeout"
+    if "404" in t or "not_found" in low:
+        return "model_not_found"
+    return "other"
+
+
+def _record_gemini_error(text: str) -> None:
+    """Last failure category (no message text, so no key/prompt can leak) for /healthz."""
+    _last_gemini_error.clear()
+    _last_gemini_error.update({"kind": classify_gemini_error(text), "at": taipei_now().strftime("%Y-%m-%d %H:%M")})
 
 
 # === In-flight guard: one generation per ticker at a time ===
@@ -566,6 +719,8 @@ def healthz():
         "persistent_storage": storage_is_persistent(),
         "version": app.version,
         "commit": (os.getenv("RENDER_GIT_COMMIT") or "")[:7] or None,
+        "last_gemini_error": dict(_last_gemini_error) or None,
+        "hit_rate_tickers": len(load_hit_rates()),
     }
     return JSONResponse(status_code=200 if ok else 503, content={"ok": ok, "checks": checks, "info": info})
 

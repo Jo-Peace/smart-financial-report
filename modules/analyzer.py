@@ -43,7 +43,7 @@ class MarketAnalyzer:
             return {}
 
 
-    def _call_gemini_with_retry(self, prompt, max_retries=3, validate=None):
+    def _call_gemini_with_retry(self, prompt, max_retries=3, validate=None, fallback_after=None):
         """
         Calls Gemini with exponential backoff retry using tenacity.
 
@@ -57,7 +57,7 @@ class MarketAnalyzer:
 
         # One plan per report: the fallback model waits for the last attempt
         # (or a truncated answer), and a second MAX_TOKENS answer stops the retry.
-        plan = RetryPlan(max_retries + 1)
+        plan = RetryPlan(max_retries + 1, fallback_after=fallback_after)
 
         @get_api_retry_decorator(max_attempts=max_retries + 1, min_wait=5, max_wait=60)
         def _do_call():

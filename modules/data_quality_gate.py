@@ -526,3 +526,60 @@ def apply_data_quality_gate(report: DataQualityReport, *, mode: str | None = Non
         return True
 
     return False
+
+def _latest_session_on_or_before(day: datetime.date) -> datetime.date:
+    cursor = day
+    for _ in range(15):
+        if _is_session(cursor):
+            return cursor
+        cursor -= datetime.timedelta(days=1)
+    return day
+
+
+def evaluate_single_stock_quality(
+    *,
+    run_date: str,
+    price_date: str | None,
+    institutional: dict | None = None,
+    institutional_date: str | None = None,
+    institutional_expected: bool = True,
+    revenue: dict | None = None,
+    revenue_expected: bool = True,
+    news_count: int = 0,
+    after_close: bool = True,
+) -> DataQualityReport:
+    """Per-ticker variant of ``evaluate_data_quality`` for the web research report.
+
+    Never blocks generation: every issue is a ``warn`` shown to the reader and
+    passed to the model as a "do not invent" instruction.
+    """
+    report = DataQualityReport(run_date=run_date)
+    run_day = _parse_date(run_date)
+    price_day = _parse_date(price_date)
+    if run_day is not None:
+        # Before today's close the latest complete bar is the previous session.
+        ref = run_day if after_close else run_day - datetime.timedelta(days=1)
+        expected = _latest_session_on_or_before(ref)
+    else:
+        expected = None
+
+    if price_day is None:
+        report.issues.append(GateIssue("warn", "price_date_unknown", "股價資料日期不明，無法確認是否為最新交易日"))
+    elif expected and price_day < expected:
+        report.issues.append(
+            GateIssue("warn", "price_stale", f"股價為 {price_day.isoformat()} 資料，非最新交易日 {expected.isoformat()}")
+        )
+
+    if institutional_expected:
+        inst_day = _parse_date(institutional_date)
+        if not institutional:
+            report.issues.append(GateIssue("warn", "institutional_missing", "本次未取得三大法人買賣超資料"))
+        elif inst_day and price_day and inst_day != price_day:
+            report.issues.append(
+                GateIssue("warn", "institutional_date_mismatch", f"法人資料日期 {inst_day.isoformat()} 與股價日期 {price_day.isoformat()} 不同")
+            )
+    if revenue_expected and not (revenue and revenue.get("revenue_100m") is not None):
+        report.issues.append(GateIssue("warn", "revenue_missing", "本次未取得月營收資料"))
+    if not news_count:
+        report.issues.append(GateIssue("warn", "news_missing", "本次未取得相關新聞"))
+    return report

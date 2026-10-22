@@ -1,0 +1,394 @@
+{
+ "0050": {
+  "hits": 0,
+  "last_date": "2026-08-31",
+  "name": "元大台灣50",
+  "role": "capital_vehicle",
+  "role_label": "資金載體",
+  "total": 1
+ },
+ "1216": {
+  "hits": 0,
+  "last_date": "2026-08-10",
+  "name": "統一",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 2
+ },
+ "1301": {
+  "hits": 2,
+  "last_date": "2026-07-15",
+  "name": "台塑",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 2
+ },
+ "1303": {
+  "hits": 2,
+  "last_date": "2026-10-15",
+  "name": "南亞",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 3
+ },
+ "1326": {
+  "hits": 1,
+  "last_date": "2026-06-25",
+  "name": "台化",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 1
+ },
+ "1717": {
+  "hits": 0,
+  "last_date": "2026-07-07",
+  "name": "長興",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "2301": {
+  "hits": 1,
+  "last_date": "2026-08-06",
+  "name": "光寶科",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 2
+ },
+ "2303": {
+  "hits": 6,
+  "last_date": "2026-09-23",
+  "name": "聯電",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 10
+ },
+ "2308": {
+  "hits": 1,
+  "last_date": "2026-10-06",
+  "name": "台達電",
+  "role": "risk_warning",
+  "role_label": "風險提醒股",
+  "total": 1
+ },
+ "2313": {
+  "hits": 0,
+  "last_date": "2026-10-07",
+  "name": "華通",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 8
+ },
+ "2324": {
+  "hits": 0,
+  "last_date": "2026-08-13",
+  "name": "仁寶",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "2327": {
+  "hits": 2,
+  "last_date": "2026-10-15",
+  "name": "國巨",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 4
+ },
+ "2337": {
+  "hits": 3,
+  "last_date": "2026-06-29",
+  "name": "旺宏",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 5
+ },
+ "2344": {
+  "hits": 12,
+  "last_date": "2026-10-08",
+  "name": "華邦電",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 20
+ },
+ "2355": {
+  "hits": 1,
+  "last_date": "2026-05-19",
+  "name": "敬鵬",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "2356": {
+  "hits": 0,
+  "last_date": "2026-05-08",
+  "name": "英業達",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "2357": {
+  "hits": 0,
+  "last_date": "2026-08-17",
+  "name": "華碩",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "2368": {
+  "hits": 0,
+  "last_date": "2026-09-14",
+  "name": "金像電",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 1
+ },
+ "2408": {
+  "hits": 6,
+  "last_date": "2026-10-05",
+  "name": "南亞科",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 19
+ },
+ "2409": {
+  "hits": 2,
+  "last_date": "2026-09-23",
+  "name": "友達",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 3
+ },
+ "2412": {
+  "hits": 0,
+  "last_date": "2026-07-30",
+  "name": "中華電",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 3
+ },
+ "2449": {
+  "hits": 0,
+  "last_date": "2026-10-14",
+  "name": "京元電子",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 5
+ },
+ "2464": {
+  "hits": 1,
+  "last_date": "2026-09-03",
+  "name": "盟立",
+  "role": "indirect_infrastructure",
+  "role_label": "間接受惠基建股",
+  "total": 1
+ },
+ "2481": {
+  "hits": 0,
+  "last_date": "2026-09-15",
+  "name": "強茂",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "2603": {
+  "hits": 2,
+  "last_date": "2026-10-13",
+  "name": "長榮",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 3
+ },
+ "2609": {
+  "hits": 0,
+  "last_date": "2026-09-14",
+  "name": "陽明",
+  "role": "indirect_infrastructure",
+  "role_label": "間接受惠基建股",
+  "total": 1
+ },
+ "2618": {
+  "hits": 1,
+  "last_date": "2026-07-29",
+  "name": "長榮航",
+  "role": "indirect_infrastructure",
+  "role_label": "間接受惠基建股",
+  "total": 3
+ },
+ "2801": {
+  "hits": 1,
+  "last_date": "2026-06-10",
+  "name": "彰銀",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 1
+ },
+ "2881": {
+  "hits": 0,
+  "last_date": "2026-05-18",
+  "name": "富邦金",
+  "role": "defensive_income",
+  "role_label": "防守收息股",
+  "total": 2
+ },
+ "2882": {
+  "hits": 1,
+  "last_date": "2026-07-01",
+  "name": "國泰金",
+  "role": "defensive_income",
+  "role_label": "防守收息股",
+  "total": 2
+ },
+ "2883": {
+  "hits": 1,
+  "last_date": "2026-07-08",
+  "name": "凱基金",
+  "role": "defensive_income",
+  "role_label": "防守收息股",
+  "total": 1
+ },
+ "2891": {
+  "hits": 0,
+  "last_date": "2026-05-21",
+  "name": "中信金",
+  "role": "defensive_income",
+  "role_label": "防守收息股",
+  "total": 1
+ },
+ "3008": {
+  "hits": 0,
+  "last_date": "2026-10-20",
+  "name": "大立光",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 1
+ },
+ "3037": {
+  "hits": 3,
+  "last_date": "2026-10-12",
+  "name": "欣興",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 4
+ },
+ "3189": {
+  "hits": 1,
+  "last_date": "2026-09-29",
+  "name": "景碩",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 3
+ },
+ "3231": {
+  "hits": 2,
+  "last_date": "2026-10-21",
+  "name": "緯創",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 3
+ },
+ "3443": {
+  "hits": 0,
+  "last_date": "2026-10-13",
+  "name": "創意",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 1
+ },
+ "3450": {
+  "hits": 1,
+  "last_date": "2026-05-11",
+  "name": "聯鈞",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 1
+ },
+ "3481": {
+  "hits": 1,
+  "last_date": "2026-10-01",
+  "name": "群創",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 5
+ },
+ "3711": {
+  "hits": 2,
+  "last_date": "2026-09-11",
+  "name": "日月光投控",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 4
+ },
+ "4958": {
+  "hits": 4,
+  "last_date": "2026-10-08",
+  "name": "臻鼎-KY",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 7
+ },
+ "6239": {
+  "hits": 1,
+  "last_date": "2026-05-18",
+  "name": "力成",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "6278": {
+  "hits": 1,
+  "last_date": "2026-10-20",
+  "name": "台表科",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 1
+ },
+ "6505": {
+  "hits": 1,
+  "last_date": "2026-10-21",
+  "name": "台塑化",
+  "role": "theme_confirmation",
+  "role_label": "題材確認股",
+  "total": 1
+ },
+ "6770": {
+  "hits": 6,
+  "last_date": "2026-09-21",
+  "name": "力積電",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 12
+ },
+ "8039": {
+  "hits": 0,
+  "last_date": "2026-07-27",
+  "name": "台虹",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "8046": {
+  "hits": 1,
+  "last_date": "2026-06-24",
+  "name": "南電",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "8112": {
+  "hits": 0,
+  "last_date": "2026-08-12",
+  "name": "至上",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ },
+ "8150": {
+  "hits": 0,
+  "last_date": "2026-06-29",
+  "name": "南茂",
+  "role": "elastic_attack",
+  "role_label": "彈性攻擊股",
+  "total": 1
+ }
+}

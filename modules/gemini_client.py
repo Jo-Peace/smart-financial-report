@@ -299,8 +299,9 @@ class RetryPlan:
     (each one burns a full call of the daily budget).
     """
 
-    def __init__(self, max_attempts: int):
+    def __init__(self, max_attempts: int, fallback_after: int | None = None):
         self.max_attempts = max(1, int(max_attempts or 1))
+        self.fallback_after = fallback_after
         self.attempt = 0
         self.truncated = 0
 
@@ -309,6 +310,8 @@ class RetryPlan:
         if self.truncated:
             # One truncation already: this may be the last try on this prompt.
             return True
+        if self.fallback_after:
+            return self.attempt >= max(1, min(int(self.fallback_after), self.max_attempts))
         return self.attempt >= fallback_after_attempts(self.max_attempts)
 
     def failed(self, exc: BaseException) -> None:

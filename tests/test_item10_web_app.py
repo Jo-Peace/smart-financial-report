@@ -75,7 +75,7 @@ def _analyzer_factory(reply="# 報告\n內容"):
         def __init__(self, *args, **kwargs):
             pass
 
-        def _call_gemini_with_retry(self, prompt, max_retries=3):
+        def _call_gemini_with_retry(self, prompt, max_retries=3, fallback_after=None):
             FakeAnalyzer.last_prompt = prompt
             FakeAnalyzer.last_retries = max_retries
             if isinstance(reply, Exception):

@@ -207,6 +207,7 @@ function renderReportContent(container, markdown) {
         let kind = null;
         if (text.startsWith('[!TIP]')) kind = { cls: 'alert-tip', icon: '💡', tag: '[!TIP]' };
         else if (text.startsWith('[!WARNING]')) kind = { cls: 'alert-warning', icon: '⚠️', tag: '[!WARNING]' };
+        else if (text.startsWith('[!NOTE]')) kind = { cls: 'alert-tip', icon: '📊', tag: '[!NOTE]' };
         if (!kind) return;
         stripLeadingTag(firstP, kind.tag);
 
