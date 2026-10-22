@@ -637,6 +637,17 @@ def generate_stock_research(ticker: str) -> dict:
 _last_gemini_error: dict = {}
 
 
+def _model_info() -> dict:
+    """Configured model names (not secret) so a 404 / retired model is visible in /healthz."""
+    try:
+        from modules.gemini_client import default_model_name, fallback_model_names
+
+        primary = default_model_name()
+        return {"primary": primary, "fallbacks": fallback_model_names(primary)}
+    except Exception:
+        return {}
+
+
 def classify_gemini_error(text: str) -> str:
     t = str(text or "")
     low = t.lower()
@@ -656,7 +667,10 @@ def classify_gemini_error(text: str) -> str:
 def _record_gemini_error(text: str) -> None:
     """Last failure category (no message text, so no key/prompt can leak) for /healthz."""
     _last_gemini_error.clear()
-    _last_gemini_error.update({"kind": classify_gemini_error(text), "at": taipei_now().strftime("%Y-%m-%d %H:%M")})
+    codes = sorted(set(re.findall(r"\b(400|401|403|404|429|500|502|503|504)\b", str(text))))
+    _last_gemini_error.update(
+        {"kind": classify_gemini_error(text), "codes": codes, "at": taipei_now().strftime("%Y-%m-%d %H:%M")}
+    )
 
 
 # === In-flight guard: one generation per ticker at a time ===
@@ -721,6 +735,7 @@ def healthz():
         "commit": (os.getenv("RENDER_GIT_COMMIT") or "")[:7] or None,
         "last_gemini_error": dict(_last_gemini_error) or None,
         "hit_rate_tickers": len(load_hit_rates()),
+        "gemini_model": _model_info(),
     }
     return JSONResponse(status_code=200 if ok else 503, content={"ok": ok, "checks": checks, "info": info})
 
