@@ -78,11 +78,11 @@ python3 cli.py maintenance compare-institutional --date 2026-08-07
 
 ## 封面 A/B 測試（單一變數，YouTube 測試與比較）
 
-`/2` 的封面 A/B 一次只測一個變數，避免同時換標題句法和封面構圖、事後無法歸因：
+`/2` 每日 A/B（2026-10-30 起）：YouTube「測試與比較」同時測標題＋封面字，A = 原方法標題＋封面 A，B = few-shot 標題＋自己的封面字（`FS`；`FEWSHOT_AB=off` 時為標題 A vs 標題 B 各配自己的封面字，`PK`）。兩張封面都要生圖，大字必須不同。累積：`python3 scripts/youtube/fewshot_ab_summary.py`。下列每週單一變數封面輪替已停用，只在 `AB_HYPOTHESIS=H1..H4` 手動指定時使用：
 
 - `data/ab_test_plan.json`：假設清單（H1 畫風、H2 封面字句型、H3 角色、H4 數字大小／位置），依 ISO 週輪替；`AB_HYPOTHESIS=H3`（或變數名）可覆寫。
 - 兩份封面 Prompt 同主角、同已驗證數字、同配標題 A、同場景與構圖，只差宣告的變數（H1 畫風的場景本身就是變數，只保留同構圖）；各有一行 `- A/B variable: …`。當日主題是「財經戰情室」時 H1 兩組幾乎一樣，當天改測下一個假設。`check-youtube-package` 在主角或數字不同時 FAIL，沒宣告變數時 WARN。
-- 上架用標題 A，在 YouTube Studio「測試與比較」同時上傳封面 A/B；標題 B 留給之後單獨的標題測試。
+- （手動指定單一變數時）上架用標題 A，在 YouTube Studio「測試與比較」同時上傳封面 A/B。
 - YouTube 回報勝出後記錄（寫入 `analytics.db` 的 `ab_test_results`，並標記 `youtube_thumbnail_variants.selected`）：
 
 ```bash

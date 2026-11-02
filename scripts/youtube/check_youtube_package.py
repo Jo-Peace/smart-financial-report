@@ -180,6 +180,21 @@ def _title_pairing(content):
     return match.group(1).strip() if match else ""
 
 
+def _check_package_test(covers, failures, warnings, parse_variable_line):
+    """Daily FS/PK test: A = title A + its headline, B = title B + its own (different) headline."""
+    declared = [parse_variable_line(c) for c in covers]
+    if not all(declared) or [d["arm"] for d in declared] != ["a", "b"] or declared[0]["hypothesis_id"] != declared[1]["hypothesis_id"]:
+        warnings.append("封面 Prompt 1/2 應分別宣告同一個每日測試（FS/PK）的 A 組與 B 組")
+    texts = [(_thumb_field(c, "Primary"), _thumb_field(c, "Secondary")) for c in covers]
+    if texts[0] == texts[1]:
+        failures.append(f"封面 A/B 大字相同（{' / '.join(texts[0])}）：B 封面必須用 B 標題自己的大字")
+    titles = [_title_pairing(c) for c in covers]
+    if all(titles) and titles[0] == titles[1]:
+        failures.append("封面 A/B 配同一個標題：A 配標題 A、B 配標題 B")
+    if texts[0] != texts[1] and not (all(titles) and titles[0] == titles[1]):
+        status_line("PASS", f"今日 A/B（{declared[0]['hypothesis_id'] if declared[0] else '?'}）：標題與封面大字兩組各自不同")
+
+
 def check_ab_covers(thumb_contents, failures, warnings):
     """
     Single-variable cover A/B: both covers must show the same hero and the same
@@ -191,6 +206,17 @@ def check_ab_covers(thumb_contents, failures, warnings):
     covers = [c for c in thumb_contents[:2] if c]
     if len(covers) < 2:
         return
+    declared_ids = {(parse_variable_line(c) or {}).get("hypothesis_id") for c in covers}
+    if declared_ids & {"FS", "PK"}:
+        _check_package_test(covers, failures, warnings, parse_variable_line)
+        return
+    import os as _os
+
+    if not _os.environ.get("AB_HYPOTHESIS", "").strip():
+        failures.append(
+            "封面 A/B 是舊的單一變數封面測試（兩張同配標題 A），不是每日 FS/PK 測試："
+            "每日 /2 必須是 A 原方法標題＋A 封面字 vs B few-shot 標題＋B 自己的封面字（請用新版程式重跑 /2）"
+        )
     heroes = [_hero_text(c) for c in covers]
     if all(heroes) and heroes[0] != heroes[1]:
         failures.append(f"封面 A/B 主角不同（A {heroes[0]} vs B {heroes[1]}）：單一變數測試必須同主角")

@@ -45,10 +45,51 @@ WAR_ROOM_STYLES = frozenset({"war_room", "war_room_flow", "war_room_board"})
 
 BLOCK_START = "<!-- cover-ab-test:start -->"
 BLOCK_END = "<!-- cover-ab-test:end -->"
-TITLE_HEADING = "## 📝 A/B 標題選項（上架用 A；B 留給之後單獨的標題測試）"
-TITLE_A_LABEL = "標題 A（上架標題；封面 A/B 都配這個）"
-TITLE_B_LABEL = "標題 B（備用；之後單獨做標題測試，不與封面測試同時進行）"
+TITLE_HEADING = "## 📝 A/B 標題選項（測試與比較：標題＋封面字一起測，A 配封面 A、B 配封面 B）"
+TITLE_A_LABEL = "標題 A（原方法；配封面 A）"
+TITLE_B_LABEL = "標題 B（測試組；配封面 B）"
+UPLOAD_STEP = "1. 照下方「今日 A/B 測試」在「測試與比較」同時上傳 A（標題 A＋封面 A）與 B（標題 B＋封面 B）"
 CHECKLIST_ROW = "| 封面 A/B 結果（Studio 測試與比較 → record-ab-result） |  |  |"
+
+# Daily package A/B (2026-10-30 decision): YouTube 「測試與比較」 tests title + cover headline
+# together. FS = A 原方法 vs B few-shot; PK = FEWSHOT_AB=off fallback (A 原標題 A vs B 原標題 B),
+# each cover with its own headline text. The weekly single-variable rotation is retired
+# (plan hypotheses are disabled; AB_HYPOTHESIS=H1..H4 still forces one by hand).
+PACKAGE_VARIABLES = frozenset({"fewshot", "title_package"})
+PACKAGE_HYPOTHESES = (
+    {
+        "id": "FS",
+        "variable": "fewshot",
+        "label": "few-shot 標題＋封面字",
+        "arms": {
+            "a": {"mode": "baseline", "label": "原方法標題＋原封面字"},
+            "b": {"mode": "fewshot", "label": "few-shot 標題＋自己的封面字"},
+        },
+    },
+    {
+        "id": "PK",
+        "variable": "title_package",
+        "label": "標題＋封面字（few-shot 關閉時）",
+        "arms": {
+            "a": {"mode": "title_a", "label": "標題 A＋完整封面字"},
+            "b": {"mode": "title_b", "label": "標題 B＋自己的封面字"},
+        },
+    },
+)
+
+
+def is_package_test(hypothesis) -> bool:
+    return bool(hypothesis) and hypothesis.get("variable") in PACKAGE_VARIABLES
+
+
+def package_hypothesis(fewshot=True) -> dict:
+    return dict(PACKAGE_HYPOTHESES[0 if fewshot else 1])
+
+
+def fewshot_enabled(env=None) -> bool:
+    env = os.environ if env is None else env
+    return str(env.get("FEWSHOT_AB", "on")).strip().lower() not in {"off", "0", "false", "no"}
+
 
 _FALLBACK_PLAN = {
     "version": 1,
@@ -87,7 +128,7 @@ def find_hypothesis(plan, key) -> dict | None:
     key = str(key or "").strip().lower()
     if not key:
         return None
-    for h in (plan or {}).get("hypotheses") or []:
+    for h in list((plan or {}).get("hypotheses") or []) + [dict(h) for h in PACKAGE_HYPOTHESES]:
         if isinstance(h, dict) and key in {str(h.get("id", "")).lower(), str(h.get("variable", "")).lower()}:
             return h
     return None
@@ -106,9 +147,10 @@ def iso_week_label(day) -> str:
 
 def current_hypothesis(day, plan=None, override=None, env=None) -> dict | None:
     """
-    The hypothesis under test for ``day``: ``override`` (id / variable) > the
-    ``AB_HYPOTHESIS`` env var > the ISO-week rotation of the enabled hypotheses.
-    Returns a copy with ``iso_week`` and ``source`` ("param" | "env" | "rotation").
+    The test for ``day``: ``override`` (id / variable) > the ``AB_HYPOTHESIS`` env
+    var > the daily package test (FS, or PK when FEWSHOT_AB=off). The weekly
+    single-variable rotation is retired. Returns a copy with ``iso_week`` and
+    ``source`` ("param" | "env" | "daily").
     """
     plan = plan if plan is not None else load_plan()
     env = os.environ if env is None else env
@@ -119,20 +161,8 @@ def current_hypothesis(day, plan=None, override=None, env=None) -> dict | None:
         found = find_hypothesis(plan, key)
         if found:
             return dict(found, iso_week=iso_week_label(day), source=source)
-        print(f"  ⚠️  {ENV_VAR if source == 'env' else 'A/B 假設'}「{key}」不在 data/ab_test_plan.json，改用每週輪替")
-    hypotheses = enabled_hypotheses(plan)
-    if not hypotheses:
-        return None
-    rotation = plan.get("rotation") or {}
-    try:
-        start = _as_date(rotation.get("start_week_monday") or "2026-10-12")
-    except ValueError:
-        start = datetime.date(2026, 10, 12)
-    start -= datetime.timedelta(days=start.weekday())
-    monday = day - datetime.timedelta(days=day.weekday())
-    per = max(1, int(rotation.get("weeks_per_hypothesis") or 1))
-    index = ((monday - start).days // 7 // per) % len(hypotheses)
-    return dict(hypotheses[index], iso_week=iso_week_label(day), source="rotation")
+        print(f"  ⚠️  {ENV_VAR if source == 'env' else 'A/B 假設'}「{key}」不存在，改用每日標題＋封面字測試")
+    return dict(package_hypothesis(fewshot_enabled(env)), iso_week=iso_week_label(day), source="daily")
 
 
 def hypothesis_for_style(hypothesis, base_style, plan=None) -> dict | None:
@@ -145,7 +175,11 @@ def hypothesis_for_style(hypothesis, base_style, plan=None) -> dict | None:
     """
     if not hypothesis or hypothesis.get("variable") != "style" or base_style not in WAR_ROOM_STYLES:
         return hypothesis
-    enabled = enabled_hypotheses(plan if plan is not None else load_plan())
+    plan = plan if plan is not None else load_plan()
+    # weekly rotation retired (all disabled): substitute from the whole plan order
+    enabled = enabled_hypotheses(plan) or [
+        h for h in plan.get("hypotheses") or [] if isinstance(h, dict) and h.get("id") and h.get("variable")
+    ]
     ids = [h["id"] for h in enabled]
     start = ids.index(hypothesis.get("id")) + 1 if hypothesis.get("id") in ids else 0
     for candidate in enabled[start:] + enabled[:start]:
@@ -192,7 +226,7 @@ def variable_line(hypothesis, letter) -> str:
     )
 
 
-_VARIABLE_LINE_RE = re.compile(r"^- A/B variable:\s*([A-Za-z_]+)｜(H\d+)[^｜]*｜本張\s*([AB])", re.MULTILINE)
+_VARIABLE_LINE_RE = re.compile(r"^- A/B variable:\s*([A-Za-z_]+)｜(H\d+|FS|PK)[^｜]*｜本張\s*([AB])", re.MULTILINE)
 
 
 def parse_variable_line(content) -> dict | None:
@@ -220,7 +254,38 @@ def constants_line(hero_label="", number="", title_label="標題 A", variable=""
 # ---------------------------------------------------------------------------
 
 
-def package_section(hypothesis, date_str, hero_label="", number="") -> str:
+def _package_test_section(
+    hypothesis, date_str, title_a="", title_b="", cover_a="", cover_b="", hero_label="", number=""
+) -> str:
+    def cover(text):
+        return " / ".join(x for x in str(text or "").splitlines() if x.strip()) or "（見封面 Prompt）"
+
+    fs = hypothesis.get("id") == "FS"
+    b_name = "few-shot" if fs else "標題 B"
+    return "\n".join(
+        [
+            BLOCK_START,
+            "## 🧪 今日 A/B 測試（YouTube Studio「測試與比較」：標題＋封面）",
+            "",
+            f"- 測試：{hypothesis_title(hypothesis)}｜A {arm(hypothesis, 'a').get('label', '')} vs B {arm(hypothesis, 'b').get('label', '')}",
+            f"- A（原方法）：標題 `{title_a or '見標題 A'}`＋封面 A（大字 {cover(cover_a)}）",
+            f"- B（{b_name}）：標題 `{title_b or '見標題 B'}`＋封面 B（大字 {cover(cover_b)}）",
+            f"- 兩組同一視覺主題與構圖；封面 A {constants_line(hero_label, number)}（B 依 B 標題自己的主角與大字）",
+            "",
+            "1. 在 YouTube Studio「測試與比較」建立「標題＋縮圖」測試：A 組 = 標題 A＋封面 A，B 組 = 標題 B＋封面 B（兩張封面都要生圖，B 封面用 B 的大字）。",
+            "2. 不要先上 A、過幾天再手動換 B（頻道觀看數會混入題材與影片天數的差異）。",
+            "3. YouTube 回報勝出（或沒有明顯差異）後記錄（預設就是今日這組測試）：",
+            f"   `python3 cli.py youtube record-ab-result --date {date_str} --winner a|b|none "
+            "--value-a <A 觀看時間占比> --value-b <B 觀看時間占比>`",
+            "4. 累積 few-shot vs 原方法：`python3 scripts/youtube/fewshot_ab_summary.py`（≥3 次有勝負且過半才考慮改預設；不產生禁令）。",
+            BLOCK_END,
+        ]
+    )
+
+
+def package_section(hypothesis, date_str, hero_label="", number="", **arms) -> str:
+    if is_package_test(hypothesis):
+        return _package_test_section(hypothesis, date_str, hero_label=hero_label, number=number, **arms)
     plan_rule = (
         f"同一假設累積 ≥{MIN_DECIDED_TESTS} 次有勝負、且多數同一邊才建議升級為預設（手動調整 LEVER_DEFAULTS）；"
         "A/B 結果不產生任何禁令。"
@@ -230,7 +295,7 @@ def package_section(hypothesis, date_str, hero_label="", number="") -> str:
         if hypothesis.get("replaces"):
             week += f"；今日主題就是財經戰情室，{hypothesis['replaces']} 兩組會幾乎一樣，改測此假設"
         head = (
-            f"- 本週假設：{hypothesis_title(hypothesis)}（{week}）｜"
+            f"- 手動指定假設：{hypothesis_title(hypothesis)}（{week}）｜"
             f"A {arm(hypothesis, 'a').get('label', '')} vs B {arm(hypothesis, 'b').get('label', '')}"
         )
         only = (
@@ -238,7 +303,7 @@ def package_section(hypothesis, date_str, hero_label="", number="") -> str:
             f"封面 A/B {constants_line(hero_label, number, variable=hypothesis.get('variable', ''))}"
         )
     else:
-        head = "- 本週假設：未宣告（data/ab_test_plan.json 沒有啟用中的假設）"
+        head = "- 假設：未宣告"
         only = f"- 封面 A/B {constants_line(hero_label, number)}"
     return "\n".join(
         [
@@ -248,7 +313,7 @@ def package_section(hypothesis, date_str, hero_label="", number="") -> str:
             head,
             only,
             "",
-            "1. 上架用標題 A。標題 B 留給之後單獨的標題測試，不和封面測試同時進行。",
+            "1. 上架用標題 A（AB_HYPOTHESIS 手動指定的單一變數封面測試）。",
             "2. 在 YouTube Studio「測試與比較」（Test & compare）一次上傳封面 A 與封面 B，讓 YouTube 分流測試；"
             "不要先上 A、過幾天再手動換 B（頻道觀看數會混入題材與影片天數的差異）。",
             "3. YouTube 回報勝出（或顯示沒有明顯差異）後記錄結果：",
@@ -276,7 +341,8 @@ def refresh_package_ab_guidance(package_text, section) -> str:
     text = re.sub(r"^## 📝 A/B 標題選項（[^\n]*", TITLE_HEADING, text, count=1, flags=re.MULTILINE)
     text = re.sub(r"\*\*標題 A（[^*\n]*）：\*\*", f"**{TITLE_A_LABEL}：**", text, count=1)
     text = re.sub(r"\*\*標題 B（[^*\n]*）：\*\*", f"**{TITLE_B_LABEL}：**", text, count=1)
-    text = text.replace("1. 先用標題 A 上傳", "1. 用標題 A 上傳（封面 A/B 照下方「封面 A/B 測試」同時上傳）")
+    text = text.replace("1. 先用標題 A 上傳", UPLOAD_STEP)
+    text = text.replace("1. 用標題 A 上傳（封面 A/B 照下方「封面 A/B 測試」同時上傳）", UPLOAD_STEP)
     for pattern in _OLD_GUIDANCE_LINES:
         text = pattern.sub("", text)
     text = re.sub(r"^\| 是否更換 B 組 \|[^\n]*", CHECKLIST_ROW, text, flags=re.MULTILINE)

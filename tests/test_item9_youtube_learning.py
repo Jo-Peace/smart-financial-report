@@ -262,7 +262,9 @@ class CompoundingBriefTest(unittest.TestCase):
                 f.write(text)
             with mock.patch("modules.youtube_learning.load_metric_series", return_value={}), \
                     mock.patch.object(analytics_store, "AnalyticsStore", side_effect=RuntimeError("no db")):
-                brief = build_weekly_compounding_brief(log_path=log, stock_db_path=os.path.join(tmp, "db.json"))
+                brief = build_weekly_compounding_brief(
+                    log_path=log, stock_db_path=os.path.join(tmp, "db.json"), now=NOW
+                )
         copy = brief.split("## 本週可複製（標題／選鉤）")[1].split("## 本週禁止")[0]
         self.assertIn("累積觀看（僅上架 ≥72 小時", copy)
         self.assertNotIn("99,999", copy)  # young video is never a copy sample

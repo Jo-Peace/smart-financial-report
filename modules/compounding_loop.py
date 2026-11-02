@@ -36,12 +36,14 @@ DEFAULT_BRIEF = os.path.join(REPORTS_DIR, "shared", "weekly_compounding_brief.md
 DEFAULT_DB = os.path.join(BASE_DIR, "data", "stock_db.json")
 
 
-def _learning_window(log_path: str, recent_limit: int):
-    """Shared same-age / offsite-excluded learning window (same basis as youtube_performance_patterns)."""
+def _learning_window(log_path: str, recent_limit: int, now=None):
+    """Shared same-age / offsite-excluded learning window (same basis as youtube_performance_patterns).
+
+    ``now`` pins the clock used for the <72h maturity cut (defaults to wall clock)."""
     from modules.youtube_learning import learning_window
 
     try:
-        return learning_window(log_path, recent_limit=recent_limit)
+        return learning_window(log_path, recent_limit=recent_limit, now=now)
     except Exception:
         return None
 
@@ -179,8 +181,9 @@ def build_weekly_compounding_brief(
     recent_limit: int = 30,
     bans_path: str | None = None,
     ab_results: list | None = None,
+    now=None,
 ) -> str:
-    window = _learning_window(log_path, recent_limit)
+    window = _learning_window(log_path, recent_limit, now=now)
     channel_story = ""
     if os.path.exists(log_path):
         with open(log_path, "r", encoding="utf-8") as f:

@@ -6,9 +6,9 @@ Purpose: keep thumbnail tests simple, readable, and measurable.
 
 Generate only two thumbnail concepts:
 
-- A and B are one single-variable test (`data/ab_test_plan.json`, one hypothesis per ISO week).
-- Same hero stock, same verified number, same title pairing (title A), same scene and composition.
-- Only the week's variable differs (style / text / characters / number layout); both prompts carry `- A/B variable: …`.
+- Daily test (since 2026-10-30): A = original title A + its cover headline; B = few-shot title + its OWN cover headline (`FS`). With `FEWSHOT_AB=off`: A = title A, B = title B, each with its own headline (`PK`).
+- Same visual world, composition, characters and layout; only title + headline text differ, and A/B headline text must differ (check-youtube-package FAILs if equal). Both prompts carry `- A/B variable: …`.
+- The weekly single-variable rotation (H1–H4) is retired; `AB_HYPOTHESIS=H1..H4` forces one by hand.
 
 ## Text Rule
 
@@ -95,8 +95,7 @@ Track the thumbnail concept type for future learning:
 
 ## Daily Workflow
 
-1. Upload with title A.
-2. Upload cover A and cover B together in YouTube Studio 「測試與比較」 (Test & compare); do not switch covers by hand later.
-3. When YouTube reports a winner (or no clear difference), run `python3 cli.py youtube record-ab-result --date YYYY-MM-DD --winner a|b|none`.
-4. Promote an arm only after ≥ 3 decided tests of the same hypothesis with a majority; never ban from A/B alone.
-5. Title B is kept for a separate future title test, never run at the same time as a cover test.
+1. Render both covers (B uses B's headline text).
+2. In YouTube Studio 「測試與比較」 (Test & compare) set up title + thumbnail: A = title A + cover A, B = title B + cover B; do not switch by hand later.
+3. When YouTube reports a winner (or no clear difference), run `python3 cli.py youtube record-ab-result --date YYYY-MM-DD --winner a|b|none` (defaults to the day's FS/PK test).
+4. Cumulative few-shot vs baseline: `python3 scripts/youtube/fewshot_ab_summary.py`. Change the default only after ≥ 3 decided tests with a majority; never ban from A/B alone.

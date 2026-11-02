@@ -4,6 +4,10 @@ Record a YouTube Studio 「測試與比較」 (Test & compare) cover result.
   python3 cli.py youtube record-ab-result --date 2026-10-14 --winner a \
       --metric watch_time_share --value-a 54.2 --value-b 45.8
 
+Daily default (2026-10-30+): the covers declare FS (A 原方法 vs B few-shot, title + cover
+headline tested together) or PK (FEWSHOT_AB=off: title A vs title B), so no
+--hypothesis is needed; FS reads which arm is few-shot from fewshot_ab.json.
+
 The hypothesis is read from that day's cover prompts (``- A/B variable:`` line);
 ``--hypothesis`` overrides. Covers without that line predate the single-variable
 test (A and B changed title syntax AND composition), so their result cannot be
@@ -54,6 +58,24 @@ def _declared_hypothesis(date_str, reports_dir=None):
     return None
 
 
+def _fewshot_hypothesis(date_str, reports_dir=None):
+    """Few-shot vs baseline title/cover test: needs that day's fewshot_ab.json (which arm is few-shot)."""
+    from modules.fewshot_bank import FEWSHOT_HYPOTHESIS_ID, read_day_meta
+
+    meta = read_day_meta(reports_dir or REPORTS_DIR, date_str)
+    if not meta:
+        raise SystemExit(f"❌ {date_str} 沒有 reports/youtube/{date_str}/fewshot_ab.json（當天沒有 few-shot 組），未記錄")
+    fs = str(meta.get("fewshot_arm") or "b").lower()
+    labels = {fs: "few-shot", ("a" if fs == "b" else "b"): "baseline（原方法）"}
+    return {
+        "id": FEWSHOT_HYPOTHESIS_ID,
+        "variable": "fewshot",
+        "label": "few-shot 包裝",
+        "fewshot_arm": fs,
+        "arms": {"a": {"label": labels["a"]}, "b": {"label": labels["b"]}},
+    }
+
+
 def resolve_hypothesis(date_str, override="", plan=None, reports_dir=None):
     """
     (hypothesis dict, source) — --hypothesis > the covers' declaration. Covers that
@@ -62,6 +84,8 @@ def resolve_hypothesis(date_str, override="", plan=None, reports_dir=None):
     hypothesis would count a confounded result toward its n and its promotion.
     """
     plan = plan if plan is not None else load_plan()
+    if str(override or "").strip().lower() in {"fs", "fewshot"}:
+        return _fewshot_hypothesis(date_str, reports_dir), "fewshot_ab.json"
     declared = _declared_hypothesis(date_str, reports_dir)
     if override:
         found = find_hypothesis(plan, override)
@@ -75,6 +99,8 @@ def resolve_hypothesis(date_str, override="", plan=None, reports_dir=None):
                 f"你指定 {found.get('id')}；依 --hypothesis 記錄"
             )
         return found, "--hypothesis"
+    if declared and declared["hypothesis_id"] == "FS":
+        return _fewshot_hypothesis(date_str, reports_dir), "封面 Prompt 的 A/B variable（每日 FS）"
     if declared:
         found = find_hypothesis(plan, declared["hypothesis_id"]) or {
             "id": declared["hypothesis_id"],
@@ -121,7 +147,9 @@ def main(argv=None):
         value_a=args.value_a,
         value_b=args.value_b,
         video_id=args.video_id,
-        notes=args.notes,
+        notes=(f"fewshot_arm={hypothesis['fewshot_arm']}" + (f"; {args.notes}" if args.notes else ""))
+        if hypothesis.get("fewshot_arm")
+        else args.notes,
     )
     print(
         f"✅ 已記錄 {args.date} 封面 A/B：{hypothesis.get('id')} {hypothesis.get('variable')}（來源：{source}）"
@@ -139,6 +167,16 @@ def main(argv=None):
     print("\n封面 A/B 累積（同一假設 ≥3 次有勝負且過半才升級預設；不產生禁令）：")
     for line in format_learning_lines(summarize_results(store.get_ab_test_results(), plan=plan)):
         print(f"  {line}")
+    if hypothesis.get("fewshot_arm"):
+        from modules.fewshot_bank import read_day_meta, summarize_fewshot
+
+        rows = store.get_ab_test_results()
+        metas = {r.get("run_date"): read_day_meta(REPORTS_DIR, r.get("run_date")) for r in rows}
+        fs = summarize_fewshot(rows, metas)
+        print(
+            f"\nfew-shot vs baseline 累積：n={fs['n']}，few-shot 勝 {fs['fewshot_wins']}／baseline 勝 {fs['baseline_wins']}"
+            f"／無明顯差異 {fs['no_difference']}"
+        )
     return 0
 
 

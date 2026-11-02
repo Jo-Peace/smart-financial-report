@@ -118,8 +118,8 @@ def _covers(hypothesis, titles=(TITLE_A, TITLE_B), style=THEME):
 class PlanTests(unittest.TestCase):
     def test_plan_has_single_variable_hypotheses(self):
         plan = cover_ab_test.load_plan()
-        hypotheses = cover_ab_test.enabled_hypotheses(plan)
-        self.assertGreaterEqual(len(hypotheses), 4)
+        hypotheses = plan["hypotheses"]
+        self.assertFalse(cover_ab_test.enabled_hypotheses(plan))  # weekly rotation retired 2026-10-30
         self.assertEqual(
             {h["variable"] for h in hypotheses} & set(cover_ab_test.LEVER_DEFAULTS),
             {"style", "text", "characters", "number_layout"},
@@ -128,19 +128,18 @@ class PlanTests(unittest.TestCase):
             self.assertEqual(set(h["arms"]), {"a", "b"})
             self.assertNotEqual(h["arms"]["a"]["mode"], h["arms"]["b"]["mode"])
 
-    def test_iso_week_rotation_and_overrides(self):
+    def test_daily_package_test_and_overrides(self):
         plan = cover_ab_test.load_plan()
-        week = [cover_ab_test.current_hypothesis(f"2026-10-{d}", plan=plan, env={})["id"] for d in (12, 14, 16, 18)]
-        self.assertEqual(set(week), {"H1"})  # one hypothesis per ISO week (2026-W42)
-        self.assertEqual(cover_ab_test.current_hypothesis("2026-10-19", plan=plan, env={})["id"], "H2")
-        self.assertEqual(cover_ab_test.current_hypothesis("2026-11-09", plan=plan, env={})["id"], "H1")  # 4-week cycle
+        week = [cover_ab_test.current_hypothesis(f"2026-10-{d}", plan=plan, env={})["id"] for d in (12, 14, 19, 26)]
+        self.assertEqual(set(week), {"FS"})  # same daily test every day, no weekly rotation
+        self.assertEqual(cover_ab_test.current_hypothesis("2026-10-14", plan=plan, env={"FEWSHOT_AB": "off"})["id"], "PK")
         self.assertEqual(cover_ab_test.current_hypothesis("2026-10-14", plan=plan, env={})["iso_week"], "2026-W42")
         env = {"AB_HYPOTHESIS": "H3"}
         self.assertEqual(cover_ab_test.current_hypothesis("2026-10-14", plan=plan, env=env)["source"], "env")
         self.assertEqual(cover_ab_test.current_hypothesis("2026-10-14", plan=plan, env=env)["id"], "H3")
         self.assertEqual(cover_ab_test.current_hypothesis("2026-10-14", plan=plan, override="text", env=env)["id"], "H2")
         with redirect_stdout(StringIO()):
-            self.assertEqual(cover_ab_test.current_hypothesis("2026-10-14", plan=plan, env={"AB_HYPOTHESIS": "H9"})["id"], "H1")
+            self.assertEqual(cover_ab_test.current_hypothesis("2026-10-14", plan=plan, env={"AB_HYPOTHESIS": "H9"})["id"], "FS")
 
 
 class CoverPairTests(unittest.TestCase):
@@ -230,6 +229,14 @@ class CoverPairTests(unittest.TestCase):
         self.assertIn("upper-right corner", _image_prompt(b))
         self.assertEqual(_field(a, "Secondary"), _field(b, "Secondary"))
 
+    def test_check_fails_old_cover_only_ab_without_manual_override(self):
+        _result, prompts = _covers("H4")
+        failures, warnings = [], []
+        with mock.patch.dict(os.environ, {"AB_HYPOTHESIS": ""}), redirect_stdout(StringIO()):
+            check_youtube_package.check_ab_covers(prompts, failures, warnings)
+        self.assertTrue(any("FS/PK" in f for f in failures))
+
+    @mock.patch.dict(os.environ, {"AB_HYPOTHESIS": "H1"})
     def test_check_youtube_package_ab_rules(self):
         _result, prompts = _covers("H1")
         failures, warnings = [], []

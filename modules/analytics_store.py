@@ -833,8 +833,10 @@ class AnalyticsStore:
         video_id="",
         notes="",
         recorded_at=None,
+        mark_thumbnail=True,
     ):
         """
+        ``mark_thumbnail=False`` (few-shot title test) leaves youtube_thumbnail_variants alone.
         Upsert the YouTube 「測試與比較」 result for ``run_date`` (one cover test per
         video/day) and mark the winning cover in youtube_thumbnail_variants.selected.
         ``none`` (no clear winner) marks nothing and leaves existing flags alone —
@@ -886,7 +888,9 @@ class AnalyticsStore:
             ),
         )
         selected, cleared = 0, False
-        if winner in {"a", "b"}:
+        if not mark_thumbnail:
+            pass
+        elif winner in {"a", "b"}:
             selected = self._mark_selected_thumbnail(cur, run_date, winner)
         elif previous_pick in {"a", "b"}:
             self._mark_selected_thumbnail(cur, run_date, "")

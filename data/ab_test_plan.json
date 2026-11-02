@@ -4,7 +4,7 @@
   "rotation": {
     "start_week_monday": "2026-10-12",
     "weeks_per_hypothesis": 1,
-    "note": "依 ISO 週（週一起算）輪替啟用中的假設；同一週的每支影片測同一個變數。環境變數 AB_HYPOTHESIS=H2（或變數名 text）可覆寫。"
+    "note": "2026-10-30 起停用每週單一變數封面輪替：每日改測 FS（A 原方法標題＋封面字 vs B few-shot 標題＋自己的封面字；FEWSHOT_AB=off 時為 PK 標題 A vs 標題 B，各自封面字）。H1–H4 只在 AB_HYPOTHESIS 手動指定時使用。"
   },
   "env_override": "AB_HYPOTHESIS",
   "decision": {
@@ -36,7 +36,7 @@
           "label": "戰情室數據大字牌"
         }
       },
-      "enabled": true
+      "enabled": false
     },
     {
       "id": "H2",
@@ -53,7 +53,7 @@
           "label": "問句（同股同數字，「外資為何買…？」）"
         }
       },
-      "enabled": true
+      "enabled": false
     },
     {
       "id": "H3",
@@ -70,7 +70,7 @@
           "label": "無角色純數據"
         }
       },
-      "enabled": true
+      "enabled": false
     },
     {
       "id": "H4",
@@ -87,7 +87,7 @@
           "label": "小數字（右上角小字牌，主角場景放大）"
         }
       },
-      "enabled": true
+      "enabled": false
     }
   ]
 }

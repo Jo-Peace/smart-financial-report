@@ -36,3 +36,7 @@ data/backup/
 
 # Timestamped backups written by maintenance scripts (e.g. recompute_prediction_results.py --apply)
 data/*.bak-*
+
+# few-shot experiment (private)
+data/fewshot_title_bank.json
+reports/youtube/*/fewshot_ab.json

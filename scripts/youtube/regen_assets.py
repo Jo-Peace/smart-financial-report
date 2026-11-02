@@ -423,13 +423,22 @@ def _apply_cover_ab_guidance(package, ab_results):
     try:
         from modules.cover_ab_test import package_section, refresh_package_ab_guidance
 
+        from modules.cover_ab_test import is_package_test
+
         ab = (ab_results or {}).get("ab_test") or {}
         date_str = re.search(r"YouTube 上架素材包 (\d{4}-\d{2}-\d{2})", package)
+        arms = {}
+        if is_package_test(ab.get("hypothesis")):
+            thumbs = (ab_results or {}).get("thumbnails") or []
+            for letter, thumb in zip("ab", thumbs[:2]):
+                arms[f"title_{letter}"] = thumb.get("title", "")
+                arms[f"cover_{letter}"] = thumb.get("cover_text", "")
         section = package_section(
             ab.get("hypothesis"),
             date_str.group(1) if date_str else datetime.date.today().isoformat(),
             hero_label=ab.get("hero_label", ""),
             number=ab.get("number", ""),
+            **arms,
         )
         return refresh_package_ab_guidance(package, section)
     except Exception as e:
@@ -934,6 +943,38 @@ def main():
                     )
                 except Exception as e:
                     print(f"  ⚠️  影片製作計畫產生失敗，略過：{e}")
+
+                # Few-shot packaging experiment (arm B only; baseline above is untouched).
+                try:
+                    from modules.fewshot_variant import (
+                        append_package_section,
+                        enabled,
+                        replace_package_title_b,
+                        run_fewshot_variant,
+                    )
+
+                    if enabled():
+                        print("🧪 few-shot 標題實驗（B 組）生成中...")
+                        fewshot_meta = run_fewshot_variant(
+                            GEMINI_API_KEY,
+                            structured_data,
+                            report_content,
+                            date_str,
+                            build_packaging_context(structured_data, bans_state=bans_state),
+                            yt_package.get("titles") or [],
+                            REPORTS_DIR,
+                        )
+                        if fewshot_meta:
+                            # Daily test = A 原方法 vs B few-shot: B replaces the old reserve title B.
+                            yt_package["titles"] = [
+                                fewshot_meta["arms"]["a"]["title"],
+                                fewshot_meta["arms"]["b"]["title"],
+                            ]
+                            replace_package_title_b(yt_package_path, fewshot_meta["arms"]["b"]["title"])
+                            append_package_section(yt_package_path, fewshot_meta)
+                            print(f"     few-shot B：{fewshot_meta['arms']['b']['title']}")
+                except Exception as e:
+                    print(f"  ⚠️  few-shot 實驗失敗，略過：{e}")
             else:
                 print("  ⚠️  YouTube 素材生成失敗，改用本機 fallback package")
                 yt_package = build_fallback_youtube_package(
@@ -987,6 +1028,21 @@ def main():
                 )
                 preferred_titles = [title.strip() for title in preferred_titles if title.strip()]
 
+            # Daily package A/B: FS when today's few-shot B exists, else PK (A/B titles, own headlines).
+            from modules.fewshot_bank import read_day_meta
+            from modules.fewshot_variant import enabled as _fewshot_enabled
+
+            fewshot_meta = read_day_meta(REPORTS_DIR, date_str) if _fewshot_enabled() else {}
+            day_hypothesis = None
+            cover_texts = None
+            if not os.getenv("AB_HYPOTHESIS"):
+                if fewshot_meta.get("arms"):
+                    day_hypothesis = "FS"
+                    preferred_titles = [fewshot_meta["arms"]["a"]["title"], fewshot_meta["arms"]["b"]["title"]]
+                    cover_texts = {k: v.get("cover_text", "") for k, v in fewshot_meta["arms"].items()}
+                else:
+                    day_hypothesis = "PK"
+
             def _generate_covers(styles, titles):
                 return generate_ab_test_thumbnails(
                     gemini_api_key=GEMINI_API_KEY,
@@ -999,6 +1055,8 @@ def main():
                     run_date=date_str,
                     channel_story=read_story_table_tail(CHANNEL_STORY_LOG, n_rows=STORY_ROWS_FOR_FATIGUE),
                     preferred_titles=titles,
+                    ab_hypothesis=day_hypothesis,
+                    cover_texts=cover_texts,
                 )
 
             ab_results = _generate_covers(thumbnail_styles, preferred_titles)

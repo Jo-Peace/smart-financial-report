@@ -1470,6 +1470,73 @@ def build_ab_cover_briefs(base, hypothesis, hero, base_style, paired_title):
     return briefs
 
 
+def _overlay_pair(text):
+    lines = [x.strip() for x in str(text or "").splitlines() if x.strip()]
+    if not lines:
+        return None
+    return lines[0], (lines[1] if len(lines) > 1 else "")
+
+
+def title_angle_overlay(title, hero, avoid=None):
+    """Cover headline following the title's angle (?→question, 卻→fragment, else control), ≠ avoid pair."""
+    builders = [_control_overlay, _fragment_overlay, _question_overlay]
+    if re.search(r"[?？]", title or ""):
+        builders = [_question_overlay, _fragment_overlay, _control_overlay]
+    elif "卻" in (title or ""):
+        builders = [_fragment_overlay, _question_overlay, _control_overlay]
+    candidates = [b(hero) for b in builders]
+    for pair in candidates:
+        if tuple(pair) != tuple(avoid or ()):
+            return tuple(pair)
+    return tuple(candidates[0])
+
+
+def build_package_test_briefs(base, hypothesis, titles, facts, base_style, cover_texts=None):
+    """
+    Daily package A/B (FS / PK): A = title A + its headline, B = title B + ITS OWN
+    headline (never A's text). Same visual world, composition, characters and layout.
+    """
+    from modules.cover_ab_test import variable_line
+
+    titles = [t for t in (titles or []) if t] or ["台股今日分析"]
+    cover_texts = cover_texts or {}
+    base = dict(base or {})
+    briefs, overlays = [], []
+    for index, letter in enumerate(("a", "b")):
+        title = titles[min(index, len(titles) - 1)]
+        hero = choose_hero([title], facts=facts) or {}
+        given = _overlay_pair(cover_texts.get(letter))
+        if given:
+            pair = given
+        elif hero.get("name") or hero.get("ticker"):
+            pair = _control_overlay(hero) if index == 0 else title_angle_overlay(title, hero, avoid=overlays[0])
+        else:
+            pair = (base.get("overlay_primary") or title[:12], base.get("overlay_secondary") or "")
+        if index == 1 and tuple(pair) == tuple(overlays[0]):
+            pair = _question_overlay(hero) if hero else (pair[0], (pair[1] or "") + "？")
+        overlays.append(tuple(pair))
+        brief = dict(base)
+        brief["avoid"] = [bit for bit in (base.get("avoid") or []) if bit not in _OLD_LAYOUT_AVOIDS]
+        brief["main_stocks"] = list(base.get("main_stocks") or [])
+        brief["paired_title"] = title
+        brief["hero"] = hero
+        brief["overlay_primary"], brief["overlay_secondary"] = pair
+        brief["style_key"] = base_style
+        brief["character_mode"] = "duo"
+        brief["number_layout"] = "standard"
+        brief["composition_id"] = AB_SHARED_COMPOSITION["id"]
+        brief["composition_label"] = AB_SHARED_COMPOSITION["label"]
+        brief["composition_directive"] = AB_SHARED_COMPOSITION["directive"]
+        brief["ab_arm"] = letter
+        brief["ab_hypothesis"] = hypothesis
+        brief["ab_levers"] = {}
+        brief["ab_variable_line"] = variable_line(hypothesis, letter)
+        brief["ab_constants_line"] = "同一視覺主題、同構圖、同角色；只差標題與該標題自己的封面大字"
+        brief["ab_number"] = cover_number(*pair)
+        briefs.append(brief)
+    return briefs
+
+
 def _stamp_ab_composition(scenario_brief, index):
     """Inject a hard A/B composition directive so two thumbnails cannot share one layout."""
     scenario_brief = dict(scenario_brief or {})
@@ -1683,6 +1750,7 @@ def generate_ab_test_thumbnails(
     channel_story="",
     preferred_titles=None,
     ab_hypothesis=None,
+    cover_texts=None,
 ):
     """
     Generate thumbnail prompts + title pairings for A/B testing.
@@ -1761,10 +1829,15 @@ def generate_ab_test_thumbnails(
                 f"今天改測 {hypothesis.get('id')}"
             )
         print(
-            f"\n🧪 本週封面 A/B 假設：{hypothesis.get('id')} {hypothesis.get('label')}"
+            f"\n🧪 今日 A/B 測試：{hypothesis.get('id')} {hypothesis.get('label')}"
             f"（{hypothesis.get('iso_week')}，來源 {hypothesis.get('source')}）"
         )
-    print("\n🎬 正在生成情境式封面 brief（A/B 共用同一情境、同主角、同數字、同配標題 A）...")
+    from modules.cover_ab_test import is_package_test as _is_pkg
+
+    if _is_pkg(hypothesis):
+        print("\n🎬 正在生成情境式封面 brief（每日 A/B：A 標題 A＋A 封面字 vs B 標題 B＋B 自己的封面字）...")
+    else:
+        print("\n🎬 正在生成情境式封面 brief（手動單一變數測試：同主角、同數字、同配標題 A）...")
     facts = build_fact_index(structured_data or {})
     hero = choose_hero(titles, facts=facts) if structured_data else {}
     if hero:
@@ -1783,7 +1856,12 @@ def generate_ab_test_thumbnails(
         run_date=date_full,
     )
     base = base_briefs[0] if base_briefs else {"scenario_name": "主力點火", "avoid": []}
-    scenario_briefs = build_ab_cover_briefs(base, hypothesis, hero, primary_style, paired_title)
+    from modules.cover_ab_test import is_package_test
+
+    if is_package_test(hypothesis):
+        scenario_briefs = build_package_test_briefs(base, hypothesis, titles, facts, primary_style, cover_texts)
+    else:
+        scenario_briefs = build_ab_cover_briefs(base, hypothesis, hero, primary_style, paired_title)
     results["ab_test"] = {
         "hypothesis": hypothesis,
         "hero_label": _hero_label(hero) if hero else "",
@@ -1794,7 +1872,7 @@ def generate_ab_test_thumbnails(
 
     for i, scenario in enumerate(scenario_briefs):
         if structured_data:
-            scenario, cover_issues = _gate_cover(scenario, i, facts, hero)
+            scenario, cover_issues = _gate_cover(scenario, i, facts, scenario.get("hero") or hero)
             results["cover_gate"].extend(cover_issues)
         style = scenario.get("style_key") or primary_style
         preset = STYLE_PRESETS.get(style)
@@ -1824,6 +1902,7 @@ def generate_ab_test_thumbnails(
             "path": output_path,
             "prompt": prompt,
             "arm": scenario.get("ab_arm", ""),
+            "cover_text": "\n".join(x for x in (scenario.get("overlay_primary"), scenario.get("overlay_secondary")) if x),
             "ab_variable": scenario.get("ab_variable_line", ""),
             "hypothesis_id": (hypothesis or {}).get("id", ""),
         })
@@ -1853,6 +1932,6 @@ def print_ab_test_summary(results):
     hypothesis = (results.get("ab_test") or {}).get("hypothesis") or {}
     if hypothesis:
         print(f"\n  🧪 A/B 變數：{hypothesis.get('id')} {hypothesis.get('label')}（其餘全部相同）")
-    print("\n  💡 建議：用標題 A 上架；兩份封面 Prompt 手動生圖後，在 YouTube Studio「測試與比較」同時上傳，")
-    print("     等 YouTube 回報勝出後執行 python3 cli.py youtube record-ab-result 記錄。標題 B 留給之後單獨的標題測試。")
+    print("\n  💡 建議：兩份封面 Prompt 都生圖；在 YouTube Studio「測試與比較」建立 A（標題 A＋封面 A）vs B（標題 B＋封面 B），")
+    print("     等 YouTube 回報勝出後執行 python3 cli.py youtube record-ab-result 記錄（預設就是今日這組）。")
     print(f"{'='*60}\n")

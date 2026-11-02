@@ -454,12 +454,17 @@ def _generate_package_text(gemini_api_key, prompt, model_name):
         raise cause from None
 
 
-def generate_youtube_package(gemini_api_key, structured_data, report_content, date_str, packaging_context=None):
+def generate_youtube_package(
+    gemini_api_key, structured_data, report_content, date_str, packaging_context=None, fewshot_block=None
+):
     """
     Generates a complete YouTube upload package using Gemini.
 
     Returns dict with:
         titles         - list of 2 title variants (A/B)
+
+    ``fewshot_block`` (few-shot experiment arm only) is inserted right before the
+    output-format section; when None/"" the prompt is byte-identical to baseline.
         description    - full SEO-optimized description
         pinned_comment - pinned comment template
     """
@@ -564,6 +569,8 @@ def generate_youtube_package(gemini_api_key, structured_data, report_content, da
             f"00:00 必須先丟今日最大矛盾（建議素材：{opening_hook}）；"
             "驗收最多放在 03:30 左右用 1 句帶過。"
         )
+
+    fewshot_section = (str(fewshot_block).rstrip() + "\n\n") if fewshot_block else ""
 
     prompt = f"""你是一位專業的 YouTube 頻道成長策略師，深度熟悉台灣股市投資者的行為心理與 YouTube 演算法。
 
@@ -712,7 +719,7 @@ BLOCK 開場日：禁止 AMD／驗收開場；系統會優先採用本機高樣�
 3. 說明留言區的用途（博士和阿明會看）
 4. 加 2-3 個相關 emoji
 
-===輸出格式（嚴格遵守，不得添加任何說明文字或markdown標記）===
+{fewshot_section}===輸出格式（嚴格遵守，不得添加任何說明文字或markdown標記）===
 
 ###TITLE_A
 （標題A）
@@ -1228,7 +1235,24 @@ def _cover_ab_block(titles, structured_data, date_str):
         hypothesis = current_hypothesis(date_str)
     except Exception:
         hypothesis = None
-    return package_section(hypothesis, date_str, hero_label=hero_label, number=number)
+    titles = list(titles or [])
+    arms = {}
+    if hypothesis and hypothesis.get("variable") in {"fewshot", "title_package"}:
+        arms = {"title_a": titles[0] if titles else "", "title_b": titles[1] if len(titles) > 1 else ""}
+        try:
+            from modules.thumbnail_generator import _control_overlay, title_angle_overlay
+            from modules.title_fact_gate import choose_hero
+
+            hero_a = choose_hero(titles[:1], structured_data or {}) if titles and structured_data else {}
+            hero_b = choose_hero(titles[1:2], structured_data or {}) if len(titles) > 1 and structured_data else {}
+            if hero_a:
+                pair_a = _control_overlay(hero_a)
+                arms["cover_a"] = "\n".join(pair_a)
+                if hero_b:
+                    arms["cover_b"] = "\n".join(title_angle_overlay(titles[1], hero_b, avoid=pair_a))
+        except Exception:
+            pass
+    return package_section(hypothesis, date_str, hero_label=hero_label, number=number, **arms)
 
 
 def save_youtube_package(result, reports_dir, date_str, structured_data=None):
@@ -1285,7 +1309,9 @@ def save_youtube_package(result, reports_dir, date_str, structured_data=None):
     lines.append("```\n")
 
     lines.append("---\n\n## 📌 上架流程提醒\n")
-    lines.append("1. 用標題 A 上傳（封面 A/B 照下方「封面 A/B 測試」同時上傳）")
+    from modules.cover_ab_test import UPLOAD_STEP
+
+    lines.append(UPLOAD_STEP)
     lines.append("2. 在 Canva 打開縮圖背景，加上今日標題文字")
     lines.append("3. 上傳影片，貼上描述和縮圖")
     lines.append("4. 發布後立即貼置頂留言")

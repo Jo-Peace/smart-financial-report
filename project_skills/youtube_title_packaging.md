@@ -7,7 +7,7 @@ Purpose: produce two clean title candidates for daily Taiwan stock videos and ke
 Generate only two title candidates:
 
 - A: control. Full sentence: verified amount + core stock + contradiction in the first 20 characters (use 買／砍, never open with `外資○○億狂砍／狂掃`). Pick the structure family suggested by「標題結構輪替」. Upload A first.
-- B: reserve for a separate future title test (never at the same time as the cover A/B test). Same core stock and same verified number, but a different structure family (contradiction clause, short question, telegram). Do not start B with `外資○○億狂砍／狂掃`. Do not use 驗收 / 上集點名 / VERIFIED.
+- B: daily test arm (replaced by the few-shot title unless `FEWSHOT_AB=off`); tested with its own cover headline vs A. Same core stock and same verified number, but a different structure family (contradiction clause, short question, telegram). Do not start B with `外資○○億狂砍／狂掃`. Do not use 驗收 / 上集點名 / VERIFIED.
 
 Do not generate C titles. Three-way testing creates too much noise for the current channel scale.
 
@@ -210,4 +210,4 @@ Rules:
 6. If Browse features dominate, compare CTR and first 30 seconds retention before search performance.
 7. If same-age views are below 2× the channel median, keep the record but do not judge.
 8. Above that, compare CTR, views, retention, and comments.
-9. Covers are tested with Studio "Test & compare" (single variable, see thumbnail_ab_testing.md); a title test runs separately, never together with a cover test.
+9. Daily "Test & compare": title + cover, A original vs B few-shot.
